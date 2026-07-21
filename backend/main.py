@@ -6,8 +6,11 @@ Responsibilities:
 - Register all routers
 - Call Cloudinary init on startup
 """
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 from core.config import settings
 from core.cloudinary_client import init_cloudinary
@@ -52,6 +55,12 @@ app.include_router(setups.router)
 app.include_router(collections.router)
 app.include_router(favorites.router)
 app.include_router(users.router)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    index_html_path = Path(__file__).resolve().parent / "index.html"
+    return HTMLResponse(index_html_path.read_text(encoding="utf-8"))
 
 
 @app.get("/health")
