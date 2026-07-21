@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 export default function GoogleAuthButton({ onSuccess, disabled = false }) {
   const buttonRef = useRef(null);
   const [error, setError] = useState("");
+  const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -38,6 +39,7 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
       });
 
       if (buttonRef.current) {
+        // clear any previous content and render the Google button
         buttonRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(buttonRef.current, {
           theme: "outline",
@@ -46,6 +48,24 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
           shape: "pill",
           width: "100%",
         });
+
+        // small adjustment after render to ensure the injected button fills the container
+        setTimeout(() => {
+          try {
+            const child = buttonRef.current.firstElementChild;
+            if (child && child.style) {
+              child.style.width = "100%";
+              child.style.display = "block";
+              child.style.boxSizing = "border-box";
+              // remove any unexpected min-height from placeholder
+              buttonRef.current.style.minHeight = "0";
+              buttonRef.current.style.display = "block";
+            }
+          } catch (e) {
+            // ignore styling errors
+          }
+          setRendered(true);
+        }, 40);
       }
     };
 
@@ -74,7 +94,7 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
       {error ? <p className="mb-2 text-sm text-red-400">{error}</p> : null}
       <div
         ref={buttonRef}
-        className={`w-full ${disabled ? "opacity-60" : ""}`}
+        className={`w-full ${disabled ? "opacity-60" : ""} ${rendered ? "" : "min-h-[36px]"}`}
       />
     </div>
   );
