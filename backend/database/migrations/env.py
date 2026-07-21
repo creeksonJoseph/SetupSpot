@@ -1,5 +1,10 @@
 """Alembic environment — plain SQLAlchemy (no Flask dependency)."""
+import sys
+import os
 from logging.config import fileConfig
+
+# Ensure the backend root is on the path regardless of where alembic is invoked from
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool

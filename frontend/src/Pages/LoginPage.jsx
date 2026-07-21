@@ -12,6 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/explore';
+  const successMessage = location.state?.message || '';
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPwd, setShowPwd] = useState(false);
@@ -106,12 +107,26 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Success message from reset redirect */}
+            {successMessage && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-400 text-sm">
+                {successMessage}
+              </div>
+            )}
+
             {/* Error */}
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
                 {error}
               </div>
             )}
+
+            {/* Forgot password */}
+            <div className="flex justify-end -mt-2">
+              <Link to="/forgot-password" className="text-violet-400 hover:text-violet-300 text-sm transition-colors">
+                Forgot password?
+              </Link>
+            </div>
 
             {/* Submit */}
             <button

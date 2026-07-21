@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     CLOUDINARY_UPLOAD_PRESET: str = "SetupSpot"
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
+    RESEND_API_KEY: str
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"

@@ -19,4 +19,5 @@ dependencies = [
     "pydantic[email]>=2.13.4",
     "bcrypt>=5.0.0",
     "argon2-cffi>=25.1.0",
+    "resend>=2.34.0",
 ]
