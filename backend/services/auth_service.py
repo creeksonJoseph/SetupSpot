@@ -1,7 +1,9 @@
+import json
+import logging
 import random
 import string
-import logging
 from datetime import datetime, timedelta, timezone
+from urllib.request import Request, urlopen
 
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
@@ -53,6 +55,43 @@ def login(db: Session, email: str, password: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+    token = create_access_token(subject=user.id)
+    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+
+
+def google_login(db: Session, credential: str) -> dict:
+    """Exchange a Google ID token for a signed-in SetupSpot session."""
+    if not credential:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Google credential")
+
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Google OAuth is not configured")
+
+    try:
+        req = Request(
+            "https://oauth2.googleapis.com/tokeninfo",
+            data=f"id_token={credential}".encode("utf-8"),
+            method="POST",
+        )
+        with urlopen(req, timeout=10) as resp:
+            payload = json.load(resp)
+    except Exception as exc:  # pragma: no cover - network failure path
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Google sign-in failed") from exc
+
+    email = (payload.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google account did not return an email")
+
+    user = user_repo.get_by_email(db, email)
+    if not user:
+        username = (payload.get("name") or email.split("@", 1)[0]).strip()
+        user = user_repo.create(
+            db,
+            email=email,
+            username=username,
+            password_hash=hash_password("google-oauth-" + email),
+        )
+
     token = create_access_token(subject=user.id)
     return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
 

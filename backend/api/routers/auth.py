@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_current_user
 from api.schemas.auth import (
     ForgotPasswordRequest,
+    GoogleAuthRequest,
     LoginRequest,
     RegisterRequest,
     ResetPasswordRequest,
@@ -25,6 +26,11 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     return auth_service.login(db, email=body.email, password=body.password)
+
+
+@router.post("/google", response_model=TokenResponse)
+def google_login(body: GoogleAuthRequest, db: Session = Depends(get_db)):
+    return auth_service.google_login(db, credential=body.credential)
 
 
 @router.post("/forgot-password", status_code=200)

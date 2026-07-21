@@ -2,26 +2,26 @@
  * LoginPage — email + password sign-in form.
  * On success navigates to the page the user was trying to access (or /explore).
  */
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff, LogIn } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/explore';
-  const successMessage = location.state?.message || '';
+  const from = location.state?.from?.pathname || "/explore";
+  const successMessage = location.state?.message || "";
 
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -39,20 +39,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      {/* Background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl" />
-      </div>
-
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/10 flex items-center justify-center shadow-lg shadow-violet-500/20 overflow-hidden">
-              <img src="/favicon_io/android-chrome-192x192.png" alt="SetupSpot logo" className="w-8 h-8 object-contain" />
+              <img
+                src="/favicon_io/android-chrome-192x192.png"
+                alt="SetupSpot logo"
+                className="w-8 h-8 object-contain"
+              />
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">SetupSpot</span>
+            <span className="text-white font-bold text-xl tracking-tight">
+              SetupSpot
+            </span>
           </div>
         </div>
 
@@ -64,7 +64,10 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="login-email" className="text-gray-300 text-sm font-medium">
+              <label
+                htmlFor="login-email"
+                className="text-gray-300 text-sm font-medium"
+              >
                 Email
               </label>
               <input
@@ -82,14 +85,17 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="login-password" className="text-gray-300 text-sm font-medium">
+              <label
+                htmlFor="login-password"
+                className="text-gray-300 text-sm font-medium"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
                   id="login-password"
                   name="password"
-                  type={showPwd ? 'text' : 'password'}
+                  type={showPwd ? "text" : "password"}
                   required
                   autoComplete="current-password"
                   value={form.password}
@@ -123,7 +129,10 @@ export default function LoginPage() {
 
             {/* Forgot password */}
             <div className="flex justify-end -mt-2">
-              <Link to="/forgot-password" className="text-violet-400 hover:text-violet-300 text-sm transition-colors">
+              <Link
+                to="/forgot-password"
+                className="text-violet-400 hover:text-violet-300 text-sm transition-colors"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -133,7 +142,7 @@ export default function LoginPage() {
               id="login-submit"
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-violet-500/25 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -146,9 +155,35 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-xs uppercase tracking-[0.2em] text-gray-500">
+              or
+            </span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <GoogleAuthButton
+            onSuccess={async (credential) => {
+              setLoading(true);
+              try {
+                await googleLogin(credential);
+                navigate(from, { replace: true });
+              } catch (err) {
+                setError(err.message);
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+          />
+
           <p className="text-center text-gray-500 text-sm mt-6">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
+            >
               Create one
             </Link>
           </p>

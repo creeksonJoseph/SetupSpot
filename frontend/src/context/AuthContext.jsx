@@ -3,15 +3,15 @@
  * Provides login(), logout(), and register() to the whole app.
  * Token is persisted to localStorage so sessions survive page reload.
  */
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { API, FALLBACK_API } from '../hooks/api';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { API, FALLBACK_API } from "../hooks/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const stored = () => {
     try {
-      const raw = localStorage.getItem('auth');
+      const raw = localStorage.getItem("auth");
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -22,9 +22,9 @@ export function AuthProvider({ children }) {
 
   const persist = (data) => {
     if (data) {
-      localStorage.setItem('auth', JSON.stringify(data));
+      localStorage.setItem("auth", JSON.stringify(data));
     } else {
-      localStorage.removeItem('auth');
+      localStorage.removeItem("auth");
     }
     setAuth(data);
   };
@@ -43,25 +43,37 @@ export function AuthProvider({ children }) {
   };
 
   const register = useCallback(async (email, username, password) => {
-    const res = await fetchWithFallback('/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetchWithFallback("/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username, password }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Registration failed');
+    if (!res.ok) throw new Error(data.detail || "Registration failed");
     persist(data);
     return data;
   }, []);
 
   const login = useCallback(async (email, password) => {
-    const res = await fetchWithFallback('/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetchWithFallback("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Login failed');
+    if (!res.ok) throw new Error(data.detail || "Login failed");
+    persist(data);
+    return data;
+  }, []);
+
+  const googleLogin = useCallback(async (credential) => {
+    const res = await fetchWithFallback("/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Google sign-in failed");
     persist(data);
     return data;
   }, []);
@@ -71,7 +83,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ auth, login, logout, register, googleLogin }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -79,6 +93,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }
