@@ -9,6 +9,7 @@ def create(
     name: str,
     price: float,
     link: str | None,
+    description: str,
     setup_id: int,
     user_id: int,
 ) -> Item:
@@ -16,7 +17,7 @@ def create(
         name=name,
         price=price,
         link=link,
-        description="",
+        description=description,
         image_url="",
         setup_id=setup_id,
         user_id=user_id,

@@ -7,6 +7,7 @@ class AnnotatedItemOut(BaseModel):
     name: str
     price: float
     link: str | None
+    description: str | None
     x: float | None
     y: float | None
 

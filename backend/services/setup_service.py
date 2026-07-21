@@ -59,6 +59,7 @@ def create_setup(
             name=item_data.get("name", "Unnamed Item"),
             price=_parse_price(item_data.get("price")),
             link=item_data.get("link"),
+            description=item_data.get("description", ""),
             setup_id=setup.id,
             user_id=user_id,
         )
@@ -126,6 +127,7 @@ def serialize_setup_detail(setup: Setup) -> dict:
                 "name": item.name,
                 "price": item.price,
                 "link": item.link,
+                "description": item.description,
                 "x": ann["x"],
                 "y": ann["y"],
             })

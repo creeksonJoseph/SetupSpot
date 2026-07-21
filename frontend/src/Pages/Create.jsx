@@ -61,8 +61,20 @@ const AnnotationForm = React.memo(({
       name="link"
       value={annotation.link}
       onChange={(e) => onChange(annotation.id, e)}
-      placeholder="Product Link (Matches Item.link)"
+      placeholder="Merchant Link (Matches Item.link)"
       className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-colors ${
+        darkMode
+          ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+          : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+      }`}
+    />
+    <textarea
+      name="description"
+      value={annotation.description || ""}
+      onChange={(e) => onChange(annotation.id, e)}
+      placeholder="Item description (optional)"
+      rows={4}
+      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-colors resize-none ${
         darkMode
           ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
           : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -153,8 +165,8 @@ const AnnotationView = ({
   selectedAnnotation,
   uploadedImageSrc,
   handleImageClick,
-  handleRemoveAnnotation,
   handleInputChange,
+  handleRemoveAnnotation,
   setupName,
   setSetupName,
   totalCost,
@@ -162,69 +174,122 @@ const AnnotationView = ({
   handleSaveData,
   loading,
 }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl">
-    <div className={`lg:col-span-2 p-6 rounded-2xl shadow-xl ${cardBg}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className={`text-xl font-bold ${textPrimary}`}>Setup Details & Annotations</h2>
-        <div className="flex items-center gap-2">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl">
+    {/* Left column: image (fits top-to-bottom) + items list below */}
+    <div className="flex flex-col gap-6">
+      <div className={`p-6 rounded-2xl shadow-xl ${cardBg}`}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className={`text-xl font-bold ${textPrimary}`}>Setup Details & Annotations</h2>
           <span className={`text-sm font-medium ${textSecondary}`}>
             {annotations.length} Items Tagged
           </span>
         </div>
+
+        <input
+          type="text"
+          value={setupName}
+          onChange={(e) => setSetupName(e.target.value)}
+          placeholder="Give your setup a name (e.g., Minimal Developer Setup)"
+          className={`w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-colors ${
+            darkMode
+              ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+              : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+          }`}
+        />
+
+        <div
+          onClick={handleImageClick}
+          className="w-full rounded-xl relative shadow-2xl overflow-hidden cursor-crosshair bg-gray-900"
+          style={{ maxHeight: "calc(100vh - 320px)" }}
+        >
+          {uploadedImageSrc ? (
+            <img
+              src={uploadedImageSrc}
+              alt="Uploaded Setup"
+              className="w-full h-auto max-h-[calc(100vh-320px)] object-contain block"
+            />
+          ) : (
+            <div className="w-full aspect-[16/9] flex items-center justify-center bg-gray-700">
+              <Image size={48} className="text-gray-500" />
+            </div>
+          )}
+
+          {annotations.map((ann) => (
+            <div
+              key={ann.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedAnnotationId(ann.id);
+              }}
+              className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
+                ann.id === selectedAnnotationId
+                  ? "bg-red-500 border-white scale-125 ring-4 ring-red-300"
+                  : "bg-white/80 border-gray-900/50 hover:bg-red-400/80"
+              }`}
+              style={{
+                left: `${ann.x}%`,
+                top: `${ann.y}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+              title={ann.name || "Click to edit"}
+            >
+              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-gray-900 pointer-events-none">
+                {annotations.findIndex((a) => a.id === ann.id) + 1}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <input
-        type="text"
-        value={setupName}
-        onChange={(e) => setSetupName(e.target.value)}
-        placeholder="Give your setup a name (e.g., Minimal Developer Setup)"
-        className={`w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-colors ${
-          darkMode
-            ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-            : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-        }`}
-      />
-
-      <div
-        onClick={handleImageClick}
-        className="w-full aspect-[16/9] rounded-xl relative shadow-2xl overflow-hidden cursor-crosshair bg-gray-900"
-      >
-        {uploadedImageSrc ? (
-          <img src={uploadedImageSrc} alt="Uploaded Setup" className="w-full h-full object-cover" />
+      {/* Items list below the image */}
+      <div className={`p-6 rounded-2xl shadow-xl ${cardBg}`}>
+        <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>Tagged Items</h3>
+        {annotations.length === 0 ? (
+          <p className={`text-sm ${textSecondary}`}>
+            Click the image above to add items.
+          </p>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-700">
-            <Image size={48} className="text-gray-500" />
-          </div>
+          <ul className="flex flex-col gap-2">
+            {annotations.map((ann, index) => (
+              <li
+                key={ann.id}
+                onClick={() => setSelectedAnnotationId(ann.id)}
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                  ann.id === selectedAnnotationId
+                    ? darkMode ? "bg-gray-700" : "bg-gray-100"
+                    : darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-50"
+                }`}
+              >
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium truncate ${textPrimary}`}>
+                    {ann.name || "Untitled item"}
+                  </p>
+                  <p className={`text-xs ${textSecondary}`}>
+                    {ann.price || "—"}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveAnnotation(ann.id);
+                  }}
+                  className={`p-1.5 rounded-full text-red-400 transition-colors ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"}`}
+                  title="Remove item"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
-
-        {annotations.map((ann) => (
-          <div
-            key={ann.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedAnnotationId(ann.id);
-            }}
-            className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
-              ann.id === selectedAnnotationId
-                ? "bg-red-500 border-white scale-125 ring-4 ring-red-300"
-                : "bg-white/80 border-gray-900/50 hover:bg-red-400/80"
-            }`}
-            style={{
-              left: `${ann.x}%`,
-              top: `${ann.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-            title={ann.name || "Click to edit"}
-          >
-            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-gray-900 pointer-events-none">
-              {annotations.findIndex((a) => a.id === ann.id) + 1}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
 
-    <div className={`lg:col-span-1 p-6 rounded-2xl shadow-xl ${cardBg} flex flex-col`}>
+    {/* Right column: annotation form */}
+    <div className={`p-6 rounded-2xl shadow-xl ${cardBg} flex flex-col lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto`}>
       <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>Item Details</h3>
 
       {!selectedAnnotation ? (

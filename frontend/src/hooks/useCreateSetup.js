@@ -86,6 +86,7 @@ export function useCreateSetup() {
         name: `New Item ${annotations.length + 1}`,
         price: '',
         link: '',
+        description: '',
       };
 
       setAnnotations((prev) => [...prev, newAnnotation]);
@@ -127,6 +128,7 @@ export function useCreateSetup() {
       name: ann.name,
       price: ann.price,
       link: ann.link,
+      description: ann.description || '',
       x: ann.x,
       y: ann.y,
     }));
