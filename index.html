@@ -1,0 +1,80 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Flask Supabase Uploader</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background-color: #f4f7f6;
+            }
+            .container {
+                background-color: #ffffff;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                width: 100%;
+                text-align: center;
+            }
+            h1 {
+                color: #1abc9c;
+                margin-bottom: 20px;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            input $$type="file"$$ {
+                border: 2px solid #bdc3c7;
+                padding: 10px;
+                border-radius: 8px;
+                background-color: #ecf0f1;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background-color 0.3s ease;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Upload to Supabase Storage</h1>
+            <!--
+The action now explicitly targets the local development server URL.
+enctype="multipart/form-data" is CRITICAL for file uploads.
+-->
+            <form
+                method="POST"
+                action="http://127.0.0.1:5000/upload"
+                enctype="multipart/form-data"
+            >
+                <input
+                    type="file"
+                    name="file"
+                    id="fileInput"
+                    accept="image/*"
+                    required
+                />
+                <button type="submit">Upload Image</button>
+            </form>
+        </div>
+    </body>
+</html>
