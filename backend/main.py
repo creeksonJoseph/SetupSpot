@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.config import settings
 from core.cloudinary_client import init_cloudinary
@@ -60,7 +60,9 @@ app.include_router(users.router)
 @app.get("/", include_in_schema=False)
 def root():
     index_html_path = Path(__file__).resolve().parent / "index.html"
-    return HTMLResponse(index_html_path.read_text(encoding="utf-8"))
+    if index_html_path.exists():
+        return HTMLResponse(index_html_path.read_text(encoding="utf-8"))
+    return JSONResponse({"status": "ok", "message": "Backend is running"}, status_code=200)
 
 
 @app.get("/health")
