@@ -1,48 +1,44 @@
-from flask import Flask
-from flask_cors import CORS
-from flask_restful import Api
-from flask_migrate import Migrate
-from dotenv import load_dotenv
-import os
+"""FastAPI application entry point.
 
-load_dotenv()
+Responsibilities:
+- Create the FastAPI app instance
+- Register middleware (CORS)
+- Register all routers
+- Call Cloudinary init on startup
+"""
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from database import db
-from api import (
-    SetupResource,
-    SetupListResource,
-    CollectionResource,
-    CollectionListResource,
-    FavoritesList,
-    FavoritesResource,
+from core.cloudinary_client import init_cloudinary
+from api.routers import auth, setups, collections, favorites, users
+
+# ── Init external services ────────────────────────────────────────────────────
+init_cloudinary()
+
+# ── App ───────────────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="SetupSpot API",
+    description="Backend API for the SetupSpot desk-setup sharing platform",
+    version="2.0.0",
 )
-from api.users import UserResource
 
-app = Flask(__name__)
+# ── CORS ──────────────────────────────────────────────────────────────────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Use NeonDB PostgreSQL when DATABASE_URL is set, otherwise fall back to local SQLite
-db_url = os.getenv("DATABASE_URL", "sqlite:///database.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-
-db.init_app(app)
-Migrate(app, db)
-CORS(app)
-api = Api(app)
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return {"message": "Not found"}, 404
-
-
-api.add_resource(SetupResource, "/setups/<int:id>")
-api.add_resource(SetupListResource, "/setups")
-api.add_resource(CollectionResource, "/collections/<int:id>")
-api.add_resource(CollectionListResource, "/collections")
-api.add_resource(FavoritesResource, "/favorites")
-api.add_resource(FavoritesList, "/favorites/list")
-api.add_resource(UserResource, "/users/<int:user_id>")
+# ── Routers ───────────────────────────────────────────────────────────────────
+app.include_router(auth.router)
+app.include_router(setups.router)
+app.include_router(collections.router)
+app.include_router(favorites.router)
+app.include_router(users.router)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.get("/health")
+def health():
+    return {"status": "ok"}
