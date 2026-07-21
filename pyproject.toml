@@ -13,5 +13,5 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "python-dotenv>=1.2.1",
     "sqlalchemy-serializer>=1.4.12",
-    "supabase>=2.23.3",
+    "cloudinary>=1.42.0",
 ]

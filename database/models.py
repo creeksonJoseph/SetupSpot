@@ -37,7 +37,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    _password_hash = db.Column(db.String(100), nullable=False)
+    _password_hash = db.Column(db.String(256), nullable=False)
     username = db.Column(db.String(100), nullable=False)
 
     setups = db.relationship(
@@ -69,7 +69,7 @@ class Setup(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    image_url = db.Column(db.String(255))
+    image_url = db.Column(db.String(1024))
     annotations = db.Column(db.Text)  # Optional JSON field
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
@@ -92,7 +92,7 @@ class Item(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    image_url = db.Column(db.String(255))
+    image_url = db.Column(db.String(1024))
     price = db.Column(db.Float, nullable=False)
     link = db.Column(db.String(255))
     description = db.Column(db.Text)

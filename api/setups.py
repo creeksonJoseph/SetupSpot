@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from werkzeug.utils import secure_filename
-from supabase import create_client, Client
+import cloudinary
+import cloudinary.uploader
 import uuid
 import os
 import json
@@ -12,13 +13,15 @@ from database import db, Setup, Item
 
 load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# ── Configure Cloudinary ──────────────────────────────────────────────────────
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("SUPABASE_URL and SUPABASE_KEY must be set in .env")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+CLOUDINARY_UPLOAD_PRESET = os.getenv("CLOUDINARY_UPLOAD_PRESET", "SetupSpot")
 
 
 class SetupResource(Resource):
@@ -129,21 +132,17 @@ class SetupListResource(Resource):
                 "error": "Invalid or missing JSON payload in 'data' form field."
             }, 400
 
-        # 2. Upload image to Supabase Storage
-        original_filename = secure_filename(file.filename)
-        file_extension = os.path.splitext(original_filename)[1]
-        unique_filename = f"setups/{uuid.uuid4()}{file_extension}"
-        file_bytes = file.read()
-
+        # 2. Upload image to Cloudinary
         try:
-            supabase.storage.from_("images").upload(
-                file=file_bytes,
-                path=unique_filename,
-                file_options={"content-type": file.mimetype},
+            upload_result = cloudinary.uploader.upload(
+                file,
+                upload_preset=CLOUDINARY_UPLOAD_PRESET,
+                folder="setups",
+                resource_type="image",
             )
-            url = supabase.storage.from_("images").get_public_url(unique_filename)
+            url = upload_result.get("secure_url")
         except Exception as e:
-            print(f"Supabase Upload Error: {e}")
+            print(f"Cloudinary Upload Error: {e}")
             return {"error": f"Image upload failed: {e}"}, 500
 
         # 3. Create Setup Record (Setup 1/2)

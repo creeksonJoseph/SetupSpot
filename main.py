@@ -20,7 +20,7 @@ from api.users import UserResource
 
 app = Flask(__name__)
 
-# Use Supabase PostgreSQL when DATABASE_URL is set, otherwise fall back to local SQLite
+# Use NeonDB PostgreSQL when DATABASE_URL is set, otherwise fall back to local SQLite
 db_url = os.getenv("DATABASE_URL", "sqlite:///database.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 
