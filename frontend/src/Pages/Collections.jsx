@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { FolderOpen, Trash2, ShoppingBag, X, Palette } from "lucide-react";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 
 const Collections = () => {
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const authFetch = useAuthFetch();
 
   // Load collections from backend
   useEffect(() => {
@@ -13,7 +15,7 @@ const Collections = () => {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch('http://localhost:5000/collections?user_id=1');
+      const response = await authFetch('http://localhost:5000/collections');
       const data = await response.json();
       
       // Transform backend data and add blur property
@@ -61,7 +63,7 @@ const Collections = () => {
   // Delete collection
   const deleteCollection = async (collectionId) => {
     try {
-      await fetch(`http://localhost:5000/collections/${collectionId}`, {
+      await authFetch(`http://localhost:5000/collections/${collectionId}`, {
         method: 'DELETE'
       });
       setCollections(collections.filter((col) => col.id !== collectionId));

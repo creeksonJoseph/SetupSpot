@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 import {
   ArrowLeft,
   Heart,
@@ -65,7 +66,7 @@ const MOCK_API_DATA = {
 
 
 // Add to Collection Modal
-const AddToCollectionModal = ({ isOpen, onClose, item }) => {
+const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
   const [collections, setCollections] = useState([]);
   const [selectedCollection, setSelectedCollection] = useState('');
   const [newCollectionName, setNewCollectionName] = useState('');
@@ -83,7 +84,7 @@ const AddToCollectionModal = ({ isOpen, onClose, item }) => {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch('http://localhost:5000/collections?user_id=1');
+      const response = await authFetch('http://localhost:5000/collections');
       const data = await response.json();
       setCollections(data);
       if (data.length === 0) {
@@ -99,14 +100,10 @@ const AddToCollectionModal = ({ isOpen, onClose, item }) => {
     
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/collections', {
+      const response = await authFetch('http://localhost:5000/collections', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newCollectionName.trim()
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCollectionName.trim() })
       });
       
       if (response.ok) {
@@ -277,6 +274,7 @@ const ItemDetailsSidebar = ({ isOpen, onClose, item, hoveredItemId }) => {
 const PostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const authFetch = useAuthFetch();
 
   const [setup, setSetup] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -346,15 +344,10 @@ const PostDetailPage = () => {
   const toggleFavorite = async (itemId, isFavorited) => {
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await fetch('http://localhost:5000/favorites', {
+      const response = await authFetch('http://localhost:5000/favorites', {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: 1,
-          setup_id: setup.id
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setup_id: setup.id })
       });
 
       if (response.ok) {
@@ -534,6 +527,7 @@ const PostDetailPage = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         item={selectedItemForCollection}
+        authFetch={authFetch}
       />
       <ItemDetailsSidebar
         isOpen={isSidebarOpen}

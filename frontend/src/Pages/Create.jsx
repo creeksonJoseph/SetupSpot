@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 import {
   Upload,
   X,
@@ -320,6 +321,7 @@ const AnnotationView = ({
 
 const Create = () => {
   const navigate = useNavigate();
+  const authFetch = useAuthFetch();
 
   // --- Core State & Styling ---
   const [darkMode] = useState(true); // Default to Dark Mode
@@ -470,9 +472,9 @@ const Create = () => {
 
     // 3. Send the POST request
     try {
-      const response = await fetch("http://127.0.0.1:5000/setups", {
+      const response = await authFetch("http://127.0.0.1:5000/setups", {
         method: "POST",
-        body: formData, // FormData automatically sets the correct Content-Type: multipart/form-data
+        body: formData,
       });
 
       const result = await response.json();
@@ -493,7 +495,7 @@ const Create = () => {
       }
     } catch (error) {
       setApiMessage({
-        text: `Network or server error: ${error.message}. Make sure your Flask server is running on port 5000.`,
+        text: `Network or server error: ${error.message}. Make sure your backend server is running on port 5000.`,
         type: "error",
       });
       console.error("FETCH ERROR:", error);

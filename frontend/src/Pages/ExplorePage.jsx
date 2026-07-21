@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 const ExplorePage = () => {
   const [setups, setSetups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const userId = 1; // Default to Joseph's user ID
+  const authFetch = useAuthFetch();
 
   const fetchSetups = () => {
-    fetch(`http://127.0.0.1:5000/setups?user_id=${userId}`)
+    authFetch(`http://127.0.0.1:5000/setups`)
       .then(res => res.json())
       .then(data => {
         setSetups(data);
@@ -26,13 +27,12 @@ const ExplorePage = () => {
   const toggleFavorite = async (setupId, isFavorited) => {
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await fetch('http://127.0.0.1:5000/favorites', {
+      const response = await authFetch('http://127.0.0.1:5000/favorites', {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userId,
           setup_id: setupId
         })
       });

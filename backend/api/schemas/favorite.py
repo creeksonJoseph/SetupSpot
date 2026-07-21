@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 
 class FavoriteRequest(BaseModel):
-    user_id: int
     setup_id: int
 
 

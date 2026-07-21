@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 const FavouritesPage = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const authFetch = useAuthFetch();
 
   useEffect(() => {
     fetchFavorites();
@@ -11,19 +13,10 @@ const FavouritesPage = () => {
 
   const fetchFavorites = async () => {
     try {
-      const response = await fetch('http://localhost:5000/favorites/list?user_id=1');
+      const response = await authFetch('http://localhost:5000/favorites/list');
       const data = await response.json();
-      
-      // Transform backend data to match frontend format
-      const transformedData = data.map(setup => ({
-        id: setup.id,
-        title: setup.name,
-        image: setup.image_url,
-        aspectRatio: setup.aspect_ratio || 'aspect-[4/5]',
-        author: 'Joseph' // Default author since we're using user_id=1
-      }));
-      
-      setFavorites(transformedData);
+      // Backend already returns { id, title, image, author } — no transform needed
+      setFavorites(data);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {
@@ -33,18 +26,11 @@ const FavouritesPage = () => {
 
   const removeFavorite = async (setupId) => {
     try {
-      await fetch('http://localhost:5000/favorites', {
+      await authFetch('http://localhost:5000/favorites', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: 1,
-          setup_id: setupId
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setup_id: setupId })
       });
-      
-      // Remove from local state
       setFavorites(favorites.filter(fav => fav.id !== setupId));
     } catch (error) {
       console.error('Error removing favorite:', error);
