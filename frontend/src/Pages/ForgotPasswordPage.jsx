@@ -1,62 +1,24 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Mail, KeyRound, Eye, EyeOff, Zap } from 'lucide-react';
-
-const API = 'http://localhost:5000';
+import { usePasswordReset } from '../hooks/usePasswordReset';
 
 export default function ForgotPasswordPage() {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1 = email, 2 = otp + new password
-  const [email, setEmail] = useState('');
-  const [form, setForm] = useState({ otp: '', password: '', confirm: '' });
-  const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    const cleanEmail = email.trim().toLowerCase();
-    try {
-      const res = await fetch(`${API}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail }),
-      });
-      if (!res.ok) throw new Error('Something went wrong');
-      setEmail(cleanEmail);
-      setStep(2);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReset = async (e) => {
-    e.preventDefault();
-    if (form.password !== form.confirm) return setError('Passwords do not match');
-    if (form.password.length < 8) return setError('Password must be at least 8 characters');
-    setLoading(true);
-    setError('');
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanOtp = form.otp.trim();
-    try {
-      const res = await fetch(`${API}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, otp: cleanOtp, new_password: form.password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Reset failed');
-      navigate('/login', { state: { message: 'Password reset! Sign in with your new password.' } });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    step,
+    setStep,
+    email,
+    setEmail,
+    form,
+    setForm,
+    showPwd,
+    setShowPwd,
+    loading,
+    error,
+    setError,
+    handleSendOtp,
+    handleReset,
+  } = usePasswordReset();
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">

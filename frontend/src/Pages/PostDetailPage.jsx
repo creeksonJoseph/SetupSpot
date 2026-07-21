@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { usePostDetail } from "../hooks/usePostDetail";
 import { useAuthFetch } from "../hooks/useAuthFetch";
 import {
   ArrowLeft,
@@ -8,72 +9,17 @@ import {
   ShoppingBag,
   X,
   Loader2,
-  Save,
 } from "lucide-react";
-
-// --- MOCK API RESPONSE STRUCTURE (Based on resources.py serialization) ---
-// We simulate fetching this data, where 'x' and 'y' are the percentage coordinates.
-const MOCK_API_DATA = {
-  id: 1,
-  name: "Minimal Developer Setup",
-  image_url:
-    "https://placehold.co/1200x675/0a0a0a/999999?text=Developer+Desk+Setup",
-  author: "alex_codes", // Mocked author for display purposes
-  total_price: 659.97,
-  items: [
-    {
-      id: 101,
-      name: "Dell UltraSharp U2721DE Monitor",
-      price: 499.99,
-      link: "https://amazon.com/dell-monitor",
-      description:
-        "27-inch QHD USB-C Hub Monitor. Perfect for coding and design work.",
-      item_image_url: "https://placehold.co/100x100/1e293b/f1f5f9?text=Monitor",
-      x: 38.0, // Positional data from Setup.annotations
-      y: 25.0,
-      is_favorited: true, // Mock property
-    },
-    {
-      id: 102,
-      name: "Logitech MX Keys Keyboard",
-      price: 99.99,
-      link: "https://amazon.com/mx-keys",
-      description:
-        "High-end wireless keyboard with great tactile feedback for prolonged use.",
-      item_image_url:
-        "https://placehold.co/100x100/1e293b/f1f5f9?text=Keyboard",
-      x: 48.0,
-      y: 65.0,
-      is_favorited: false,
-    },
-    {
-      id: 103,
-      name: "Logitech MX Master 3S Mouse",
-      price: 59.99,
-      link: "https://amazon.com/mx-master",
-      description:
-        "Ergonomic mouse with ultra-fast MagSpeed scrolling. Essential for productivity.",
-      item_image_url: "https://placehold.co/100x100/1e293b/f1f5f9?text=Mouse",
-      x: 65.0,
-      y: 60.0,
-      is_favorited: true,
-    },
-  ],
-};
-
-// --- COMPONENT PLACEHOLDERS (To replace external imports) ---
-
-
 
 // Add to Collection Modal
 const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
-  const [collections, setCollections] = useState([]);
-  const [selectedCollection, setSelectedCollection] = useState('');
-  const [newCollectionName, setNewCollectionName] = useState('');
-  const [showCreateNew, setShowCreateNew] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [collections, setCollections] = React.useState([]);
+  const [selectedCollection, setSelectedCollection] = React.useState('');
+  const [newCollectionName, setNewCollectionName] = React.useState('');
+  const [showCreateNew, setShowCreateNew] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isOpen) {
       fetchCollections();
       setSelectedCollection('');
@@ -84,7 +30,7 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
 
   const fetchCollections = async () => {
     try {
-      const response = await authFetch('http://localhost:5000/collections');
+      const response = await authFetch('/collections');
       const data = await response.json();
       setCollections(data);
       if (data.length === 0) {
@@ -100,7 +46,7 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
     
     setLoading(true);
     try {
-      const response = await authFetch('http://localhost:5000/collections', {
+      const response = await authFetch('/collections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newCollectionName.trim() })
@@ -149,7 +95,7 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
           </button>
         </div>
         <p className="text-gray-300 text-sm mb-4">
-          Adding **{item?.name || "Item"}** to a collection.
+          Adding <strong>{item?.name || "Item"}</strong> to a collection.
         </p>
         
         {!showCreateNew ? (
@@ -211,11 +157,10 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
   );
 };
 
-// Item Details Sidebar Component (Simplified)
+// Item Details Sidebar Component
 const ItemDetailsSidebar = ({ isOpen, onClose, item, hoveredItemId }) => {
   const isVisible = isOpen && item;
 
-  // The provided style was based on the dark theme
   const sidebarClasses = `fixed top-0 right-0 w-full md:w-1/2 lg:w-96 h-full p-6 flex flex-col gap-6 overflow-y-auto z-50 transition-transform duration-300 ${
     isVisible ? "translate-x-0" : "translate-x-full"
   } bg-gray-900 border-l border-gray-700 shadow-2xl`;
@@ -269,102 +214,28 @@ const ItemDetailsSidebar = ({ isOpen, onClose, item, hoveredItemId }) => {
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
-
+// Main Page Component
 const PostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
 
-  const [setup, setSetup] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedItemForDetail, setSelectedItemForDetail] = useState(null);
-  const [selectedItemForCollection, setSelectedItemForCollection] =
-    useState(null);
-
-  // State for the core interaction: tracking the hovered item ID
-  const [hoveredItemId, setHoveredItemId] = useState(null);
-
-  // Fetch data hook
-  useEffect(() => {
-    const fetchSetup = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`http://localhost:5000/setups/${id}`);
-        if (!response.ok) throw new Error('Setup not found');
-        const data = await response.json();
-        
-        // Transform data to match expected format
-        const transformedData = {
-          id: data.id,
-          name: data.name,
-          image_url: data.image_url,
-          author: data.user?.username || 'Unknown',
-          items: data.items || []
-        };
-        
-        setSetup(transformedData);
-      } catch (err) {
-        console.error("Fetch Error:", err);
-        setError("Failed to load setup data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSetup();
-  }, [id]);
-
-  const handleOpenSidebar = useCallback((item) => {
-    setSelectedItemForDetail(item);
-    setIsSidebarOpen(true);
-  }, []);
-
-  const handleOpenModal = useCallback((item) => {
-    setSelectedItemForCollection(item);
-    setIsModalOpen(true);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedItemForCollection(null);
-  }, []);
-
-  const handleCloseSidebar = useCallback(() => {
-    setIsSidebarOpen(false);
-    setSelectedItemForDetail(null);
-  }, []);
-
-  const toggleFavorite = async (itemId, isFavorited) => {
-    try {
-      const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await authFetch('http://localhost:5000/favorites', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setup_id: setup.id })
-      });
-
-      if (response.ok) {
-        // Update local state
-        setSetup(prevSetup => ({
-          ...prevSetup,
-          items: prevSetup.items.map(item => 
-            item.id === itemId 
-              ? { ...item, is_favorited: !isFavorited }
-              : item
-          )
-        }));
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    }
-  };
+  const {
+    setup,
+    loading,
+    error,
+    hoveredItemId,
+    setHoveredItemId,
+    isModalOpen,
+    isSidebarOpen,
+    selectedItemForDetail,
+    selectedItemForCollection,
+    handleOpenSidebar,
+    handleCloseSidebar,
+    handleOpenModal,
+    handleCloseModal,
+    toggleFavorite,
+  } = usePostDetail(id);
 
   if (loading) {
     return (
@@ -389,13 +260,11 @@ const PostDetailPage = () => {
     );
   }
 
-  // --- Render Content ---
   const totalItems = setup.items.length;
   const items = setup.items;
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 -m-8 font-sans">
-      {/* Header */}
       <div className="flex items-center gap-4 p-4 lg:p-6 sticky top-0 bg-gray-900 z-10">
         <button
           onClick={() => navigate('/explore')}
@@ -413,16 +282,13 @@ const PostDetailPage = () => {
         </div>
       </div>
 
-      {/* Main Content - Side by Side */}
       <div className="flex flex-1 flex-col lg:flex-row gap-6 p-4 lg:p-6 relative overflow-hidden">
-        {/* Left Side - Image Container */}
         <div className="flex-1 min-h-[50vh] lg:min-h-0">
           <div className="w-full h-full bg-gray-800 rounded-xl border border-gray-700 relative overflow-hidden shadow-2xl">
             <div
               className="w-full h-full bg-center bg-no-repeat bg-cover rounded-xl"
               style={{ backgroundImage: `url("${setup.image_url}")` }}
             >
-              {/* Hotspots: Dynamically rendered based on fetched data */}
               {items.map((item, index) => (
                 <div
                   key={item.id}
@@ -433,7 +299,6 @@ const PostDetailPage = () => {
                                             : "w-6 h-6 border-red-500/50 bg-gray-900/50 hover:bg-red-500/50"
                                         }`}
                   style={{
-                    // Use X and Y percentages for positioning
                     top: `${item.y}%`,
                     left: `${item.x}%`,
                     transform: "translate(-50%, -50%)",
@@ -450,13 +315,11 @@ const PostDetailPage = () => {
           </div>
         </div>
 
-        {/* Right Side - Items List */}
         <div className="lg:w-1/3 flex flex-col">
           <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-4 sticky top-0">
             Items in this Setup ({totalItems})
           </h2>
 
-          {/* Item List Container */}
           <div className="flex flex-col border border-gray-700 rounded-xl overflow-y-auto flex-1 bg-gray-800 shadow-inner">
             {items.map((item, index) => (
               <div
@@ -522,7 +385,6 @@ const PostDetailPage = () => {
         </div>
       </div>
 
-      {/* Modals and Sidebars (using simplified placeholders) */}
       <AddToCollectionModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

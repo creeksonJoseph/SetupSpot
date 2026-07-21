@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
     RESEND_API_KEY: str
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://setupspot.tech"
 
     class Config:
         env_file = ".env"

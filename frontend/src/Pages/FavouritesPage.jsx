@@ -1,41 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useFavorites } from '../hooks/useFavorites';
 
 const FavouritesPage = () => {
-  const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const authFetch = useAuthFetch();
-
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
-  const fetchFavorites = async () => {
-    try {
-      const response = await authFetch('http://localhost:5000/favorites/list');
-      const data = await response.json();
-      // Backend already returns { id, title, image, author } — no transform needed
-      setFavorites(data);
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFavorite = async (setupId) => {
-    try {
-      await authFetch('http://localhost:5000/favorites', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setup_id: setupId })
-      });
-      setFavorites(favorites.filter(fav => fav.id !== setupId));
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-    }
-  };
+  const { favorites, loading, removeFavorite } = useFavorites();
 
   if (loading) {
     return (
@@ -64,7 +32,7 @@ const FavouritesPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {favorites.map((setup) => (
               <Link key={setup.id} to={`/post/${setup.id}`} className="group flex flex-col gap-3 pb-3 cursor-pointer">
-                <div className={`relative w-full bg-center bg-no-repeat ${setup.aspectRatio} bg-cover rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-105`} style={{backgroundImage: `url("${setup.image}")`}}>
+                <div className={`relative w-full bg-center bg-no-repeat ${setup.aspectRatio || 'h-48'} bg-cover rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-105`} style={{backgroundImage: `url("${setup.image}")`}}>
                   <button 
                     onClick={(e) => {
                       e.preventDefault();

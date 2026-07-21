@@ -1,53 +1,42 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, KeyRound, Zap } from 'lucide-react';
-
-const API = 'http://localhost:5000';
+import { usePasswordReset } from '../hooks/usePasswordReset';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const email = searchParams.get('email') || '';
-  const otp = searchParams.get('otp') || '';
-  const navigate = useNavigate();
+  const queryEmail = searchParams.get('email') || '';
+  const queryOtp = searchParams.get('otp') || '';
 
-  const [form, setForm] = useState({ password: '', confirm: '' });
-  const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const {
+    form,
+    setForm,
+    showPwd,
+    setShowPwd,
+    loading,
+    error,
+    setError,
+    handleReset,
+  } = usePasswordReset();
 
-  const handleSubmit = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) return setError('Passwords do not match');
     if (form.password.length < 8) return setError('Password must be at least 8 characters');
 
-    if (!token && (!email || !otp)) {
+    if (!token && (!queryEmail || !queryOtp)) {
       return setError('Invalid or missing reset link.');
     }
 
-    setLoading(true);
-    setError('');
-    try {
-      const payload = token
-        ? { token, new_password: form.password }
-        : { email, otp, new_password: form.password };
+    const payload = token
+      ? { token, new_password: form.password }
+      : { email: queryEmail, otp: queryOtp, new_password: form.password };
 
-      const res = await fetch(`${API}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Reset failed');
-      navigate('/login', { state: { message: 'Password reset! Sign in with your new password.' } });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    handleReset(null, payload);
   };
 
-  if (!token && (!email || !otp)) {
+  if (!token && (!queryEmail || !queryOtp)) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
         <div className="bg-gray-900/80 border border-white/10 rounded-2xl p-8 text-center">
@@ -81,7 +70,7 @@ export default function ResetPasswordPage() {
           <h1 className="text-white text-2xl font-bold mb-1">Set new password</h1>
           <p className="text-gray-400 text-sm mb-8">Must be at least 8 characters.</p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="reset-password" className="text-gray-300 text-sm font-medium">
                 New password

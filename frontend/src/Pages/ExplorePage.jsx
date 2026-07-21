@@ -1,56 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useSetups } from '../hooks/useSetups';
 
 const ExplorePage = () => {
-  const [setups, setSetups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const authFetch = useAuthFetch();
-
-  const fetchSetups = () => {
-    authFetch(`http://127.0.0.1:5000/setups`)
-      .then(res => res.json())
-      .then(data => {
-        setSetups(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching setups:', err);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    fetchSetups();
-  }, []);
-
-  const toggleFavorite = async (setupId, isFavorited) => {
-    try {
-      const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await authFetch('http://127.0.0.1:5000/favorites', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          setup_id: setupId
-        })
-      });
-
-      if (response.ok) {
-        // Update local state
-        setSetups(prevSetups => 
-          prevSetups.map(setup => 
-            setup.id === setupId 
-              ? { ...setup, isFavorited: !isFavorited }
-              : setup
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    }
-  };
+  const { setups, loading, toggleFavorite } = useSetups();
 
   if (loading) {
     return (
@@ -79,7 +32,7 @@ const ExplorePage = () => {
           {setups.map((setup) => (
             <Link key={setup.id} to={`/post/${setup.id}`} className="flex flex-col gap-3 group">
               <div className="relative overflow-hidden rounded-xl">
-                <img className={`w-full h-auto object-cover ${setup.aspectRatio} transition-transform duration-300 group-hover:scale-105`} alt={setup.title} src={setup.image}/>
+                <img className={`w-full h-auto object-cover ${setup.aspectRatio || ''} transition-transform duration-300 group-hover:scale-105`} alt={setup.title} src={setup.image}/>
               </div>
               <div className="flex justify-between items-start px-2">
                 <div>
@@ -105,7 +58,6 @@ const ExplorePage = () => {
             </Link>
           ))}
         </div>
-
       </div>
     </main>
   );

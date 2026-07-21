@@ -4,10 +4,9 @@
  * Token is persisted to localStorage so sessions survive page reload.
  */
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { API, FALLBACK_API } from '../hooks/api';
 
 const AuthContext = createContext(null);
-
-const API = 'http://localhost:5000';
 
 export function AuthProvider({ children }) {
   const stored = () => {
@@ -30,8 +29,21 @@ export function AuthProvider({ children }) {
     setAuth(data);
   };
 
+  const fetchWithFallback = async (endpoint, options) => {
+    const primaryUrl = `${API}${endpoint}`;
+    try {
+      return await fetch(primaryUrl, options);
+    } catch (err) {
+      if (API !== FALLBACK_API) {
+        const fallbackUrl = `${FALLBACK_API}${endpoint}`;
+        return await fetch(fallbackUrl, options);
+      }
+      throw err;
+    }
+  };
+
   const register = useCallback(async (email, username, password) => {
-    const res = await fetch(`${API}/auth/register`, {
+    const res = await fetchWithFallback('/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, username, password }),
@@ -43,7 +55,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (email, password) => {
-    const res = await fetch(`${API}/auth/login`, {
+    const res = await fetchWithFallback('/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

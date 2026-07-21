@@ -1,9 +1,7 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthFetch } from "../hooks/useAuthFetch";
+import React from "react";
+import { useCreateSetup } from "../hooks/useCreateSetup";
 import {
   Upload,
-  X,
   Save,
   ArrowLeft,
   Trash2,
@@ -12,10 +10,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-// =================================================================
-// 1. ANNOTATION FORM COMPONENT (MOVED OUTSIDE)
-//    - This prevents the component from being redefined on every state change.
-// =================================================================
 const AnnotationForm = React.memo(({
   annotation,
   onRemove,
@@ -76,14 +70,7 @@ const AnnotationForm = React.memo(({
     />
   </div>
 ));
-// =================================================================
-// END ANNOTATION FORM
-// =================================================================
 
-// =================================================================
-// 2. UPLOAD VIEW COMPONENT (MOVED OUTSIDE)
-// =================================================================
-// SVG circular progress ring constants
 const RING_RADIUS = 54;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
@@ -104,17 +91,14 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
       }`}
     >
       {isUploading ? (
-        /* ── Progress ring ── */
         <div className="flex flex-col items-center gap-4 select-none">
           <svg width="128" height="128" viewBox="0 0 128 128">
-            {/* Track */}
             <circle
               cx="64" cy="64" r={RING_RADIUS}
               fill="none"
               stroke={darkMode ? "#374151" : "#e5e7eb"}
               strokeWidth="10"
             />
-            {/* Progress arc */}
             <circle
               cx="64" cy="64" r={RING_RADIUS}
               fill="none"
@@ -126,7 +110,6 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
               transform="rotate(-90 64 64)"
               style={{ transition: "stroke-dashoffset 0.15s ease" }}
             />
-            {/* Percentage label */}
             <text
               x="64" y="64"
               dominantBaseline="middle"
@@ -141,7 +124,6 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
           <p className={`text-sm font-medium ${textSecondary}`}>Reading image…</p>
         </div>
       ) : (
-        /* ── Default idle state ── */
         <>
           <Upload size={48} className={`mb-2 ${textSecondary}`} />
           <p className={`font-medium ${textPrimary}`}>Click to Upload Image</p>
@@ -160,9 +142,6 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
   </div>
 );
 
-// =================================================================
-// 3. ANNOTATION VIEW COMPONENT (MOVED OUTSIDE)
-// =================================================================
 const AnnotationView = ({
   cardBg,
   textPrimary,
@@ -184,7 +163,6 @@ const AnnotationView = ({
   loading,
 }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl">
-    {/* Left Column: Image Annotation Area */}
     <div className={`lg:col-span-2 p-6 rounded-2xl shadow-xl ${cardBg}`}>
       <div className="flex justify-between items-center mb-4">
         <h2 className={`text-xl font-bold ${textPrimary}`}>Setup Details & Annotations</h2>
@@ -195,7 +173,6 @@ const AnnotationView = ({
         </div>
       </div>
 
-      {/* Setup Name Input */}
       <input
         type="text"
         value={setupName}
@@ -208,7 +185,6 @@ const AnnotationView = ({
         }`}
       />
 
-      {/* Image Container (Clickable) */}
       <div
         onClick={handleImageClick}
         className="w-full aspect-[16/9] rounded-xl relative shadow-2xl overflow-hidden cursor-crosshair bg-gray-900"
@@ -248,7 +224,6 @@ const AnnotationView = ({
       </div>
     </div>
 
-    {/* Right Column: Annotation Detail Form */}
     <div className={`lg:col-span-1 p-6 rounded-2xl shadow-xl ${cardBg} flex flex-col`}>
       <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>Item Details</h3>
 
@@ -274,7 +249,6 @@ const AnnotationView = ({
         />
       )}
 
-      {/* Save and Total Section */}
       <div className={`mt-6 pt-6 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
         {apiMessage.text && (
           <div
@@ -320,203 +294,32 @@ const AnnotationView = ({
 );
 
 const Create = () => {
-  const navigate = useNavigate();
-  const authFetch = useAuthFetch();
-
-  // --- Core State & Styling ---
-  const [darkMode] = useState(true); // Default to Dark Mode
-  const [isAnnotating, setIsAnnotating] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [apiMessage, setApiMessage] = useState({ text: "", type: "" }); // 'success' or 'error'
-
-  // Image read progress
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  // State for image handling and general post data
-  const [uploadedFile, setUploadedFile] = useState(null); // The actual File object for API
-  const [uploadedImageSrc, setUploadedImageSrc] = useState(null); // The Data URL for display
-  const [setupName, setSetupName] = useState("");
-
-  // State for annotation data
-  const [annotations, setAnnotations] = useState([]);
-  const [selectedAnnotationId, setSelectedAnnotationId] = useState(null);
-
-  // --- Utility Variables ---
-  const textPrimary = darkMode ? "text-gray-100" : "text-gray-900";
-  const textSecondary = darkMode ? "text-gray-400" : "text-gray-500";
-  const bgColor = darkMode ? "bg-gray-900" : "bg-gray-50";
-  const cardBg = darkMode ? "bg-gray-800" : "bg-white";
-
-  const selectedAnnotation = useMemo(
-    () => annotations.find((a) => a.id === selectedAnnotationId),
-    [annotations, selectedAnnotationId],
-  );
-
-  // --- Handlers ---
-
-  const resetState = () => {
-    setIsAnnotating(false);
-    setAnnotations([]);
-    setSelectedAnnotationId(null);
-    setUploadedImageSrc(null);
-    setUploadedFile(null);
-    setSetupName("");
-    setApiMessage({ text: "", type: "" });
-    setIsUploading(false);
-    setUploadProgress(0);
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    setUploadedFile(file);
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    const reader = new FileReader();
-
-    reader.onprogress = (e) => {
-      if (e.lengthComputable) {
-        setUploadProgress(Math.round((e.loaded / e.total) * 100));
-      }
-    };
-
-    reader.onloadend = () => {
-      setUploadProgress(100);
-      // Brief pause at 100% so the user sees the completed ring
-      setTimeout(() => {
-        setUploadedImageSrc(reader.result);
-        setIsUploading(false);
-        setIsAnnotating(true);
-      }, 400);
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageClick = useCallback(
-    (e) => {
-      if (!isAnnotating) return;
-
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100; // % from left
-      const y = ((e.clientY - rect.top) / rect.height) * 100; // % from top
-
-      const newAnnotation = {
-        id: crypto.randomUUID(),
-        x: x,
-        y: y,
-        name: `New Item ${annotations.length + 1}`,
-        price: "",
-        link: "",
-      };
-
-      setAnnotations((prev) => [...prev, newAnnotation]);
-      setSelectedAnnotationId(newAnnotation.id);
-    },
-    [isAnnotating, annotations.length],
-  );
-
-  const handleInputChange = useCallback((id, e) => {
-    const { name, value } = e.target;
-    setAnnotations(prev => prev.map(ann => ann.id === id ? { ...ann, [name]: value } : ann));
-  }, []);
-
-  const handleRemoveAnnotation = useCallback(
-    (id) => {
-      setAnnotations((prev) => prev.filter((ann) => ann.id !== id));
-      if (selectedAnnotationId === id) {
-        setSelectedAnnotationId(null);
-      }
-    },
-    [selectedAnnotationId],
-  );
-
-
-
-  const handleSaveData = async () => {
-    if (!uploadedFile || !setupName || annotations.length === 0) {
-      setApiMessage({
-        text: "Please provide a Setup Name, upload an image, and add at least one item.",
-        type: "error",
-      });
-      return;
-    }
-
-    setLoading(true);
-    setApiMessage({ text: "", type: "" });
-
-    // 1. Prepare the JSON payload for the 'data' form field
-    const itemsPayload = annotations.map((ann) => ({
-      // Fields matching the Item model
-      name: ann.name,
-      price: ann.price,
-      link: ann.link,
-      // Positional data for backend annotation serialization
-      x: ann.x,
-      y: ann.y,
-    }));
-
-    const jsonPayload = {
-      setup_name: setupName,
-      items: itemsPayload,
-      // No need to send image_url, the backend handles the upload and URL creation
-    };
-
-    // 2. Construct the FormData object
-    const formData = new FormData();
-    formData.append("file", uploadedFile, uploadedFile.name);
-    formData.append("data", JSON.stringify(jsonPayload));
-
-    // 3. Send the POST request
-    try {
-      const response = await authFetch("http://127.0.0.1:5000/setups", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setApiMessage({
-          text: `Setup saved successfully! ID: ${result.id}`,
-          type: "success",
-        });
-        // Optionally: resetState();
-        navigate(`/explore`);
-      } else {
-        setApiMessage({
-          text: `Error saving setup: ${result.error || result.message || "Unknown error"}`,
-          type: "error",
-        });
-        console.error("API ERROR RESPONSE:", result);
-      }
-    } catch (error) {
-      setApiMessage({
-        text: `Network or server error: ${error.message}. Make sure your backend server is running on port 5000.`,
-        type: "error",
-      });
-      console.error("FETCH ERROR:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const totalCost = useMemo(() => {
-    return annotations
-      .reduce((sum, item) => {
-        // Basic extraction of numerical price for display
-        const priceMatch = item.price.replace(/[$,]/g, "").match(/[\d.]+/);
-        const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
-        return sum + price;
-      }, 0)
-      .toLocaleString("en-US", { style: "currency", currency: "USD" });
-  }, [annotations]);
-
-  // UploadView and AnnotationView are defined outside the Create component
-  // (see top of file) to prevent focus loss on input re-renders.
+  const {
+    darkMode,
+    isAnnotating,
+    loading,
+    apiMessage,
+    isUploading,
+    uploadProgress,
+    uploadedImageSrc,
+    setupName,
+    setSetupName,
+    annotations,
+    selectedAnnotationId,
+    setSelectedAnnotationId,
+    selectedAnnotation,
+    totalCost,
+    textPrimary,
+    textSecondary,
+    bgColor,
+    cardBg,
+    handleFileUpload,
+    handleImageClick,
+    handleInputChange,
+    handleRemoveAnnotation,
+    handleSaveData,
+    resetState,
+  } = useCreateSetup();
 
   return (
     <div

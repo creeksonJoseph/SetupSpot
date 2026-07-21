@@ -1,109 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { LogOut, KeyRound, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-
-const API = 'http://localhost:5000';
+import { useAccount } from '../hooks/useAccount';
 
 const AccountPage = () => {
-  const { auth, logout } = useAuth();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const [pwdStep, setPwdStep] = useState(1); // 1 = request otp, 2 = enter otp + new password
-  const [pwdForm, setPwdForm] = useState({ otp: '', next: '', confirm: '' });
-  const [showPwd, setShowPwd] = useState(false);
-  const [pwdLoading, setPwdLoading] = useState(false);
-  const [pwdError, setPwdError] = useState('');
-  const [pwdSuccess, setPwdSuccess] = useState('');
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const res = await fetch(`${API}/users/me`, {
-        headers: { Authorization: `Bearer ${auth.access_token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch');
-      setUser(await res.json());
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRequestChangeOtp = async (e) => {
-    e.preventDefault();
-    setPwdError('');
-    setPwdLoading(true);
-    try {
-      const res = await fetch(`${API}/auth/send-change-otp`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${auth.access_token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to send code');
-      setPwdStep(2);
-    } catch (err) {
-      setPwdError(err.message);
-    } finally {
-      setPwdLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setPwdError('');
-    setPwdSuccess('');
-    if (pwdForm.next !== pwdForm.confirm) return setPwdError('Passwords do not match');
-    if (pwdForm.next.length < 8) return setPwdError('Password must be at least 8 characters');
-    setPwdLoading(true);
-    try {
-      const res = await fetch(`${API}/users/me/password`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.access_token}`,
-        },
-        body: JSON.stringify({ otp: pwdForm.otp, new_password: pwdForm.next }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to change password');
-      setPwdSuccess('Password changed successfully!');
-      setPwdForm({ otp: '', next: '', confirm: '' });
-      setPwdStep(1);
-    } catch (err) {
-      setPwdError(err.message);
-    } finally {
-      setPwdLoading(false);
-    }
-  };
-
-  const deleteSetup = async (setupId) => {
-    try {
-      const res = await fetch(`${API}/setups/${setupId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${auth.access_token}` },
-      });
-      if (res.ok) {
-        setUser((prev) => ({
-          ...prev,
-          setups: prev.setups.filter((s) => s.id !== setupId),
-        }));
-      }
-    } catch (err) {
-      console.error('Error deleting setup:', err);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
+  const {
+    user,
+    loading,
+    pwdStep,
+    setPwdStep,
+    pwdForm,
+    setPwdForm,
+    showPwd,
+    setShowPwd,
+    pwdLoading,
+    pwdError,
+    setPwdError,
+    pwdSuccess,
+    handleRequestChangeOtp,
+    handleChangePassword,
+    deleteSetup,
+    handleLogout,
+  } = useAccount();
 
   if (loading) {
     return (

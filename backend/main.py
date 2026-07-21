@@ -9,6 +9,7 @@ Responsibilities:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from core.config import settings
 from core.cloudinary_client import init_cloudinary
 from api.routers import auth, setups, collections, favorites, users
 
@@ -23,9 +24,23 @@ app = FastAPI(
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+cors_origins = [
+    "https://setupspot.tech",
+    "http://setupspot.tech",
+    "https://www.setupspot.tech",
+    "http://www.setupspot.tech",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
+    cors_origins.append(settings.FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
