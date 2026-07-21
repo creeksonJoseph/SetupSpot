@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, Zap } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -49,8 +49,8 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Zap size={20} className="text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/10 flex items-center justify-center shadow-lg shadow-violet-500/20 overflow-hidden">
+              <img src="/favicon_io/android-chrome-192x192.png" alt="SetupSpot logo" className="w-8 h-8 object-contain" />
             </div>
             <span className="text-white font-bold text-xl tracking-tight">SetupSpot</span>
           </div>
