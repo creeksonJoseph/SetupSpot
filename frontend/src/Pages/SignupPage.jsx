@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -37,6 +37,21 @@ export default function SignupPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef(null);
+
+  const startCountdown = (seconds = 60) => {
+    clearInterval(timerRef.current);
+    setCountdown(seconds);
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) { clearInterval(timerRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => () => clearInterval(timerRef.current), []);
 
   const clearError = () => setError("");
 
@@ -47,6 +62,20 @@ export default function SignupPage() {
     try {
       await signupSendOtp(email.trim().toLowerCase());
       setStep(2);
+      startCountdown(60);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    clearError();
+    try {
+      await signupSendOtp(email.trim().toLowerCase());
+      startCountdown(60);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -198,10 +227,23 @@ export default function SignupPage() {
                   : "Verify email"}
               </button>
 
-              <button type="button" onClick={() => { setStep(1); setOtp(""); clearError(); }}
-                className="w-full text-center text-[13px] transition-colors hover:underline" style={{ color: "#0050cb" }}>
-                ← Use a different email
-              </button>
+              <div className="flex flex-col items-center gap-2 pt-1">
+                {countdown > 0 ? (
+                  <p className="text-[13px]" style={{ color: "#727687" }}>
+                    Resend code in <span style={{ color: "#0050cb", fontWeight: 600 }}>{countdown}s</span>
+                  </p>
+                ) : (
+                  <button type="button" onClick={handleResendOtp} disabled={loading}
+                    className="text-[13px] font-semibold transition-colors hover:underline disabled:opacity-50"
+                    style={{ color: "#0050cb" }}>
+                    {loading ? "Sending..." : "Resend code"}
+                  </button>
+                )}
+                <button type="button" onClick={() => { setStep(1); setOtp(""); clearError(); clearInterval(timerRef.current); }}
+                  className="text-[13px] transition-colors hover:underline" style={{ color: "#727687" }}>
+                  ← Use a different email
+                </button>
+              </div>
             </form>
           )}
 

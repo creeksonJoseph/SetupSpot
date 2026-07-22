@@ -21,9 +21,13 @@ OTP_EXPIRY_MINUTES = 15
 SIGNUP_TOKEN_EXPIRY_MINUTES = 15
 logger = logging.getLogger(__name__)
 
-# In-memory store for signup OTPs: { email: {otp, expires_at} }
-# Fine for a single-process server; swap for Redis if you scale horizontally.
-_signup_otps: dict[str, dict] = {}
+# In-memory OTP rate-limit stores — swap for Redis when scaling horizontally.
+_signup_otps: dict[str, dict] = {}       # { email: {otp, expires_at, resend_count, window_start} }
+_reset_rate: dict[str, dict] = {}        # { email: {resend_count, window_start} }
+_change_rate: dict[int, dict] = {}       # { user_id: {resend_count, window_start} }
+
+OTP_RATE_LIMIT = 4
+OTP_RATE_WINDOW_MINUTES = 15
 
 
 def _generate_otp() -> str:
@@ -52,18 +56,42 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
 
 
+
+
 def signup_send_otp(db: Session, email: str) -> None:
-    """Step 1 — send a signup OTP. Rejects if email is already registered."""
+    """Step 1 / resend — send a signup OTP. Rejects if email is already registered."""
     normalized = email.strip().lower()
     if user_repo.get_by_email(db, normalized):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+
+    now = datetime.now(timezone.utc)
+    existing = _signup_otps.get(normalized, {})
+    window_start = existing.get("window_start", now)
+    if window_start.tzinfo is None:
+        window_start = window_start.replace(tzinfo=timezone.utc)
+    resend_count = existing.get("resend_count", 0)
+
+    # Reset window if it has expired
+    if now - window_start > timedelta(minutes=SIGNUP_RATE_WINDOW_MINUTES):
+        window_start = now
+        resend_count = 0
+
+    if resend_count >= OTP_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please wait 15 minutes.",
+        )
+
     otp = _generate_otp()
     _signup_otps[normalized] = {
         "otp": otp,
-        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES),
+        "expires_at": now + timedelta(minutes=OTP_EXPIRY_MINUTES),
+        "resend_count": resend_count + 1,
+        "window_start": window_start,
     }
-    logger.info(f"[SIGNUP] OTP generated | email={normalized}")
+    logger.info(f"[SIGNUP] OTP generated | email={normalized} attempt={resend_count + 1}")
     send_otp_email(normalized, otp, purpose="signup")
+
 
 
 def signup_verify_otp(email: str, otp: str) -> str:
@@ -172,6 +200,22 @@ def get_current_user(db: Session, user_id: int) -> User:
     return user
 
 
+def _check_rate_limit(store: dict, key, label: str) -> None:
+    """Shared rate-limit check. Raises 429 if over OTP_RATE_LIMIT within OTP_RATE_WINDOW_MINUTES."""
+    now = datetime.now(timezone.utc)
+    rec = store.get(key, {})
+    window_start = rec.get("window_start", now)
+    if window_start.tzinfo is None:
+        window_start = window_start.replace(tzinfo=timezone.utc)
+    count = rec.get("resend_count", 0)
+    if now - window_start > timedelta(minutes=OTP_RATE_WINDOW_MINUTES):
+        window_start, count = now, 0
+    if count >= OTP_RATE_LIMIT:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
+    store[key] = {"resend_count": count + 1, "window_start": window_start}
+    logger.info(f"[{label}] rate-limit count={count + 1} key={key}")
+
+
 def request_password_reset(db: Session, email: str) -> None:
     """Generate a 6-digit OTP and email it. Always returns 200 to avoid user enumeration."""
     normalized_email = email.strip().lower()
@@ -180,6 +224,7 @@ def request_password_reset(db: Session, email: str) -> None:
     if not user:
         logger.warning(f"[RESET] Email not found in DB | email={email}")
         return
+    _check_rate_limit(_reset_rate, normalized_email, "RESET")
     otp = _generate_otp()
     logger.info(f"[RESET] OTP generated | user_id={user.id} email={email}")
     user.reset_token = otp
@@ -223,6 +268,7 @@ def reset_password(db: Session, email: str | None = None, otp: str | None = None
 
 def send_change_password_otp(db: Session, user: User) -> None:
     """Send an OTP to confirm a password change from the profile page."""
+    _check_rate_limit(_change_rate, user.id, "CHANGE")
     logger.info(f"[CHANGE] OTP request | user_id={user.id} email={user.email}")
     otp = _generate_otp()
     user.reset_token = otp

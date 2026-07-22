@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
 
@@ -12,6 +12,21 @@ export function usePasswordReset() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef(null);
+
+  const startCountdown = useCallback((seconds = 60) => {
+    clearInterval(timerRef.current);
+    setCountdown(seconds);
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) { clearInterval(timerRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => () => clearInterval(timerRef.current), []);
 
   const handleSendOtp = useCallback(async (e) => {
     if (e) e.preventDefault();
@@ -27,12 +42,33 @@ export function usePasswordReset() {
       if (!res.ok) throw new Error('Something went wrong');
       setEmail(cleanEmail);
       setStep(2);
+      startCountdown(60);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }, [email, authFetch]);
+
+  const handleResendOtp = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const res = await authFetch('/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+      startCountdown(60);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [email, authFetch, startCountdown]);
 
   const handleReset = useCallback(async (e, overridePayload = null) => {
     if (e) e.preventDefault();
@@ -81,7 +117,9 @@ export function usePasswordReset() {
     loading,
     error,
     setError,
+    countdown,
     handleSendOtp,
+    handleResendOtp,
     handleReset,
   };
 }

@@ -9,7 +9,7 @@ const onFocus = (e) => { e.target.style.borderColor = "#0050cb"; e.target.style.
 const onBlur  = (e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; };
 
 export default function ForgotPasswordPage() {
-  const { step, setStep, email, setEmail, form, setForm, showPwd, setShowPwd, loading, error, setError, handleSendOtp, handleReset } = usePasswordReset();
+  const { step, setStep, email, setEmail, form, setForm, showPwd, setShowPwd, loading, error, setError, countdown, handleSendOtp, handleResendOtp, handleReset } = usePasswordReset();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-24 relative overflow-hidden"
@@ -137,11 +137,23 @@ export default function ForgotPasswordPage() {
                   ) : "Reset password"}
                 </button>
 
-                <button type="button" onClick={() => { setStep(1); setError(''); }}
-                  className="w-full text-center text-[13px] transition-colors hover:underline" style={{ color: "#0050cb" }}>
-                  ← Use a different email
-                </button>
-              </form>
+                <div className="flex flex-col items-center gap-2 pt-1">
+                  {countdown > 0 ? (
+                    <p className="text-[13px]" style={{ color: "#727687" }}>
+                      Resend code in <span style={{ color: "#0050cb", fontWeight: 600 }}>{countdown}s</span>
+                    </p>
+                  ) : (
+                    <button type="button" onClick={handleResendOtp} disabled={loading}
+                      className="text-[13px] font-semibold transition-colors hover:underline disabled:opacity-50"
+                      style={{ color: "#0050cb" }}>
+                      {loading ? "Sending..." : "Resend code"}
+                    </button>
+                  )}
+                  <button type="button" onClick={() => { setStep(1); setError(''); }}
+                    className="text-[13px] transition-colors hover:underline" style={{ color: "#727687" }}>
+                    ← Use a different email
+                  </button>
+                </div>
             </>
           )}
         </div>

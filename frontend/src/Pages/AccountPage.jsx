@@ -17,7 +17,9 @@ const AccountPage = () => {
     pwdError,
     setPwdError,
     pwdSuccess,
+    pwdCountdown,
     handleRequestChangeOtp,
+    handleResendChangeOtp,
     handleChangePassword,
     deleteSetup,
     handleLogout,
@@ -171,9 +173,16 @@ const AccountPage = () => {
             >
               {pwdLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><KeyRound size={16} />Update password</>}
             </button>
-            <button type="button" onClick={() => { setPwdStep(1); setPwdError(''); }} className="text-gray-500 hover:text-gray-300 text-sm text-center transition-colors">
-              ← Resend code
-            </button>
+            {pwdCountdown > 0 ? (
+              <p className="text-center text-sm" style={{ color: "#94a3b8" }}>
+                Resend code in <span className="text-violet-400 font-semibold">{pwdCountdown}s</span>
+              </p>
+            ) : (
+              <button type="button" onClick={handleResendChangeOtp} disabled={pwdLoading}
+                className="text-gray-500 hover:text-gray-300 text-sm text-center transition-colors disabled:opacity-50">
+                {pwdLoading ? "Sending..." : "Resend code"}
+              </button>
+            )}
           </form>
         )}
       </div>

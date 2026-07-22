@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAuthFetch } from './useAuthFetch';
@@ -18,6 +18,21 @@ export function useAccount() {
   const [pwdLoading, setPwdLoading] = useState(false);
   const [pwdError, setPwdError] = useState('');
   const [pwdSuccess, setPwdSuccess] = useState('');
+  const [pwdCountdown, setPwdCountdown] = useState(0);
+  const pwdTimerRef = useRef(null);
+
+  const startPwdCountdown = useCallback((seconds = 60) => {
+    clearInterval(pwdTimerRef.current);
+    setPwdCountdown(seconds);
+    pwdTimerRef.current = setInterval(() => {
+      setPwdCountdown((prev) => {
+        if (prev <= 1) { clearInterval(pwdTimerRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => () => clearInterval(pwdTimerRef.current), []);
 
   const fetchUserData = useCallback(async () => {
     setLoading(true);
@@ -52,12 +67,28 @@ export function useAccount() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to send code');
       setPwdStep(2);
+      startPwdCountdown(60);
     } catch (err) {
       setPwdError(err.message);
     } finally {
       setPwdLoading(false);
     }
   }, [authFetch]);
+
+  const handleResendChangeOtp = useCallback(async () => {
+    setPwdError('');
+    setPwdLoading(true);
+    try {
+      const res = await authFetch('/auth/send-change-otp', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to send code');
+      startPwdCountdown(60);
+    } catch (err) {
+      setPwdError(err.message);
+    } finally {
+      setPwdLoading(false);
+    }
+  }, [authFetch, startPwdCountdown]);
 
   const handleChangePassword = useCallback(async (e) => {
     e.preventDefault();
@@ -119,7 +150,9 @@ export function useAccount() {
     pwdError,
     setPwdError,
     pwdSuccess,
+    pwdCountdown,
     handleRequestChangeOtp,
+    handleResendChangeOtp,
     handleChangePassword,
     deleteSetup,
     handleLogout,

@@ -5,13 +5,14 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
   const [error, setError] = useState("");
   const [rendered, setRendered] = useState(false);
 
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onSuccessRef.current = onSuccess; });
+
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      setError(
-        "Google sign-in is not configured yet. Add VITE_GOOGLE_CLIENT_ID to your frontend env.",
-      );
+      setError("Google sign-in is not configured yet. Add VITE_GOOGLE_CLIENT_ID to your frontend env.");
       return;
     }
 
@@ -28,9 +29,8 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
             setError("Google sign-in was canceled.");
             return;
           }
-
           try {
-            await onSuccess(response.credential);
+            await onSuccessRef.current(response.credential);
           } catch (err) {
             setError(err?.message || "Google sign-in failed.");
           }
@@ -39,53 +39,15 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
       });
 
       if (buttonRef.current) {
-        // clear any previous content and render the Google button
         buttonRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(buttonRef.current, {
           theme: "outline",
           size: "large",
           text: "continue_with",
           shape: "pill",
-          width: "100%",
+          width: 360,
         });
-
-        // small adjustment after render to ensure the injected button fills the container
-        setTimeout(() => {
-          try {
-            // Ensure the injected Google button and any nested elements fill the
-            // container. Walk the DOM tree and set width/display/boxSizing with
-            // !important to override inline styles Google may add.
-            const setFullWidth = (el) => {
-              if (!el || !el.style) return;
-              el.style.setProperty("width", "100%", "important");
-              el.style.setProperty("max-width", "100%", "important");
-              // prefer keeping flex layout but center content
-              try {
-                el.style.display = el.style.display || "flex";
-                el.style.justifyContent = "center";
-                el.style.alignItems = "center";
-              } catch (e) {
-                // fall back silently
-                el.style.display = "block";
-              }
-              el.style.boxSizing = "border-box";
-              // recurse children
-              Array.from(el.children || []).forEach((c) => setFullWidth(c));
-            };
-
-            const child = buttonRef.current.firstElementChild;
-            if (child) setFullWidth(child);
-
-            // Also ensure the wrapper fills horizontally and doesn't keep a
-            // placeholder min-height that could affect layout.
-            buttonRef.current.style.setProperty("width", "100%", "important");
-            buttonRef.current.style.minHeight = "0";
-            buttonRef.current.style.display = "block";
-          } catch (e) {
-            // ignore styling errors
-          }
-          setRendered(true);
-        }, 40);
+        setTimeout(() => setRendered(true), 40);
       }
     };
 
@@ -103,19 +65,14 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
     document.head.appendChild(script);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
+      if (script.parentNode) script.parentNode.removeChild(script);
     };
-  }, [onSuccess]);
+  }, []); // runs once — onSuccess changes are handled via ref
 
   return (
-    <div className="w-full">
+    <div className={`w-full flex justify-center ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
       {error ? <p className="mb-2 text-sm text-red-400">{error}</p> : null}
-      <div
-        ref={buttonRef}
-        className={`w-full ${disabled ? "opacity-60" : ""} ${rendered ? "" : "min-h-[36px]"}`}
-      />
+      <div ref={buttonRef} className={rendered ? "" : "min-h-[44px]"} />
     </div>
   );
 }
