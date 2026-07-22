@@ -70,9 +70,9 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
   }, []); // runs once — onSuccess changes are handled via ref
 
   return (
-    <div className={`w-full flex justify-center ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
+    <div className={`flex justify-center ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
       {error ? <p className="mb-2 text-sm text-red-400">{error}</p> : null}
-      <div ref={buttonRef} className={rendered ? "" : "min-h-[44px]"} />
+      <div ref={buttonRef} className={rendered ? "" : "min-h-[44px] w-[240px]"} />
     </div>
   );
 }
