@@ -121,7 +121,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-24 relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
 
       {/* Background watermark */}
@@ -317,17 +317,6 @@ export default function SignupPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 w-full flex flex-col md:flex-row justify-between items-center px-12 py-4 gap-4 border-t z-40"
-        style={{ borderColor: "#E2E8F0", backgroundColor: "#f7f9fb", opacity: 0.9 }}>
-        <div className="text-[12px]" style={{ color: "#475569" }}>© 2024 SetupSpot. All rights reserved.</div>
-        <nav className="flex gap-6">
-          {["About", "Privacy Policy", "Terms of Service", "Help Center"].map((item) => (
-            <a key={item} href="#" className="text-[12px] transition-colors hover:underline" style={{ color: "#475569" }}
-              onMouseEnter={(e) => (e.target.style.color = "#0050cb")} onMouseLeave={(e) => (e.target.style.color = "#475569")}>{item}</a>
-          ))}
-        </nav>
-      </footer>
     </div>
   );
 }

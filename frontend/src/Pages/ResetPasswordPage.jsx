@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
   };
 
   const Wrapper = ({ children }) => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 pb-24 relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
       <div className="fixed top-1/2 left-0 -translate-y-1/2 z-0 select-none pointer-events-none w-screen text-center">
         <span className="font-black tracking-tight" style={{ fontSize: "14rem", color: "#0050cb", opacity: 0.09, lineHeight: 1 }}>
@@ -41,16 +41,6 @@ export default function ResetPasswordPage() {
         </div>
         {children}
       </main>
-      <footer className="fixed bottom-0 left-0 w-full flex flex-col md:flex-row justify-between items-center px-12 py-4 gap-4 border-t z-40"
-        style={{ borderColor: "#E2E8F0", backgroundColor: "#f7f9fb", opacity: 0.9 }}>
-        <div className="text-[12px]" style={{ color: "#475569" }}>© 2024 SetupSpot. All rights reserved.</div>
-        <nav className="flex gap-6">
-          {["About", "Privacy Policy", "Terms of Service", "Help Center"].map((item) => (
-            <a key={item} href="#" className="text-[12px] transition-colors hover:underline" style={{ color: "#475569" }}
-              onMouseEnter={(e) => (e.target.style.color = "#0050cb")} onMouseLeave={(e) => (e.target.style.color = "#475569")}>{item}</a>
-          ))}
-        </nav>
-      </footer>
     </div>
   );
 
