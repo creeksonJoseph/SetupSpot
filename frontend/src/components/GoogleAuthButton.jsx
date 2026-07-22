@@ -52,15 +52,26 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
         // small adjustment after render to ensure the injected button fills the container
         setTimeout(() => {
           try {
+            // Ensure the injected Google button and any nested elements fill the
+            // container. Walk the DOM tree and set width/display/boxSizing with
+            // !important to override inline styles Google may add.
+            const setFullWidth = (el) => {
+              if (!el || !el.style) return;
+              el.style.setProperty("width", "100%", "important");
+              el.style.display = "block";
+              el.style.boxSizing = "border-box";
+              // recurse children
+              Array.from(el.children || []).forEach((c) => setFullWidth(c));
+            };
+
             const child = buttonRef.current.firstElementChild;
-            if (child && child.style) {
-              child.style.width = "100%";
-              child.style.display = "block";
-              child.style.boxSizing = "border-box";
-              // remove any unexpected min-height from placeholder
-              buttonRef.current.style.minHeight = "0";
-              buttonRef.current.style.display = "block";
-            }
+            if (child) setFullWidth(child);
+
+            // Also ensure the wrapper fills horizontally and doesn't keep a
+            // placeholder min-height that could affect layout.
+            buttonRef.current.style.setProperty("width", "100%", "important");
+            buttonRef.current.style.minHeight = "0";
+            buttonRef.current.style.display = "block";
           } catch (e) {
             // ignore styling errors
           }
