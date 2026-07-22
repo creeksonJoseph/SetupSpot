@@ -10,83 +10,132 @@ import {
   Loader2,
 } from "lucide-react";
 
-const AnnotationForm = React.memo(({
-  annotation,
-  onRemove,
-  onChange,
-  annotations,
-  textPrimary,
-  darkMode,
-}) => (
-  <div className="space-y-4">
-    <div className="flex justify-between items-center">
-      <h4 className={`text-lg font-medium ${textPrimary}`}>
-        Editing Item {annotations.findIndex((a) => a.id === annotation.id) + 1}
-      </h4>
-      <button
-        onClick={() => onRemove(annotation.id)}
-      className={`p-2 rounded-full transition-colors text-[#ba1a1a] hover:bg-[rgba(186,26,26,0.08)]`}
-        title="Remove Hotspot"
-      >
-        <Trash2 size={20} />
-      </button>
-    </div>
+const AnnotationForm = React.memo(
+  ({ annotation, onRemove, onChange, annotations, textPrimary, darkMode }) => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h4 className={`text-lg font-medium ${textPrimary}`}>
+          Editing Item{" "}
+          {annotations.findIndex((a) => a.id === annotation.id) + 1}
+        </h4>
+        <button
+          onClick={() => onRemove(annotation.id)}
+          className={`p-2 rounded-full transition-colors text-[#ba1a1a] hover:bg-[rgba(186,26,26,0.08)]`}
+          title="Remove Hotspot"
+        >
+          <Trash2 size={20} />
+        </button>
+      </div>
 
-    <input
-      type="text"
-      name="name"
-      value={annotation.name}
-      onChange={(e) => onChange(annotation.id, e)}
-      placeholder="Product Name (Matches Item.name)"
-      className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
-      style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" }}
-      onFocus={(e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; }}
-      onBlur={(e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-    />
-    <input
-      type="text"
-      name="price"
-      value={annotation.price}
-      onChange={(e) => onChange(annotation.id, e)}
-      placeholder="Price (Matches Item.price, e.g., $1,599)"
-      className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
-      style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" }}
-      onFocus={(e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; }}
-      onBlur={(e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-    />
-    <input
-      type="url"
-      name="link"
-      value={annotation.link}
-      onChange={(e) => onChange(annotation.id, e)}
-      placeholder="Merchant Link (Matches Item.link)"
-      className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
-      style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" }}
-      onFocus={(e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; }}
-      onBlur={(e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-    />
-    <textarea
-      name="description"
-      value={annotation.description || ""}
-      onChange={(e) => onChange(annotation.id, e)}
-      placeholder="Item description (optional)"
-      rows={4}
-      className="w-full p-3 border rounded-lg text-sm outline-none transition-all resize-none"
-      style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" }}
-      onFocus={(e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; }}
-      onBlur={(e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-    />
-  </div>
-));
+      <input
+        type="text"
+        name="name"
+        value={annotation.name}
+        onChange={(e) => onChange(annotation.id, e)}
+        placeholder="Product Name (Matches Item.name)"
+        className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
+        style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #E2E8F0",
+          color: "#0F172A",
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = "#0050cb";
+          e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)";
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = "#E2E8F0";
+          e.target.style.boxShadow = "none";
+        }}
+      />
+      <input
+        type="text"
+        name="price"
+        value={annotation.price}
+        onChange={(e) => onChange(annotation.id, e)}
+        placeholder="Price (Matches Item.price, e.g., $1,599)"
+        className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
+        style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #E2E8F0",
+          color: "#0F172A",
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = "#0050cb";
+          e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)";
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = "#E2E8F0";
+          e.target.style.boxShadow = "none";
+        }}
+      />
+      <input
+        type="url"
+        name="link"
+        value={annotation.link}
+        onChange={(e) => onChange(annotation.id, e)}
+        placeholder="Merchant Link (Matches Item.link)"
+        className="w-full p-3 border rounded-lg text-sm outline-none transition-all"
+        style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #E2E8F0",
+          color: "#0F172A",
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = "#0050cb";
+          e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)";
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = "#E2E8F0";
+          e.target.style.boxShadow = "none";
+        }}
+      />
+      <textarea
+        name="description"
+        value={annotation.description || ""}
+        onChange={(e) => onChange(annotation.id, e)}
+        placeholder="Item description (optional)"
+        rows={4}
+        className="w-full p-3 border rounded-lg text-sm outline-none transition-all resize-none"
+        style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #E2E8F0",
+          color: "#0F172A",
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = "#0050cb";
+          e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)";
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = "#E2E8F0";
+          e.target.style.boxShadow = "none";
+        }}
+      />
+    </div>
+  ),
+);
 
 const RING_RADIUS = 54;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, cardBg, isUploading, uploadProgress }) => (
-  <div className={`p-8 rounded-2xl shadow-xl ${cardBg} w-full max-w-2xl text-center`}>
-    <h2 className={`text-2xl font-bold mb-4 ${textPrimary}`}>Upload Setup Photo</h2>
+const UploadView = ({
+  handleFileUpload,
+  textPrimary,
+  textSecondary,
+  darkMode,
+  cardBg,
+  isUploading,
+  uploadProgress,
+}) => (
+  <div
+    className={`p-8 rounded-2xl shadow-xl ${cardBg} w-full max-w-2xl text-center`}
+  >
+    <h2 className={`text-2xl font-bold mb-4 ${textPrimary}`}>
+      Upload Setup Photo
+    </h2>
     <p className={`mb-8 ${textSecondary}`}>
-      To start annotating, please upload a high-quality landscape or portrait image of your desk.
+      To start annotating, please upload a high-quality landscape or portrait
+      image of your desk.
     </p>
     <label
       htmlFor="file-upload"
@@ -101,24 +150,31 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
         <div className="flex flex-col items-center gap-4 select-none">
           <svg width="128" height="128" viewBox="0 0 128 128">
             <circle
-              cx="64" cy="64" r={RING_RADIUS}
+              cx="64"
+              cy="64"
+              r={RING_RADIUS}
               fill="none"
               stroke="#E2E8F0"
               strokeWidth="10"
             />
             <circle
-              cx="64" cy="64" r={RING_RADIUS}
+              cx="64"
+              cy="64"
+              r={RING_RADIUS}
               fill="none"
               stroke="#0066ff"
               strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={RING_CIRCUMFERENCE}
-              strokeDashoffset={RING_CIRCUMFERENCE - (uploadProgress / 100) * RING_CIRCUMFERENCE}
+              strokeDashoffset={
+                RING_CIRCUMFERENCE - (uploadProgress / 100) * RING_CIRCUMFERENCE
+              }
               transform="rotate(-90 64 64)"
               style={{ transition: "stroke-dashoffset 0.15s ease" }}
             />
             <text
-              x="64" y="64"
+              x="64"
+              y="64"
               dominantBaseline="middle"
               textAnchor="middle"
               fontSize="22"
@@ -128,13 +184,17 @@ const UploadView = ({ handleFileUpload, textPrimary, textSecondary, darkMode, ca
               {uploadProgress}%
             </text>
           </svg>
-          <p className={`text-sm font-medium ${textSecondary}`}>Reading image…</p>
+          <p className={`text-sm font-medium ${textSecondary}`}>
+            Reading image…
+          </p>
         </div>
       ) : (
         <>
           <Upload size={48} className="mb-2" style={{ color: "#727687" }} />
           <p className={`font-medium ${textPrimary}`}>Click to Upload Image</p>
-          <p className={`text-sm ${textSecondary}`}>16:9 Landscape recommended</p>
+          <p className={`text-sm ${textSecondary}`}>
+            16:9 Landscape recommended
+          </p>
         </>
       )}
       <input
@@ -174,7 +234,9 @@ const AnnotationView = ({
     <div className="flex flex-col gap-6">
       <div className={`p-6 rounded-2xl shadow-xl ${cardBg}`}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className={`text-xl font-bold ${textPrimary}`}>Setup Details & Annotations</h2>
+          <h2 className={`text-xl font-bold ${textPrimary}`}>
+            Setup Details & Annotations
+          </h2>
           <span className={`text-sm font-medium ${textSecondary}`}>
             {annotations.length} Items Tagged
           </span>
@@ -186,14 +248,25 @@ const AnnotationView = ({
           onChange={(e) => setSetupName(e.target.value)}
           placeholder="Give your setup a name (e.g., Minimal Developer Setup)"
           className="w-full p-3 mb-4 border rounded-lg text-sm outline-none transition-all"
-          style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" }}
-          onFocus={(e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; }}
-          onBlur={(e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #E2E8F0",
+            color: "#0F172A",
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = "#0050cb";
+            e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)";
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = "#E2E8F0";
+            e.target.style.boxShadow = "none";
+          }}
         />
 
         <div
           onClick={handleImageClick}
-          className="w-full rounded-xl relative overflow-hidden cursor-crosshair border" style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
+          className="w-full rounded-xl relative overflow-hidden cursor-crosshair border"
+          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
           style={{ maxHeight: "calc(100vh - 320px)" }}
         >
           {uploadedImageSrc ? (
@@ -203,7 +276,10 @@ const AnnotationView = ({
               className="w-full h-auto max-h-[calc(100vh-320px)] object-contain block"
             />
           ) : (
-            <div className="w-full aspect-[16/9] flex items-center justify-center" style={{ backgroundColor: "#E2E8F0" }}>
+            <div
+              className="w-full aspect-[16/9] flex items-center justify-center"
+              style={{ backgroundColor: "#E2E8F0" }}
+            >
               <Image size={48} style={{ color: "#727687" }} />
             </div>
           )}
@@ -227,7 +303,10 @@ const AnnotationView = ({
               }}
               title={ann.name || "Click to edit"}
             >
-              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-bold pointer-events-none" style={{ color: "#0F172A" }}>
+              <span
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-bold pointer-events-none"
+                style={{ color: "#0F172A" }}
+              >
                 {annotations.findIndex((a) => a.id === ann.id) + 1}
               </span>
             </div>
@@ -237,7 +316,9 @@ const AnnotationView = ({
 
       {/* Items list below the image */}
       <div className={`p-6 rounded-2xl shadow-xl ${cardBg}`}>
-        <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>Tagged Items</h3>
+        <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>
+          Tagged Items
+        </h3>
         {annotations.length === 0 ? (
           <p className={`text-sm ${textSecondary}`}>
             Click the image above to add items.
@@ -249,10 +330,15 @@ const AnnotationView = ({
                 key={ann.id}
                 onClick={() => setSelectedAnnotationId(ann.id)}
                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                  ann.id === selectedAnnotationId ? "bg-[rgba(0,102,255,0.08)]" : "hover:bg-[#f7f9fb]"
+                  ann.id === selectedAnnotationId
+                    ? "bg-[rgba(0,102,255,0.08)]"
+                    : "hover:bg-[#f7f9fb]"
                 }`}
               >
-                <span className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0" style={{ backgroundColor: "#0066ff" }}>
+                <span
+                  className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0"
+                  style={{ backgroundColor: "#0066ff" }}
+                >
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -268,9 +354,15 @@ const AnnotationView = ({
                     e.stopPropagation();
                     handleRemoveAnnotation(ann.id);
                   }}
-                  className="p-1.5 rounded-full transition-colors" style={{ color: "#ba1a1a" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(186,26,26,0.08)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  className="p-1.5 rounded-full transition-colors"
+                  style={{ color: "#ba1a1a" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      "rgba(186,26,26,0.08)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
                   title="Remove item"
                 >
                   <Trash2 size={16} />
@@ -283,7 +375,9 @@ const AnnotationView = ({
     </div>
 
     {/* Right column: annotation form */}
-    <div className={`p-6 rounded-2xl shadow-xl ${cardBg} flex flex-col lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto`}>
+    <div
+      className={`p-6 rounded-2xl shadow-xl ${cardBg} flex flex-col lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto`}
+    >
       <h3 className={`text-xl font-bold mb-4 ${textPrimary}`}>Item Details</h3>
 
       {!selectedAnnotation ? (
@@ -293,7 +387,8 @@ const AnnotationView = ({
         >
           <Edit3 size={32} className={textSecondary} />
           <p className={`mt-3 text-center ${textSecondary}`}>
-            Click a hotspot on the image (or click the image to create a new one) to edit its details here.
+            Click a hotspot on the image (or click the image to create a new
+            one) to edit its details here.
           </p>
         </div>
       ) : (
@@ -311,17 +406,30 @@ const AnnotationView = ({
         {apiMessage.text && (
           <div
             className="p-3 mb-4 rounded-lg text-sm font-medium border"
-            style={apiMessage.type === "success"
-              ? { backgroundColor: "rgba(21,128,61,0.08)", borderColor: "rgba(21,128,61,0.2)", color: "#15803D" }
-              : { backgroundColor: "rgba(186,26,26,0.08)", borderColor: "rgba(186,26,26,0.2)", color: "#ba1a1a" }
+            style={
+              apiMessage.type === "success"
+                ? {
+                    backgroundColor: "rgba(21,128,61,0.08)",
+                    borderColor: "rgba(21,128,61,0.2)",
+                    color: "#15803D",
+                  }
+                : {
+                    backgroundColor: "rgba(186,26,26,0.08)",
+                    borderColor: "rgba(186,26,26,0.2)",
+                    color: "#ba1a1a",
+                  }
             }
           >
             {apiMessage.text}
           </div>
         )}
         <div className="flex justify-between items-center mb-4">
-          <span className={`text-lg font-medium ${textPrimary}`}>Total Estimated Cost:</span>
-          <span className={`text-2xl font-extrabold ${annotations.length > 0 ? "text-[#0066ff]" : textSecondary}`}>
+          <span className={`text-lg font-medium ${textPrimary}`}>
+            Total Estimated Cost:
+          </span>
+          <span
+            className={`text-2xl font-extrabold ${annotations.length > 0 ? "text-[#0066ff]" : textSecondary}`}
+          >
             {totalCost}
           </span>
         </div>
@@ -330,8 +438,14 @@ const AnnotationView = ({
           disabled={annotations.length === 0 || !setupName || loading}
           className="w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: "#0066ff", color: "#f8f7ff" }}
-          onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = "#0050cb"; }}
-          onMouseLeave={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = "#0066ff"; }}
+          onMouseEnter={(e) => {
+            if (!e.currentTarget.disabled)
+              e.currentTarget.style.backgroundColor = "#0050cb";
+          }}
+          onMouseLeave={(e) => {
+            if (!e.currentTarget.disabled)
+              e.currentTarget.style.backgroundColor = "#0066ff";
+          }}
         >
           {loading ? (
             <>
@@ -388,8 +502,12 @@ const Create = () => {
             onClick={resetState}
             className="px-4 py-2 rounded-full font-medium transition-colors flex items-center gap-2"
             style={{ backgroundColor: "#E2E8F0", color: "#475569" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#cbd5e1")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#E2E8F0")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#cbd5e1")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#E2E8F0")
+            }
           >
             <ArrowLeft size={20} /> Restart Upload
           </button>
