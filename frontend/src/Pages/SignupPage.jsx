@@ -121,7 +121,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 mb-16 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
 
       {/* Background watermark */}

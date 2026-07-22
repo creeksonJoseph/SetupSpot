@@ -12,7 +12,7 @@ export default function ForgotPasswordPage() {
   const { step, setStep, email, setEmail, form, setForm, showPwd, setShowPwd, loading, error, setError, countdown, handleSendOtp, handleResendOtp, handleReset } = usePasswordReset();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 mb-16 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
 
       {/* Background watermark */}

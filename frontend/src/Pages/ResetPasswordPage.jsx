@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
   };
 
   const Wrapper = ({ children }) => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 mb-16 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
       <div className="fixed top-1/2 left-0 -translate-y-1/2 z-0 select-none pointer-events-none w-screen text-center">
         <span className="font-black tracking-tight" style={{ fontSize: "14rem", color: "#0050cb", opacity: 0.09, lineHeight: 1 }}>

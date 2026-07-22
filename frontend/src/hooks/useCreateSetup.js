@@ -6,7 +6,7 @@ export function useCreateSetup() {
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
 
-  const [darkMode] = useState(true);
+  const [darkMode] = useState(false);
   const [isAnnotating, setIsAnnotating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiMessage, setApiMessage] = useState({ text: '', type: '' });
@@ -21,10 +21,10 @@ export function useCreateSetup() {
   const [annotations, setAnnotations] = useState([]);
   const [selectedAnnotationId, setSelectedAnnotationId] = useState(null);
 
-  const textPrimary = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = darkMode ? 'text-gray-400' : 'text-gray-500';
-  const bgColor = darkMode ? 'bg-gray-900' : 'bg-gray-50';
-  const cardBg = darkMode ? 'bg-gray-800' : 'bg-white';
+  const textPrimary = 'text-[#0F172A]';
+  const textSecondary = 'text-[#727687]';
+  const bgColor = 'bg-[#f7f9fb]';
+  const cardBg = 'bg-white border border-[#E2E8F0]';
 
   const selectedAnnotation = useMemo(
     () => annotations.find((a) => a.id === selectedAnnotationId),
