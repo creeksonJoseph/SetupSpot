@@ -1,14 +1,6 @@
 import React from "react";
 import { useCreateSetup } from "../hooks/useCreateSetup";
-import {
-  Upload,
-  Save,
-  ArrowLeft,
-  Trash2,
-  Edit3,
-  Image,
-  Loader2,
-} from "lucide-react";
+import { Upload, Save, ArrowLeft, Trash2, CreditCard as Edit3, Image, Loader as Loader2 } from "lucide-react";
 
 const AnnotationForm = React.memo(
   ({ annotation, onRemove, onChange, annotations, textPrimary, darkMode }) => (
@@ -266,8 +258,7 @@ const AnnotationView = ({
         <div
           onClick={handleImageClick}
           className="w-full rounded-xl relative overflow-hidden cursor-crosshair border"
-          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
-          style={{ maxHeight: "calc(100vh - 320px)" }}
+          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0", maxHeight: "calc(100vh - 320px)" }}
         >
           {uploadedImageSrc ? (
             <img
