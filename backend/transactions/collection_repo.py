@@ -8,10 +8,6 @@ def get_by_user(db: Session, user_id: int) -> list[Collection]:
     return db.query(Collection).filter(Collection.user_id == user_id).all()
 
 
-def get_all(db: Session) -> list[Collection]:
-    return db.query(Collection).all()
-
-
 def get_by_id(db: Session, collection_id: int) -> Collection | None:
     return db.query(Collection).filter(Collection.id == collection_id).first()
 
