@@ -54,6 +54,40 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const signupSendOtp = useCallback(async (email) => {
+    const res = await fetchWithFallback("/auth/signup/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Failed to send code");
+    return data;
+  }, []);
+
+  const signupVerifyOtp = useCallback(async (email, otp) => {
+    const res = await fetchWithFallback("/auth/signup/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Invalid code");
+    return data.signup_token;
+  }, []);
+
+  const signupComplete = useCallback(async (signup_token, username, password) => {
+    const res = await fetchWithFallback("/auth/signup/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signup_token, username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Registration failed");
+    persist(data);
+    return data;
+  }, []);
+
   const login = useCallback(async (email, password) => {
     const res = await fetchWithFallback("/auth/login", {
       method: "POST",
@@ -84,7 +118,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ auth, login, logout, register, googleLogin }}
+      value={{ auth, login, logout, register, googleLogin, signupSendOtp, signupVerifyOtp, signupComplete }}
     >
       {children}
     </AuthContext.Provider>

@@ -9,6 +9,10 @@ from api.schemas.auth import (
     LoginRequest,
     RegisterRequest,
     ResetPasswordRequest,
+    SignupSendOtpRequest,
+    SignupVerifyOtpRequest,
+    SignupCompleteRequest,
+    SignupTokenResponse,
     TokenResponse,
 )
 from core.database import get_db
@@ -21,6 +25,23 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
     return auth_service.register(db, email=body.email, username=body.username, password=body.password)
+
+
+@router.post("/signup/send-otp", status_code=200)
+def signup_send_otp(body: SignupSendOtpRequest, db: Session = Depends(get_db)):
+    auth_service.signup_send_otp(db, email=body.email)
+    return {"message": "Verification code sent. Check your spam folder."}
+
+
+@router.post("/signup/verify-otp", response_model=SignupTokenResponse, status_code=200)
+def signup_verify_otp(body: SignupVerifyOtpRequest):
+    signup_token = auth_service.signup_verify_otp(email=body.email, otp=body.otp)
+    return {"signup_token": signup_token}
+
+
+@router.post("/signup/complete", response_model=TokenResponse, status_code=201)
+def signup_complete(body: SignupCompleteRequest, db: Session = Depends(get_db)):
+    return auth_service.signup_complete(db, signup_token=body.signup_token, username=body.username, password=body.password)
 
 
 @router.post("/login", response_model=TokenResponse)

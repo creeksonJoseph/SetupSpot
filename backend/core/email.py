@@ -11,6 +11,9 @@ def send_otp_email(to_email: str, otp: str, purpose: str) -> None:
     if purpose == "reset":
         from_address = "noreply@setupspot.tech"
         action = "reset your password"
+    elif purpose == "signup":
+        from_address = "noreply@setupspot.tech"
+        action = "verify your email"
     else:
         from_address = "noreply@setupspot.tech"
         action = "confirm your password change"

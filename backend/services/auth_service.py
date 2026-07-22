@@ -6,18 +6,24 @@ from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
 from fastapi import HTTPException, status
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.email import send_otp_email
-from core.security import create_access_token
+from core.security import create_access_token, ALGORITHM
 from models.user import User
 from transactions import user_repo
 
 _pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 OTP_EXPIRY_MINUTES = 15
+SIGNUP_TOKEN_EXPIRY_MINUTES = 15
 logger = logging.getLogger(__name__)
+
+# In-memory store for signup OTPs: { email: {otp, expires_at} }
+# Fine for a single-process server; swap for Redis if you scale horizontally.
+_signup_otps: dict[str, dict] = {}
 
 
 def _generate_otp() -> str:
@@ -43,6 +49,65 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     hashed = hash_password(password)
     user = user_repo.create(db, email=normalized_email, username=username, password_hash=hashed)
     token = create_access_token(subject=user.id)
+    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+
+
+def signup_send_otp(db: Session, email: str) -> None:
+    """Step 1 — send a signup OTP. Rejects if email is already registered."""
+    normalized = email.strip().lower()
+    if user_repo.get_by_email(db, normalized):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+    otp = _generate_otp()
+    _signup_otps[normalized] = {
+        "otp": otp,
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES),
+    }
+    logger.info(f"[SIGNUP] OTP generated | email={normalized}")
+    send_otp_email(normalized, otp, purpose="signup")
+
+
+def signup_verify_otp(email: str, otp: str) -> str:
+    """Step 2 — validate OTP and return a short-lived signup_token JWT."""
+    normalized = email.strip().lower()
+    record = _signup_otps.get(normalized)
+    if not record:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No OTP found for this email")
+    expires_at = record["expires_at"]
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > expires_at:
+        _signup_otps.pop(normalized, None)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP expired")
+    if record["otp"].strip() != otp.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
+    _signup_otps.pop(normalized, None)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=SIGNUP_TOKEN_EXPIRY_MINUTES)
+    signup_token = jwt.encode(
+        {"sub": normalized, "purpose": "signup", "exp": expire},
+        settings.SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+    logger.info(f"[SIGNUP] OTP verified, signup_token issued | email={normalized}")
+    return signup_token
+
+
+def signup_complete(db: Session, signup_token: str, username: str, password: str) -> dict:
+    """Step 3 — verify signup_token and create the user in one transaction."""
+    try:
+        payload = jwt.decode(signup_token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired signup token")
+    if payload.get("purpose") != "signup":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token purpose")
+    email = payload.get("sub", "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signup token")
+    if user_repo.get_by_email(db, email):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+    hashed = hash_password(password)
+    user = user_repo.create(db, email=email, username=username, password_hash=hashed)
+    token = create_access_token(subject=user.id)
+    logger.info(f"[SIGNUP] User created | user_id={user.id} email={email}")
     return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
 
 

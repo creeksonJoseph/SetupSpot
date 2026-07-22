@@ -8,6 +8,25 @@ class RegisterRequest(BaseModel):
     password: str
 
 
+class SignupSendOtpRequest(BaseModel):
+    email: EmailStr
+
+
+class SignupVerifyOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class SignupCompleteRequest(BaseModel):
+    signup_token: str
+    username: str
+    password: str
+
+
+class SignupTokenResponse(BaseModel):
+    signup_token: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
