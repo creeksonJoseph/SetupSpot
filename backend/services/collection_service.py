@@ -14,6 +14,10 @@ def list_for_user(db: Session, user_id: int) -> list[Collection]:
     return collection_repo.get_by_user(db, user_id)
 
 
+def list_all(db: Session) -> list[Collection]:
+    return collection_repo.get_all(db)
+
+
 def get_or_404(db: Session, collection_id: int) -> Collection:
     collection = collection_repo.get_by_id(db, collection_id)
     if not collection:

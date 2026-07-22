@@ -12,11 +12,8 @@ router = APIRouter(prefix="/collections", tags=["collections"])
 
 
 @router.get("", response_model=list[CollectionOut])
-def list_collections(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return collection_service.list_for_user(db, current_user.id)
+def list_collections(db: Session = Depends(get_db)):
+    return collection_service.list_all(db)
 
 
 @router.post("", response_model=CollectionOut, status_code=201)

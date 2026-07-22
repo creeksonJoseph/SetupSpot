@@ -14,12 +14,9 @@ router = APIRouter(prefix="/setups", tags=["setups"])
 
 
 @router.get("", response_model=list[SetupListItemOut])
-def list_setups(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Return all setups enriched with the current user's favourite flag."""
-    return setup_service.list_setups_for_user(db, current_user.id)
+def list_setups(db: Session = Depends(get_db)):
+    """Return all setups for public browsing without requiring authentication."""
+    return setup_service.list_setups_for_user(db, requesting_user_id=None)
 
 
 @router.get("/{setup_id}", response_model=SetupDetailOut)
