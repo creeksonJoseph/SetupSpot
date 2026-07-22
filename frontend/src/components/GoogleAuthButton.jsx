@@ -58,7 +58,16 @@ export default function GoogleAuthButton({ onSuccess, disabled = false }) {
             const setFullWidth = (el) => {
               if (!el || !el.style) return;
               el.style.setProperty("width", "100%", "important");
-              el.style.display = "block";
+              el.style.setProperty("max-width", "100%", "important");
+              // prefer keeping flex layout but center content
+              try {
+                el.style.display = el.style.display || "flex";
+                el.style.justifyContent = "center";
+                el.style.alignItems = "center";
+              } catch (e) {
+                // fall back silently
+                el.style.display = "block";
+              }
               el.style.boxSizing = "border-box";
               // recurse children
               Array.from(el.children || []).forEach((c) => setFullWidth(c));
