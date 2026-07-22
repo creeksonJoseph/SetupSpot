@@ -154,6 +154,7 @@ export default function ForgotPasswordPage() {
                     ← Use a different email
                   </button>
                 </div>
+              </form>
             </>
           )}
         </div>
