@@ -186,25 +186,29 @@ const ExplorePage = () => {
   return (
     <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 px-2">
-          <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
-            <TypewriterText text="Explore Setups" />
-          </h1>
-          <p className="text-base font-normal leading-normal mt-2 mb-5" style={{ color: '#475569' }}>
-            Discover and get inspired by amazing computer setups from around the world.
-          </p>
-
-          {/* Search bar — owns its own query state via useSearch hook */}
-          <SearchBar onResults={handleSearchResults} />
-
-          {/* Results label — shown when Algolia has returned results */}
-          {isSearching && (
-            <p className="mt-3 text-sm" style={{ color: '#64748B' }}>
-              {displayedSetups.length > 0
-                ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
-                : <>No results found</>}
+        <div className="mb-8 px-2 flex items-start justify-between gap-6 flex-wrap">
+          {/* Left: title + subtitle */}
+          <div>
+            <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
+              <TypewriterText text="Explore Setups" />
+            </h1>
+            <p className="text-base font-normal leading-normal mt-2" style={{ color: '#475569' }}>
+              Discover and get inspired by amazing computer setups from around the world.
             </p>
-          )}
+            {/* Results label sits under the subtitle when searching */}
+            {isSearching && (
+              <p className="mt-2 text-sm" style={{ color: '#64748B' }}>
+                {displayedSetups.length > 0
+                  ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
+                  : <>No results found</>}
+              </p>
+            )}
+          </div>
+
+          {/* Right: search bar */}
+          <div style={{ flex: '0 1 420px', minWidth: '240px' }}>
+            <SearchBar onResults={handleSearchResults} />
+          </div>
         </div>
 
         {displayedSetups.length === 0 ? (
