@@ -1,14 +1,6 @@
 import React from "react";
 import { useCreateSetup } from "../hooks/useCreateSetup";
-import {
-  Upload,
-  Save,
-  ArrowLeft,
-  Trash2,
-  Edit3,
-  Image,
-  Loader2,
-} from "lucide-react";
+import { Upload, Save, ArrowLeft, Trash2, CreditCard as Edit3, Image, Loader as Loader2 } from "lucide-react";
 
 const AnnotationForm = React.memo(
   ({ annotation, onRemove, onChange, annotations, textPrimary, darkMode }) => (

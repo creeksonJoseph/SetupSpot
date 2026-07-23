@@ -90,15 +90,13 @@ def delete_setup(db: Session, setup_id: int, user_id: int) -> None:
     setup_repo.delete(db, setup)
 
 
-def list_setups_for_user(db: Session, requesting_user_id: int | None) -> list[dict]:
-    """Return all setups and mark favorite status when a signed-in user is provided."""
+def list_setups_for_user(db: Session, requesting_user_id: int) -> list[dict]:
+    """Return all setups enriched with favourite flag for the requesting user."""
     from transactions.favorite_repo import get_by_user as get_favorites
 
     all_setups = setup_repo.get_all(db)
-    favorited_ids = set()
-    if requesting_user_id is not None:
-        favorites = get_favorites(db, requesting_user_id)
-        favorited_ids = {f.setup_id for f in favorites}
+    favorites = get_favorites(db, requesting_user_id)
+    favorited_ids = {f.setup_id for f in favorites}
 
     result = []
     for s in all_setups:
