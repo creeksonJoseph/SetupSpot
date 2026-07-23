@@ -2,6 +2,7 @@
 import json
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user
@@ -13,13 +14,28 @@ from services import setup_service
 router = APIRouter(prefix="/setups", tags=["setups"])
 
 
+def get_optional_user(
+    db: Session = Depends(get_db),
+    token: str | None = Depends(OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)),
+) -> User | None:
+    """Return the current user if a valid token is provided, else None."""
+    if token is None:
+        return None
+    try:
+        from api.dependencies import get_current_user_from_token
+        return get_current_user_from_token(token, db)
+    except Exception:
+        return None
+
+
 @router.get("", response_model=list[SetupListItemOut])
 def list_setups(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_optional_user),
 ):
-    """Return all setups enriched with the current user's favourite flag."""
-    return setup_service.list_setups_for_user(db, current_user.id)
+    """Return all setups. Authenticated users get their favourite flag; anonymous users get isFavorited=false."""
+    user_id = current_user.id if current_user else None
+    return setup_service.list_setups_for_user(db, user_id)
 
 
 @router.get("/{setup_id}", response_model=SetupDetailOut)

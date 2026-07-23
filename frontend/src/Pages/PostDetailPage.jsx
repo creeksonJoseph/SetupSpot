@@ -1,75 +1,27 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
-import { useAuthFetch } from "../hooks/useAuthFetch";
+import { useAddToCollection } from "../hooks/useAddToCollection";
 import { ArrowLeft, Plus, ShoppingBag, X, Loader2 } from "lucide-react";
 
-const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
-  const [collections, setCollections] = React.useState([]);
-  const [selectedCollection, setSelectedCollection] = React.useState('');
-  const [newCollectionName, setNewCollectionName] = React.useState('');
-  const [showCreateNew, setShowCreateNew] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+/**
+ * AddToCollectionModal — pure render component.
+ * All collection fetch / create / add logic lives in useAddToCollection.
+ */
+const AddToCollectionModal = ({ isOpen, onClose, item }) => {
+  const {
+    collections,
+    selectedCollection, setSelectedCollection,
+    newCollectionName,  setNewCollectionName,
+    showCreateNew,      setShowCreateNew,
+    loading,
+    createCollection,
+    addItemToCollection,
+  } = useAddToCollection({ isOpen });
 
   const inputStyle = { backgroundColor: "#ffffff", border: "1px solid #E2E8F0", color: "#0F172A" };
   const onFocus = (e) => { e.target.style.borderColor = "#0050cb"; e.target.style.boxShadow = "0 0 0 2px rgba(0,80,203,0.1)"; };
   const onBlur  = (e) => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; };
-
-  React.useEffect(() => {
-    if (isOpen) {
-      fetchCollections();
-      setSelectedCollection('');
-      setNewCollectionName('');
-      setShowCreateNew(false);
-    }
-  }, [isOpen]);
-
-  const fetchCollections = async () => {
-    try {
-      const response = await authFetch('/collections');
-      const data = await response.json();
-      setCollections(data);
-      if (data.length === 0) setShowCreateNew(true);
-    } catch (error) {
-      console.error('Error fetching collections:', error);
-    }
-  };
-
-  const createNewCollection = async () => {
-    if (!newCollectionName.trim()) return;
-    setLoading(true);
-    try {
-      const response = await authFetch('/collections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCollectionName.trim() }),
-      });
-      if (response.ok) {
-        const newCollection = await response.json();
-        setCollections([...collections, newCollection]);
-        setSelectedCollection(newCollection.id.toString());
-        setShowCreateNew(false);
-        setNewCollectionName('');
-      }
-    } catch (error) {
-      console.error('Error creating collection:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddToCollection = async () => {
-    if (!selectedCollection || !item) return;
-    setLoading(true);
-    try {
-      console.log(`Item ${item.id} added to collection ${selectedCollection}`);
-      onClose();
-    } catch (error) {
-      console.error('Error adding to collection:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -96,7 +48,7 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
               onFocus={onFocus} onBlur={onBlur}
             >
               <option value="">Select a collection</option>
-              {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {collections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <button
               onClick={() => setShowCreateNew(true)}
@@ -106,14 +58,14 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
               Create New Collection
             </button>
             <button
-              onClick={handleAddToCollection}
+              onClick={() => addItemToCollection(item?.id, onClose)}
               disabled={!selectedCollection || loading}
               className="w-full py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
               style={{ backgroundColor: "#0066ff" }}
               onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = "#0050cb")}
               onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = "#0066ff")}
             >
-              {loading ? 'Adding...' : 'Add to Collection'}
+              {loading ? 'Adding…' : 'Add to Collection'}
             </button>
           </>
         ) : (
@@ -136,14 +88,14 @@ const AddToCollectionModal = ({ isOpen, onClose, item, authFetch }) => {
                 Cancel
               </button>
               <button
-                onClick={createNewCollection}
+                onClick={createCollection}
                 disabled={!newCollectionName.trim() || loading}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
                 style={{ backgroundColor: "#0066ff" }}
                 onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = "#0050cb")}
                 onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = "#0066ff")}
               >
-                {loading ? 'Creating...' : 'Create'}
+                {loading ? 'Creating…' : 'Create'}
               </button>
             </div>
           </>
@@ -206,7 +158,6 @@ const ItemDetailsSidebar = ({ isOpen, onClose, item, hoveredItemId }) => {
 const PostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
 
   const {
     setup, loading, error,
@@ -364,7 +315,7 @@ const PostDetailPage = () => {
         </div>
       </div>
 
-      <AddToCollectionModal isOpen={isModalOpen} onClose={handleCloseModal} item={selectedItemForCollection} authFetch={authFetch} />
+      <AddToCollectionModal isOpen={isModalOpen} onClose={handleCloseModal} item={selectedItemForCollection} />
       <ItemDetailsSidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} item={selectedItemForDetail} hoveredItemId={hoveredItemId} />
     </div>
   );

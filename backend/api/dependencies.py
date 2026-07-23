@@ -29,3 +29,20 @@ def get_current_user(
             detail="User not found",
         )
     return user
+
+
+def get_current_user_from_token(token: str, db: Session) -> User:
+    """Decode a raw JWT string and return the User. Raises HTTPException on failure."""
+    user_id = decode_access_token(token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    user = user_repo.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    return user

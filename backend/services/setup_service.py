@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from models.setup import Setup
+from services import algolia_service
 from transactions import setup_repo
 from transactions import item_repo
 
@@ -69,6 +70,10 @@ def create_setup(
 
     db.commit()
     setup = setup_repo.update_annotations(db, setup, annotation_metadata)
+
+    # Sync to Algolia (non-blocking — errors are logged, not raised)
+    algolia_service.index_setup(setup)
+
     return setup
 
 
@@ -87,16 +92,19 @@ def delete_setup(db: Session, setup_id: int, user_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Setup not found")
     if setup.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your setup")
+    algolia_service.delete_setup(setup_id)
     setup_repo.delete(db, setup)
 
 
-def list_setups_for_user(db: Session, requesting_user_id: int) -> list[dict]:
-    """Return all setups enriched with favourite flag for the requesting user."""
+def list_setups_for_user(db: Session, requesting_user_id: int | None = None) -> list[dict]:
+    """Return all setups enriched with favourite flag. Works for anonymous users (no favourites)."""
     from transactions.favorite_repo import get_by_user as get_favorites
 
     all_setups = setup_repo.get_all(db)
-    favorites = get_favorites(db, requesting_user_id)
-    favorited_ids = {f.setup_id for f in favorites}
+    favorited_ids: set[int] = set()
+    if requesting_user_id is not None:
+        favorites = get_favorites(db, requesting_user_id)
+        favorited_ids = {f.setup_id for f in favorites}
 
     result = []
     for s in all_setups:

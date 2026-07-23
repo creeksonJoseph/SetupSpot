@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSetups } from '../hooks/useSetups';
 import { useAuth } from '../context/AuthContext';
 import TypewriterText from '../components/TypewriterText';
+import SearchBar from '../components/SearchBar';
 
 const ShareMenu = ({ setup, onClose }) => {
   const shareUrl = `${window.location.origin}/post/${setup.id}`;
@@ -145,10 +146,28 @@ const SetupCard = ({ setup, toggleFavorite }) => {
   );
 };
 
+// Convert an Algolia hit to the same shape as a setup from the REST API
+const hitToSetup = (hit) => ({
+  id: parseInt(hit.objectID, 10),
+  title: hit.name,
+  image: hit.image_url,
+  author: `@${hit.author}`,
+  isFavorited: false,
+});
+
 const ExplorePage = () => {
   const { setups, loading, toggleFavorite } = useSetups();
+  // null = no active search; array = Algolia hits (may be empty)
+  const [searchHits, setSearchHits] = useState(null);
 
-  if (loading) {
+  const handleSearchResults = useCallback((hits) => {
+    setSearchHits(hits);
+  }, []);
+
+  const isSearching  = searchHits !== null;
+  const displayedSetups = isSearching ? searchHits.map(hitToSetup) : setups;
+
+  if (loading && !isSearching) {
     return (
       <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
         <div className="mx-auto max-w-7xl flex justify-center items-center h-64">
@@ -171,23 +190,35 @@ const ExplorePage = () => {
           <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
             <TypewriterText text="Explore Setups" />
           </h1>
-          <p className="text-base font-normal leading-normal mt-2" style={{ color: '#475569' }}>
+          <p className="text-base font-normal leading-normal mt-2 mb-5" style={{ color: '#475569' }}>
             Discover and get inspired by amazing computer setups from around the world.
           </p>
+
+          {/* Search bar — owns its own query state via useSearch hook */}
+          <SearchBar onResults={handleSearchResults} />
+
+          {/* Results label — shown when Algolia has returned results */}
+          {isSearching && (
+            <p className="mt-3 text-sm" style={{ color: '#64748B' }}>
+              {displayedSetups.length > 0
+                ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
+                : <>No results found</>}
+            </p>
+          )}
         </div>
 
-        {setups.length === 0 ? (
+        {displayedSetups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>
-              grid_view
+              {isSearching ? 'search_off' : 'grid_view'}
             </span>
             <p className="mt-4 text-lg font-medium" style={{ color: '#475569' }}>
-              No setups yet. Be the first to share one!
+              {isSearching ? 'No setups matched your search' : 'No setups yet. Be the first to share one!'}
             </p>
           </div>
         ) : (
           <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-            {setups.map((setup) => (
+            {displayedSetups.map((setup) => (
               <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
             ))}
           </div>

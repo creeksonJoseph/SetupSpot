@@ -25,22 +25,47 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* Protected app routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          {/* Layout wrapper — nav sidebar is visible for all children */}
+          <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/explore" replace />} />
+
+            {/* Public routes — no auth required */}
             <Route path="explore" element={<ExplorePage />} />
-            <Route path="favorites" element={<FavouritesPage />} />
-            <Route path="collections" element={<Collections />} />
-            <Route path="create" element={<Create />} />
             <Route path="post/:id" element={<PostDetailPage />} />
-            <Route path="account" element={<AccountPage />} />
+
+            {/* Protected routes — auth required */}
+            <Route
+              path="favorites"
+              element={
+                <ProtectedRoute>
+                  <FavouritesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="collections"
+              element={
+                <ProtectedRoute>
+                  <Collections />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="create"
+              element={
+                <ProtectedRoute>
+                  <Create />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="account"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>

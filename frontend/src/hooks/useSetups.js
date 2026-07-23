@@ -1,54 +1,98 @@
+/**
+ * useSetups — fetches all setups from the public /setups endpoint.
+ *
+ * Works for both authenticated and anonymous users:
+ *   - Authenticated: isFavorited flag is populated by the backend
+ *   - Anonymous: isFavorited is always false
+ *
+ * The token is included when available so authenticated users still get
+ * their favourites — but the request succeeds without a token too.
+ */
 import { useState, useEffect, useCallback } from 'react';
-import { useAuthFetch } from './useAuthFetch';
+import { API, FALLBACK_API } from './api';
+import { useAuth } from '../context/AuthContext';
 
 export function useSetups() {
   const [setups, setSetups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const authFetch = useAuthFetch();
+  const { auth } = useAuth();
 
   const fetchSetups = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await authFetch('/setups');
+
+    const headers = auth?.access_token
+      ? { Authorization: `Bearer ${auth.access_token}` }
+      : {};
+
+    const tryFetch = async (baseUrl) => {
+      const res = await fetch(`${baseUrl}/setups`, { headers });
       if (!res.ok) throw new Error('Failed to fetch setups');
-      const data = await res.json();
+      return res.json();
+    };
+
+    try {
+      const data = await tryFetch(API);
       setSetups(data);
     } catch (err) {
+      if (API !== FALLBACK_API) {
+        try {
+          const data = await tryFetch(FALLBACK_API);
+          setSetups(data);
+          return;
+        } catch { /* fall through to error state */ }
+      }
       console.error('Error fetching setups:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [authFetch]);
+  }, [auth?.access_token]);
 
   useEffect(() => {
     fetchSetups();
   }, [fetchSetups]);
 
   const toggleFavorite = useCallback(async (setupId, isFavorited) => {
+    if (!auth?.access_token) {
+      window.location.href = '/login';
+      return;
+    }
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.access_token}`,
+      };
       const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await authFetch('/favorites', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setup_id: setupId }),
-      });
+
+      const tryToggle = async (baseUrl) => {
+        const res = await fetch(`${baseUrl}/favorites`, {
+          method,
+          headers,
+          body: JSON.stringify({ setup_id: setupId }),
+        });
+        return res;
+      };
+
+      let response;
+      try {
+        response = await tryToggle(API);
+      } catch {
+        response = await tryToggle(FALLBACK_API);
+      }
 
       if (response.ok) {
-        setSetups((prevSetups) =>
-          prevSetups.map((setup) =>
-            setup.id === setupId
-              ? { ...setup, isFavorited: !isFavorited }
-              : setup
-          )
+        setSetups((prev) =>
+          prev.map((s) =>
+            s.id === setupId ? { ...s, isFavorited: !isFavorited } : s,
+          ),
         );
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
     }
-  }, [authFetch]);
+  }, [auth?.access_token]);
 
   return {
     setups,
