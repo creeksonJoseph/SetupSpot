@@ -266,8 +266,7 @@ const AnnotationView = ({
         <div
           onClick={handleImageClick}
           className="w-full rounded-xl relative overflow-hidden cursor-crosshair border"
-          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
-          style={{ maxHeight: "calc(100vh - 320px)" }}
+          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0", maxHeight: "calc(100vh - 320px)" }}
         >
           {uploadedImageSrc ? (
             <img

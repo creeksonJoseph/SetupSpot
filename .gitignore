@@ -1,2 +1,4 @@
 node_modules/
 .env
+seed_venv/
+seed_setups.py
