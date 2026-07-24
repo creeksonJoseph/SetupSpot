@@ -5,6 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
 
+/**
+ * Desktop-only fallback share menu.
+ * Only rendered when navigator.share is unavailable (i.e. desktop browsers).
+ * On mobile, the native OS share sheet is triggered directly instead.
+ */
 const ShareMenu = ({ setup, onClose }) => {
   const shareUrl = `${window.location.origin}/post/${setup.id}`;
   const shareText = `Check out this setup: ${setup.title} by ${setup.author}`;
@@ -12,7 +17,6 @@ const ShareMenu = ({ setup, onClose }) => {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert('Link copied to clipboard!');
     } catch {
       const ta = document.createElement('textarea');
       ta.value = shareUrl;
@@ -20,19 +24,8 @@ const ShareMenu = ({ setup, onClose }) => {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      alert('Link copied to clipboard!');
     }
-    onClose();
-  };
-
-  const nativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: setup.title, text: shareText, url: shareUrl });
-      } catch { /* user cancelled */ }
-    } else {
-      copyLink();
-    }
+    alert('Link copied to clipboard!');
     onClose();
   };
 
@@ -44,13 +37,13 @@ const ShareMenu = ({ setup, onClose }) => {
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute bottom-12 left-2 z-50 w-48 rounded-xl shadow-2xl bg-white border border-gray-200 overflow-hidden">
+      <div className="absolute bottom-12 right-2 z-50 w-52 rounded-xl shadow-2xl bg-white border border-gray-200 overflow-hidden">
         <button
-          onClick={nativeShare}
+          onClick={() => openWindow(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`)}
           className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
-          Share via…
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chat</span>
+          WhatsApp
         </button>
         <button
           onClick={() => openWindow(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`)}
@@ -81,6 +74,7 @@ const ShareMenu = ({ setup, onClose }) => {
 const SetupCard = ({ setup, toggleFavorite }) => {
   const { auth } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
+  const [saveAnimating, setSaveAnimating] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -89,17 +83,37 @@ const SetupCard = ({ setup, toggleFavorite }) => {
       window.location.href = '/login';
       return;
     }
+    // Spring-bounce pulse so the user knows the tap registered
+    setSaveAnimating(true);
+    setTimeout(() => setSaveAnimating(false), 350);
     toggleFavorite(setup.id, setup.isFavorited);
   };
 
-  const handleShare = (e) => {
+  const handleShare = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setShareOpen((v) => !v);
+
+    const shareUrl = `${window.location.origin}/post/${setup.id}`;
+    const shareData = {
+      title: setup.title,
+      text: `Check out this setup: ${setup.title} by ${setup.author}`,
+      url: shareUrl,
+    };
+
+    // On mobile: fire the native OS share sheet immediately like TikTok.
+    // WhatsApp, Instagram, Telegram, Snapchat etc. all appear automatically.
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch { /* user dismissed — no action needed */ }
+    } else {
+      // Desktop fallback: show the custom dropdown
+      setShareOpen((v) => !v);
+    }
   };
 
   return (
-    <div className="break-inside-avoid mb-4 relative group">
+    <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
       <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
         <img
           className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
@@ -108,38 +122,43 @@ const SetupCard = ({ setup, toggleFavorite }) => {
           loading="lazy"
         />
 
-        {/* Save button - top right */}
+        {/* Unsplash-style subtle dark/grey shade overlay on hover */}
+        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+        {/* Save button — top right, icon only */}
         <button
           onClick={handleSave}
-          className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+          className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10"
           style={{
             backgroundColor: setup.isFavorited ? '#e11d48' : '#ffffff',
             color: setup.isFavorited ? '#ffffff' : '#0F172A',
+            transform: saveAnimating ? 'scale(1.4)' : 'scale(1)',
+            transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s, color 0.2s, opacity 0.2s',
           }}
+          aria-label={setup.isFavorited ? 'Remove from saved' : 'Save'}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
             {setup.isFavorited ? 'favorite' : 'bookmark'}
           </span>
-          {setup.isFavorited ? 'Saved' : 'Save'}
         </button>
 
-        {/* Share button - bottom left */}
+        {/* Share button — bottom right, icon only */}
         <button
           onClick={handleShare}
-          className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+          className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10"
           style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: '#0F172A' }}
+          aria-label="Share"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span>
-          Share
         </button>
 
-        {/* Share menu */}
+        {/* Desktop-only fallback dropdown */}
         {shareOpen && <ShareMenu setup={setup} onClose={() => setShareOpen(false)} />}
 
-        {/* Gradient overlay with title on hover */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pt-12 pb-4 px-4">
-          <p className="text-white font-semibold text-base leading-tight">{setup.title}</p>
-          <p className="text-white/80 text-sm">by {setup.author}</p>
+        {/* Gradient overlay with setup title & author — pops out on hover over the grey shade */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <p className="text-white font-semibold text-base leading-tight drop-shadow">{setup.title}</p>
+          <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
         </div>
       </Link>
     </div>
@@ -195,7 +214,6 @@ const ExplorePage = () => {
             <p className="text-base font-normal leading-normal mt-2" style={{ color: '#475569' }}>
               Discover and get inspired by amazing computer setups from around the world.
             </p>
-            {/* Results label sits under the subtitle when searching */}
             {isSearching && (
               <p className="mt-2 text-sm" style={{ color: '#64748B' }}>
                 {displayedSetups.length > 0
