@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
+import { useToast } from '../context/ToastContext';
 
 export function usePostDetail(id) {
   const authFetch = useAuthFetch();
+  const { showToast } = useToast();
 
   const [setup, setSetup] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,17 @@ export function usePostDetail(id) {
 
   const toggleFavorite = useCallback(async (itemId, isFavorited) => {
     if (!setup) return;
+
+    // Optimistically toggle state immediately (TikTok / Instagram style)
+    setSetup((prevSetup) => (prevSetup ? {
+      ...prevSetup,
+      items: prevSetup.items.map((item) =>
+        item.id === itemId
+          ? { ...item, is_favorited: !isFavorited }
+          : item
+      ),
+    } : null));
+
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
       const response = await authFetch('/favorites', {
@@ -74,20 +87,23 @@ export function usePostDetail(id) {
         body: JSON.stringify({ setup_id: setup.id }),
       });
 
-      if (response.ok) {
-        setSetup((prevSetup) => (prevSetup ? {
-          ...prevSetup,
-          items: prevSetup.items.map((item) =>
-            item.id === itemId
-              ? { ...item, is_favorited: !isFavorited }
-              : item
-          ),
-        } : null));
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite');
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
+      // Revert optimistic update on error
+      setSetup((prevSetup) => (prevSetup ? {
+        ...prevSetup,
+        items: prevSetup.items.map((item) =>
+          item.id === itemId
+            ? { ...item, is_favorited: isFavorited }
+            : item
+        ),
+      } : null));
+      showToast('Could not save item to favorites, try again.', 'error');
     }
-  }, [setup, authFetch]);
+  }, [setup, authFetch, showToast]);
 
   return {
     setup,

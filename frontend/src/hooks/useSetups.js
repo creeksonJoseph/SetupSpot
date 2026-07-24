@@ -11,12 +11,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { API, FALLBACK_API } from './api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export function useSetups() {
   const [setups, setSetups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { auth } = useAuth();
+  const { showToast } = useToast();
 
   const fetchSetups = useCallback(async () => {
     setLoading(true);
@@ -59,6 +61,14 @@ export function useSetups() {
       window.location.href = '/login';
       return;
     }
+
+    // Optimistically toggle state immediately (TikTok / Instagram style)
+    setSetups((prev) =>
+      prev.map((s) =>
+        s.id === setupId ? { ...s, isFavorited: !isFavorited } : s,
+      ),
+    );
+
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -82,17 +92,20 @@ export function useSetups() {
         response = await tryToggle(FALLBACK_API);
       }
 
-      if (response.ok) {
-        setSetups((prev) =>
-          prev.map((s) =>
-            s.id === setupId ? { ...s, isFavorited: !isFavorited } : s,
-          ),
-        );
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite');
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
+      // Revert state update on error
+      setSetups((prev) =>
+        prev.map((s) =>
+          s.id === setupId ? { ...s, isFavorited: isFavorited } : s,
+        ),
+      );
+      showToast('Could not save setup, try again.', 'error');
     }
-  }, [auth?.access_token]);
+  }, [auth?.access_token, showToast]);
 
   return {
     setups,

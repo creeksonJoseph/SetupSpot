@@ -38,8 +38,21 @@ const ShareMenu = ({ setup, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute bottom-12 right-2 z-50 w-52 rounded-xl shadow-2xl bg-white border border-gray-200 overflow-hidden">
+      <div
+        className="fixed inset-0 z-40"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
+      <div
+        className="absolute bottom-12 right-2 z-50 w-52 rounded-xl shadow-2xl bg-white border border-gray-200 overflow-hidden"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
         <button
           onClick={() => openWindow(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`)}
           className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
