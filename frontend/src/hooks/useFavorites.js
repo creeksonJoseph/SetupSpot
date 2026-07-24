@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
+import { useToast } from '../context/ToastContext';
 
 export function useFavorites() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const authFetch = useAuthFetch();
+  const { showToast } = useToast();
 
   const fetchFavorites = useCallback(async () => {
     setLoading(true);
@@ -28,17 +30,29 @@ export function useFavorites() {
   }, [fetchFavorites]);
 
   const removeFavorite = useCallback(async (setupId) => {
+    let originalFavorites;
+    setFavorites((prev) => {
+      originalFavorites = prev;
+      return prev.filter((fav) => fav.id !== setupId);
+    });
+
     try {
-      await authFetch('/favorites', {
+      const response = await authFetch('/favorites', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ setup_id: setupId }),
       });
-      setFavorites((prev) => prev.filter((fav) => fav.id !== setupId));
+      if (!response.ok) {
+        throw new Error('Failed to remove favorite');
+      }
     } catch (err) {
       console.error('Error removing favorite:', err);
+      if (originalFavorites) {
+        setFavorites(originalFavorites);
+      }
+      showToast('Could not remove setup from favorites, try again.', 'error');
     }
-  }, [authFetch]);
+  }, [authFetch, showToast]);
 
   return {
     favorites,
