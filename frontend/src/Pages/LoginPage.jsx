@@ -6,10 +6,12 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 
 export default function LoginPage() {
   const { login, googleLogin } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/explore";
@@ -30,9 +32,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(form.email, form.password);
+      showToast("Logged in successfully!", "success");
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message);
+      showToast(err.message || "Login failed", "error");
     } finally {
       setLoading(false);
     }
@@ -264,9 +268,11 @@ export default function LoginPage() {
               setLoading(true);
               try {
                 await googleLogin(credential);
+                showToast("Logged in successfully!", "success");
                 navigate(from, { replace: true });
               } catch (err) {
                 setError(err.message);
+                showToast(err.message || "Google sign-in failed", "error");
               } finally {
                 setLoading(false);
               }

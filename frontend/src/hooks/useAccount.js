@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAuthFetch } from './useAuthFetch';
+import { useToast } from '../context/ToastContext';
 
 export function useAccount() {
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
+  const { showToast } = useToast();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -105,15 +107,17 @@ export function useAccount() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to change password');
+      showToast('Password changed successfully!', 'success');
       setPwdSuccess('Password changed successfully!');
       setPwdForm({ otp: '', next: '', confirm: '' });
       setPwdStep(1);
     } catch (err) {
       setPwdError(err.message);
+      showToast(err.message || 'Failed to change password', 'error');
     } finally {
       setPwdLoading(false);
     }
-  }, [authFetch, pwdForm]);
+  }, [authFetch, pwdForm, showToast]);
 
   const deleteSetup = useCallback(async (setupId) => {
     try {
@@ -121,20 +125,25 @@ export function useAccount() {
         method: 'DELETE',
       });
       if (res.ok) {
+        showToast('Setup deleted successfully!', 'success');
         setUser((prev) => (prev ? {
           ...prev,
           setups: prev.setups.filter((s) => s.id !== setupId),
         } : null));
+      } else {
+        showToast('Failed to delete setup', 'error');
       }
     } catch (err) {
       console.error('Error deleting setup:', err);
+      showToast('Error deleting setup', 'error');
     }
-  }, [authFetch]);
+  }, [authFetch, showToast]);
 
   const handleLogout = useCallback(() => {
     logout();
+    showToast('Signed out successfully!', 'info');
     navigate('/login', { replace: true });
-  }, [logout, navigate]);
+  }, [logout, navigate, showToast]);
 
   return {
     user,

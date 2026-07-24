@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 
 const inputBase = "w-full rounded-lg px-3 py-2 text-sm font-light outline-none transition-all";
@@ -27,6 +28,7 @@ function Steps({ current }) {
 
 export default function SignupPage() {
   const { signupSendOtp, signupVerifyOtp, signupComplete, googleLogin } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
@@ -61,10 +63,12 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signupSendOtp(email.trim().toLowerCase());
+      showToast("Verification code sent!", "info");
       setStep(2);
       startCountdown(60);
     } catch (err) {
       setError(err.message);
+      showToast(err.message || "Failed to send code", "error");
     } finally {
       setLoading(false);
     }
@@ -75,9 +79,11 @@ export default function SignupPage() {
     clearError();
     try {
       await signupSendOtp(email.trim().toLowerCase());
+      showToast("Verification code resent!", "info");
       startCountdown(60);
     } catch (err) {
       setError(err.message);
+      showToast(err.message || "Failed to send code", "error");
     } finally {
       setLoading(false);
     }
@@ -93,6 +99,7 @@ export default function SignupPage() {
       setStep(3);
     } catch (err) {
       setError(err.message);
+      showToast(err.message || "Invalid code", "error");
     } finally {
       setLoading(false);
     }
@@ -106,9 +113,11 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signupComplete(signupToken, form.username.trim(), form.password);
+      showToast("Account created successfully!", "success");
       navigate("/explore", { replace: true });
     } catch (err) {
       setError(err.message);
+      showToast(err.message || "Registration failed", "error");
     } finally {
       setLoading(false);
     }
@@ -194,9 +203,16 @@ export default function SignupPage() {
               <GoogleAuthButton
                 onSuccess={async (credential) => {
                   setLoading(true);
-                  try { await googleLogin(credential); navigate("/explore", { replace: true }); }
-                  catch (err) { setError(err.message); }
-                  finally { setLoading(false); }
+                  try {
+                    await googleLogin(credential);
+                    showToast("Logged in successfully!", "success");
+                    navigate("/explore", { replace: true });
+                  } catch (err) {
+                    setError(err.message);
+                    showToast(err.message || "Google sign-in failed", "error");
+                  } finally {
+                    setLoading(false);
+                  }
                 }}
                 disabled={loading}
               />

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSetups } from '../hooks/useSetups';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
 
@@ -13,6 +14,7 @@ import SearchBar from '../components/SearchBar';
 const ShareMenu = ({ setup, onClose }) => {
   const shareUrl = `${window.location.origin}/post/${setup.id}`;
   const shareText = `Check out this setup: ${setup.title} by ${setup.author}`;
+  const { showToast } = useToast();
 
   const copyLink = async () => {
     try {
@@ -25,7 +27,7 @@ const ShareMenu = ({ setup, onClose }) => {
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    alert('Link copied to clipboard!');
+    showToast('Link copied to clipboard!', 'success');
     onClose();
   };
 
