@@ -36,7 +36,6 @@ const SimilarSetups = ({ currentSetupId }) => {
               return [...prev, ...newItems];
             });
           }
-          // If returned items equal limit (8), there are likely more pages
           setHasMore(data.length === 8);
         }
       } catch (err) {
@@ -65,6 +64,16 @@ const SimilarSetups = ({ currentSetupId }) => {
       fetchPage(nextPage);
     }
   }, [loadingMore, loading, hasMore, fetchPage]);
+
+  // Auto-fill: If rendered items don't fill the container (no scrollbar yet), auto-fetch page 2
+  useEffect(() => {
+    if (!loading && !loadingMore && hasMore && scrollContainerRef.current) {
+      const { scrollHeight, clientHeight } = scrollContainerRef.current;
+      if (scrollHeight <= clientHeight + 40 && recommendedSetups.length > 0) {
+        loadNextPage();
+      }
+    }
+  }, [recommendedSetups, loading, loadingMore, hasMore, loadNextPage]);
 
   // Scroll listener for infinite scroll
   const handleScroll = (e) => {

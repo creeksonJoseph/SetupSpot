@@ -19,7 +19,7 @@ const SetupItemList = ({
         Items in Setup ({items.length})
       </h2>
       <div
-        className="flex flex-col overflow-y-auto flex-1 border rounded-xl"
+        className="flex flex-col overflow-y-auto flex-1 border "
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {items.length === 0 ? (
@@ -40,8 +40,8 @@ const SetupItemList = ({
                   backgroundColor: isExpanded
                     ? "rgba(0,102,255,0.02)"
                     : isHovered
-                    ? "rgba(0,102,255,0.04)"
-                    : "transparent",
+                      ? "rgba(0,102,255,0.04)"
+                      : "transparent",
                 }}
                 onMouseEnter={() => setHoveredItemId(item.id)}
                 onMouseLeave={() => setHoveredItemId(null)}

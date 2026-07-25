@@ -1,10 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import SetupImageCanvas from "../components/SetupImageCanvas";
 import SetupItemList from "../components/SetupItemList";
-import ItemDetailsSidebar from "../components/ItemDetailsSidebar";
 import SimilarSetups from "../components/SimilarSetups";
 import AddToCollectionModal from "../components/AddToCollectionModal";
 import PostSocialBar from "../components/PostSocialBar";
@@ -21,11 +20,7 @@ const PostDetailPage = () => {
     hoveredItemId,
     setHoveredItemId,
     isModalOpen,
-    isSidebarOpen,
-    selectedItemForDetail,
     selectedItemForCollection,
-    handleOpenSidebar,
-    handleCloseSidebar,
     handleOpenModal,
     handleCloseModal,
     toggleLike,
@@ -82,8 +77,8 @@ const PostDetailPage = () => {
       {/*
         Fixed 3-column grid layout:
         - Left: standalone back button + image + social bar + lazy comment section (1fr)
-        - Middle: item list (260px)
-        - Right: item detail panel OR similar setups recommendation column (300px)
+        - Middle: item list accordion (260px)
+        - Right: similar setups recommendation column (300px)
       */}
       <div
         className="flex flex-1 gap-4 p-4 lg:p-5 overflow-hidden"
