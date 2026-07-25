@@ -6,21 +6,25 @@ import { Loader2 } from "lucide-react";
 const SimilarSetups = ({ currentSetupId }) => {
   const authFetch = useAuthFetch();
   const [recommendedSetups, setRecommendedSetups] = useState([]);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  const pageRef = useRef(1);
   const scrollContainerRef = useRef(null);
 
   // Fetch page chunk
   const fetchPage = useCallback(
     async (pageNum) => {
       if (!currentSetupId) return;
-      if (pageNum === 1) setLoading(true);
-      else setLoadingMore(true);
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
 
       try {
-        const res = await authFetch(`/setups/${currentSetupId}/similar?page=${pageNum}&limit=6`);
+        const res = await authFetch(`/setups/${currentSetupId}/similar?page=${pageNum}&limit=8`);
         if (res.ok) {
           const data = await res.json();
           if (pageNum === 1) {
@@ -32,7 +36,8 @@ const SimilarSetups = ({ currentSetupId }) => {
               return [...prev, ...newItems];
             });
           }
-          setHasMore(data.length === 6);
+          // If returned items equal limit (8), there are likely more pages
+          setHasMore(data.length === 8);
         }
       } catch (err) {
         console.error("Failed to fetch similar setups page:", err);
@@ -46,25 +51,25 @@ const SimilarSetups = ({ currentSetupId }) => {
 
   // Reset and fetch page 1 when currentSetupId changes
   useEffect(() => {
-    setPage(1);
+    pageRef.current = 1;
     setHasMore(true);
     setRecommendedSetups([]);
     fetchPage(1);
   }, [currentSetupId, fetchPage]);
 
-  // Load next page
-  const loadNextPage = () => {
-    if (!loadingMore && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
+  // Load next page helper
+  const loadNextPage = useCallback(() => {
+    if (!loadingMore && !loading && hasMore) {
+      const nextPage = pageRef.current + 1;
+      pageRef.current = nextPage;
       fetchPage(nextPage);
     }
-  };
+  }, [loadingMore, loading, hasMore, fetchPage]);
 
-  // Scroll handler for infinite scroll
+  // Scroll listener for infinite scroll
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !loadingMore && !loading) {
+    if (scrollHeight - scrollTop - clientHeight < 120 && hasMore && !loadingMore && !loading) {
       loadNextPage();
     }
   };
@@ -119,10 +124,26 @@ const SimilarSetups = ({ currentSetupId }) => {
               ))}
             </div>
 
-            {loadingMore && (
+            {/* Loading indicator or manual Load More button */}
+            {loadingMore ? (
               <div className="flex items-center justify-center py-3">
                 <Loader2 size={16} className="animate-spin" style={{ color: "#0066ff" }} />
+                <span className="ml-2 text-xs font-medium" style={{ color: "#475569" }}>
+                  Loading more...
+                </span>
               </div>
+            ) : (
+              hasMore && (
+                <div className="flex justify-center pt-2 pb-1">
+                  <button
+                    onClick={loadNextPage}
+                    className="text-xs font-semibold py-1.5 px-4 rounded-lg border transition-colors hover:bg-slate-50"
+                    style={{ borderColor: "#E2E8F0", color: "#0066ff" }}
+                  >
+                    Load More
+                  </button>
+                </div>
+              )
             )}
           </>
         )}
