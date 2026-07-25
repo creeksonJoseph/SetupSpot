@@ -184,9 +184,7 @@ const UploadView = ({
         <>
           <Upload size={48} className="mb-2" style={{ color: "#727687" }} />
           <p className={`font-medium ${textPrimary}`}>Click to Upload Image</p>
-          <p className={`text-sm ${textSecondary}`}>
-            16:9 Landscape recommended
-          </p>
+
         </>
       )}
       <input
@@ -238,7 +236,7 @@ const AnnotationView = ({
           type="text"
           value={setupName}
           onChange={(e) => setSetupName(e.target.value)}
-          placeholder="Give your setup a name (e.g., Minimal Developer Setup)"
+          placeholder="Tell everyone about your setup :)"
           className="w-full p-3 mb-4 border rounded-lg text-sm outline-none transition-all"
           style={{
             backgroundColor: "#ffffff",
@@ -282,11 +280,10 @@ const AnnotationView = ({
                 e.stopPropagation();
                 setSelectedAnnotationId(ann.id);
               }}
-              className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
-                ann.id === selectedAnnotationId
-                  ? "bg-red-500 border-white scale-125 ring-4 ring-red-300"
-                  : "bg-white border-[#E2E8F0] hover:bg-[rgba(0,102,255,0.1)]"
-              }`}
+              className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${ann.id === selectedAnnotationId
+                ? "bg-red-500 border-white scale-125 ring-4 ring-red-300"
+                : "bg-white border-[#E2E8F0] hover:bg-[rgba(0,102,255,0.1)]"
+                }`}
               style={{
                 left: `${ann.x}%`,
                 top: `${ann.y}%`,
@@ -320,11 +317,10 @@ const AnnotationView = ({
               <li
                 key={ann.id}
                 onClick={() => setSelectedAnnotationId(ann.id)}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                  ann.id === selectedAnnotationId
-                    ? "bg-[rgba(0,102,255,0.08)]"
-                    : "hover:bg-[#f7f9fb]"
-                }`}
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${ann.id === selectedAnnotationId
+                  ? "bg-[rgba(0,102,255,0.08)]"
+                  : "hover:bg-[#f7f9fb]"
+                  }`}
               >
                 <span
                   className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0"
@@ -348,8 +344,8 @@ const AnnotationView = ({
                   className="p-1.5 rounded-full transition-colors"
                   style={{ color: "#ba1a1a" }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(186,26,26,0.08)")
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(186,26,26,0.08)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor = "transparent")
@@ -400,15 +396,15 @@ const AnnotationView = ({
             style={
               apiMessage.type === "success"
                 ? {
-                    backgroundColor: "rgba(21,128,61,0.08)",
-                    borderColor: "rgba(21,128,61,0.2)",
-                    color: "#15803D",
-                  }
+                  backgroundColor: "rgba(21,128,61,0.08)",
+                  borderColor: "rgba(21,128,61,0.2)",
+                  color: "#15803D",
+                }
                 : {
-                    backgroundColor: "rgba(186,26,26,0.08)",
-                    borderColor: "rgba(186,26,26,0.2)",
-                    color: "#ba1a1a",
-                  }
+                  backgroundColor: "rgba(186,26,26,0.08)",
+                  borderColor: "rgba(186,26,26,0.2)",
+                  color: "#ba1a1a",
+                }
             }
           >
             {apiMessage.text}
