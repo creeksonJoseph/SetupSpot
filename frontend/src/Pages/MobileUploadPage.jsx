@@ -1,5 +1,5 @@
 import React from "react";
-import { Camera, CheckCircle2, Upload, Loader2, AlertCircle } from "lucide-react";
+import { Camera, CheckCircle2, Upload, Loader2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { useMobileUpload } from "../hooks/useMobileUpload";
 
 export default function MobileUploadPage() {
@@ -58,7 +58,7 @@ export default function MobileUploadPage() {
           <>
             <h1 className="text-base font-bold text-slate-900 mb-1">Upload Setup Photo</h1>
             <p className="text-xs text-slate-500 mb-6">
-              Snap a picture of your desk setup or select one from your gallery to send directly to your desktop.
+              Select a photo from your gallery or snap a new picture to send directly to your desktop.
             </p>
 
             {error && (
@@ -69,32 +69,62 @@ export default function MobileUploadPage() {
             )}
 
             <form onSubmit={handleUpload} className="w-full flex flex-col items-center gap-4">
-              {/* Photo Preview or File Selector Dropzone */}
-              <label className="w-full h-56 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-3 cursor-pointer bg-slate-50/50 hover:bg-slate-100/50 transition-colors overflow-hidden relative">
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400 gap-2">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <Camera size={24} />
+              {/* Photo Preview Container */}
+              {previewUrl ? (
+                <div className="w-full h-56 border rounded-2xl overflow-hidden relative border-slate-200 bg-slate-50">
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={resetSelection}
+                    className="absolute top-2 right-2 px-3 py-1 bg-black/60 text-white rounded-lg text-[11px] font-medium backdrop-blur-sm"
+                  >
+                    Change Photo
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full flex flex-col gap-3">
+                  {/* Option 1: Explicit Photo Library / Gallery Button */}
+                  <label className="w-full py-3.5 px-4 border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-2xl flex items-center justify-center gap-3 cursor-pointer hover:bg-blue-50 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                      <ImageIcon size={20} />
                     </div>
-                    <span className="text-xs font-semibold text-slate-700">Tap to Take or Select Photo</span>
-                    <span className="text-[11px] text-slate-400">Camera / Gallery</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
+                    <div className="text-left flex-1">
+                      <p className="text-xs font-bold text-slate-900">Choose from Photo Library</p>
+                      <p className="text-[11px] text-slate-500">Pick an existing setup photo</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp, image/heic, image/heif"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Option 2: Explicit Camera Button */}
+                  <label className="w-full py-3.5 px-4 border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-2xl flex items-center justify-center gap-3 cursor-pointer hover:bg-slate-100/50 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center shrink-0">
+                      <Camera size={20} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="text-xs font-bold text-slate-900">Take Photo with Camera</p>
+                      <p className="text-[11px] text-slate-500">Snap a new photo right now</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
 
               {selectedFile && (
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                  className="w-full py-3.5 px-4 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 mt-2"
                   style={{ backgroundColor: "#0066ff" }}
                 >
                   {uploading ? (
