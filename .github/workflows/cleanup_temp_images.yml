@@ -30,5 +30,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY || 'github_actions_dummy_secret' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'github_actions_dummy_resend' }}
         run: |
           python backend/scripts/cleanup_orphaned_images.py
