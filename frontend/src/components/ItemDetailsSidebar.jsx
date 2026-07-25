@@ -8,9 +8,8 @@ import { X, ShoppingBag } from "lucide-react";
 const ItemDetailsSidebar = ({ isOpen, onClose, item }) => {
   return (
     <div
-      className={`flex flex-col h-full rounded-xl border overflow-hidden transition-all duration-300 ${
-        isOpen && item ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
+      className={`flex flex-col h-full  border overflow-hidden transition-all duration-300 ${isOpen && item ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
       style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
     >
       {item && (
@@ -30,26 +29,8 @@ const ItemDetailsSidebar = ({ isOpen, onClose, item }) => {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {/* Image */}
-            <div
-              className="w-full rounded-xl flex items-center justify-center border-2 overflow-hidden"
-              style={{ aspectRatio: "16/9", backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
-            >
-              {item.item_image_url ? (
-                <img
-                  src={item.item_image_url}
-                  alt={item.name}
-                  className="w-full h-full object-contain p-4"
-                />
-              ) : (
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "#E2E8F0" }}
-                >
-                  <ShoppingBag size={20} style={{ color: "#727687" }} />
-                </div>
-              )}
-            </div>
+
+
 
             {/* Name & price */}
             <div>
@@ -84,8 +65,9 @@ const ItemDetailsSidebar = ({ isOpen, onClose, item }) => {
             </a>
           </div>
         </>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 

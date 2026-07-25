@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import SetupImageCanvas from "../components/SetupImageCanvas";
 import SetupItemList from "../components/SetupItemList";
 import ItemDetailsSidebar from "../components/ItemDetailsSidebar";
+import SimilarSetups from "../components/SimilarSetups";
 import AddToCollectionModal from "../components/AddToCollectionModal";
 import PostSocialBar from "../components/PostSocialBar";
 import CommentSection from "../components/CommentSection";
@@ -69,19 +70,16 @@ const PostDetailPage = () => {
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/*
-        3-column grid:
-        - Left: image + social bar + lazy comment section
-        - Middle: item list (fixed 260px)
-        - Right: item detail panel (fixed 300px, only visible when open)
+        Fixed 3-column grid layout:
+        - Left: image + social bar + lazy comment section (1fr)
+        - Middle: item list (260px)
+        - Right: item detail panel OR similar setups recommendation column (300px)
       */}
       <div
         className="flex flex-1 gap-4 p-4 lg:p-5 overflow-hidden"
         style={{
           display: "grid",
-          gridTemplateColumns: isSidebarOpen
-            ? "1fr 260px 300px"
-            : "1fr 260px",
-          transition: "grid-template-columns 0.3s ease",
+          gridTemplateColumns: "1fr 260px 300px",
           alignItems: "start",
         }}
       >
@@ -128,16 +126,18 @@ const PostDetailPage = () => {
           />
         </div>
 
-        {/* ── RIGHT COLUMN — item detail panel ────────────────── */}
-        {isSidebarOpen && (
-          <div className="h-full overflow-hidden">
+        {/* ── RIGHT COLUMN — item detail panel OR similar setups ────────────────── */}
+        <div className="h-full overflow-hidden">
+          {isSidebarOpen && selectedItemForDetail ? (
             <ItemDetailsSidebar
               isOpen={isSidebarOpen}
               onClose={handleCloseSidebar}
               item={selectedItemForDetail}
             />
-          </div>
-        )}
+          ) : (
+            <SimilarSetups currentSetupId={id} />
+          )}
+        </div>
       </div>
 
       {/* Add to Collection modal (portal-style) */}

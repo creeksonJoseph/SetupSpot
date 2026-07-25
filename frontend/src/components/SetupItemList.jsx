@@ -14,7 +14,7 @@ const SetupItemList = ({
         Items ({items.length})
       </h2>
       <div
-        className="flex flex-col rounded-xl overflow-y-auto flex-1 border"
+        className="flex flex-col overflow-y-auto flex-1 border"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {items.map((item, index) => (
@@ -29,17 +29,7 @@ const SetupItemList = ({
             onMouseLeave={() => setHoveredItemId(null)}
             onClick={() => onOpenSidebar(item)}
           >
-            {/* Thumbnail */}
-            <div
-              className="aspect-square rounded-lg size-[42px] shrink-0 flex items-center justify-center border"
-              style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
-            >
-              {item.item_image_url ? (
-                <img src={item.item_image_url} alt={item.name} className="size-7 object-contain" />
-              ) : (
-                <span className="text-xs font-bold" style={{ color: "#0066ff" }}>{index + 1}</span>
-              )}
-            </div>
+
 
             {/* Name & price */}
             <div className="flex-1 min-w-0">
