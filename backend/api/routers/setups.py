@@ -50,6 +50,21 @@ def get_setup(
     return setup_service.serialize_setup_detail(setup, requesting_user_id)
 
 
+@router.get("/{setup_id}/similar", response_model=list[SetupListItemOut])
+def get_similar_setups(
+    setup_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+):
+    """Return semantically similar setups computed via pgvector cosine similarity."""
+    from services import recommendation_service
+
+    requesting_user_id = current_user.id if current_user else None
+    return recommendation_service.get_similar_setups(
+        db, setup_id=setup_id, limit=6, requesting_user_id=requesting_user_id
+    )
+
+
 @router.post("", response_model=SetupDetailOut, status_code=201)
 def create_setup(
     file: UploadFile = File(...),

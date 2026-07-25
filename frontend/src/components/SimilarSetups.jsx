@@ -1,15 +1,32 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { useSetups } from "../hooks/useSetups";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 import { Loader2 } from "lucide-react";
 
 const SimilarSetups = ({ currentSetupId }) => {
-  const { setups, loading } = useSetups();
+  const authFetch = useAuthFetch();
+  const [recommendedSetups, setRecommendedSetups] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Exclude the currently viewed setup from recommendations
-  const recommendedSetups = setups.filter(
-    (s) => String(s.id) !== String(currentSetupId)
-  );
+  const fetchSimilarSetups = useCallback(async () => {
+    if (!currentSetupId) return;
+    setLoading(true);
+    try {
+      const res = await authFetch(`/setups/${currentSetupId}/similar`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecommendedSetups(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch similar setups:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentSetupId, authFetch]);
+
+  useEffect(() => {
+    fetchSimilarSetups();
+  }, [fetchSimilarSetups]);
 
   return (
     <div className="flex flex-col h-full">

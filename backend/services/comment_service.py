@@ -25,6 +25,11 @@ def add(db: Session, user_id: int, setup_id: int, body: str) -> dict:
             detail="Comment body cannot be empty.",
         )
     comment = comment_repo.create(db, user_id=user_id, setup_id=setup_id, body=body)
+
+    # Invalidate setup detail cache so comment_count updates
+    from core import redis_client
+    redis_client.invalidate_setup_detail(setup_id)
+
     return _serialize(comment)
 
 
@@ -35,7 +40,13 @@ def delete(db: Session, user_id: int, comment_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     if comment.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your comment")
+
+    setup_id = comment.setup_id
     comment_repo.delete(db, comment)
+
+    # Invalidate setup detail cache so comment_count updates
+    from core import redis_client
+    redis_client.invalidate_setup_detail(setup_id)
 
 
 def _serialize(comment: Comment) -> dict:

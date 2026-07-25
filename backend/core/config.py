@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     ALGOLIA_APP_ID: str = "82D9UQ8ZF3"
     ALGOLIA_WRITE_API_KEY: str = ""
     ALGOLIA_INDEX_NAME: str = "setups"
+    UPSTASH_REDIS_REST_URL: str | None = None
+    UPSTASH_REDIS_REST_TOKEN: str | None = None
 
     class Config:
         env_file = ".env"

@@ -1,0 +1,120 @@
+"""Upstash Redis client — quota-conscious REST API caching wrapper.
+
+Responsibilities:
+- Initialize Upstash Redis REST client using UPSTASH_REDIS_REST_URL & TOKEN.
+- Expose JSON getter/setter with TTL.
+- Provide targeted invalidation helpers.
+- Guarantee 100% graceful fallback to DB if Redis is offline/unconfigured.
+"""
+import json
+from typing import Any, Optional
+from upstash_redis import Redis
+from core.config import settings
+
+_redis_client: Optional[Redis] = None
+
+
+def get_redis_client() -> Optional[Redis]:
+    """Lazy initializer for Upstash Redis client."""
+    global _redis_client
+    if _redis_client is not None:
+        return _redis_client
+
+    url = settings.UPSTASH_REDIS_REST_URL
+    token = settings.UPSTASH_REDIS_REST_TOKEN
+
+    if not url or not token:
+        return None
+
+    try:
+        _redis_client = Redis(url=url, token=token)
+        return _redis_client
+    except Exception as exc:
+        print(f"Failed to initialize Upstash Redis: {exc}")
+        return None
+
+
+def get_json(key: str) -> Optional[Any]:
+    """Retrieve and deserialize JSON value from Redis with exception handling."""
+    client = get_redis_client()
+    if client is None:
+        return None
+
+    try:
+        raw = client.get(key)
+        if raw is None:
+            return None
+        if isinstance(raw, (dict, list)):
+            return raw
+        return json.loads(raw)
+    except Exception as exc:
+        print(f"Redis GET error for key '{key}': {exc}")
+        return None
+
+
+def set_json(key: str, value: Any, ttl_seconds: int = 3600) -> bool:
+    """Serialize and store value in Redis with TTL (seconds)."""
+    client = get_redis_client()
+    if client is None:
+        return False
+
+    try:
+        serialized = json.dumps(value)
+        # Upstash redis set accepts ex for TTL in seconds
+        client.set(key, serialized, ex=ttl_seconds)
+        return True
+    except Exception as exc:
+        print(f"Redis SET error for key '{key}': {exc}")
+        return False
+
+
+def delete_key(key: str) -> bool:
+    """Delete a key from Redis."""
+    client = get_redis_client()
+    if client is None:
+        return False
+
+    try:
+        client.delete(key)
+        return True
+    except Exception as exc:
+        print(f"Redis DELETE error for key '{key}': {exc}")
+        return False
+
+
+# ── Specialized Caching Helpers ──────────────────────────────────────────────
+
+# 1. Vector Similar Recommendations (TTL: 24 hours)
+def get_cached_similar_setups(setup_id: int) -> Optional[list]:
+    return get_json(f"similar_setups:{setup_id}")
+
+
+def set_cached_similar_setups(setup_id: int, data: list, ttl: int = 86400) -> bool:
+    return set_json(f"similar_setups:{setup_id}", data, ttl_seconds=ttl)
+
+
+# 2. Explore Feed Setups (TTL: 10 minutes, invalidated on new setup create/delete)
+def get_cached_explore_setups() -> Optional[list]:
+    return get_json("explore_setups_feed")
+
+
+def set_cached_explore_setups(data: list, ttl: int = 600) -> bool:
+    return set_json("explore_setups_feed", data, ttl_seconds=ttl)
+
+
+def invalidate_explore_setups() -> bool:
+    return delete_key("explore_setups_feed")
+
+
+# 3. Setup Detail Payload (TTL: 15 minutes, invalidated on comment/like/delete)
+def get_cached_setup_detail(setup_id: int) -> Optional[dict]:
+    return get_json(f"setup_detail:{setup_id}")
+
+
+def set_cached_setup_detail(setup_id: int, data: dict, ttl: int = 900) -> bool:
+    return set_json(f"setup_detail:{setup_id}", data, ttl_seconds=ttl)
+
+
+def invalidate_setup_detail(setup_id: int) -> bool:
+    delete_key(f"similar_setups:{setup_id}")
+    return delete_key(f"setup_detail:{setup_id}")

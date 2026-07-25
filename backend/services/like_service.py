@@ -19,6 +19,11 @@ def toggle(db: Session, user_id: int, setup_id: int) -> dict:
         liked = True
 
     count = like_repo.count_by_setup(db, setup_id)
+
+    # Invalidate setup detail cache so cached like_count updates
+    from core import redis_client
+    redis_client.invalidate_setup_detail(setup_id)
+
     return {"liked": liked, "like_count": count}
 
 

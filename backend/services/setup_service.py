@@ -74,6 +74,17 @@ def create_setup(
     # Sync to Algolia (non-blocking — errors are logged, not raised)
     algolia_service.index_setup(setup)
 
+    # Generate pgvector embedding (fastembed BAAI/bge-small model)
+    try:
+        from services import recommendation_service
+        recommendation_service.embed_and_save_setup(db, setup.id)
+    except Exception as exc:
+        print(f"Error generating embedding for setup {setup.id}: {exc}")
+
+    # Invalidate explore feed cache
+    from core import redis_client
+    redis_client.invalidate_explore_setups()
+
     return setup
 
 
@@ -95,32 +106,70 @@ def delete_setup(db: Session, setup_id: int, user_id: int) -> None:
     algolia_service.delete_setup(setup_id)
     setup_repo.delete(db, setup)
 
+    # Invalidate caches
+    from core import redis_client
+    redis_client.invalidate_explore_setups()
+    redis_client.invalidate_setup_detail(setup_id)
+
 
 def list_setups_for_user(db: Session, requesting_user_id: int | None = None) -> list[dict]:
-    """Return all setups enriched with favourite flag. Works for anonymous users (no favourites)."""
+    """Return all setups enriched with favourite flag. Works for anonymous users (no favourites). Caches in Upstash Redis (10m TTL)."""
     from transactions.favorite_repo import get_by_user as get_favorites
+    from core import redis_client
 
+    # 1. Check Upstash Redis cache
+    cached_feed = redis_client.get_cached_explore_setups()
+    if cached_feed is not None and isinstance(cached_feed, list):
+        favorited_ids: set[int] = set()
+        if requesting_user_id is not None:
+            favorites = get_favorites(db, requesting_user_id)
+            favorited_ids = {f.setup_id for f in favorites}
+
+        return [
+            {
+                **s,
+                "isFavorited": s.get("id") in favorited_ids if requesting_user_id else s.get("isFavorited", False),
+            }
+            for s in cached_feed
+        ]
+
+    # 2. Database query on cache miss
     all_setups = setup_repo.get_all(db)
-    favorited_ids: set[int] = set()
-    if requesting_user_id is not None:
-        favorites = get_favorites(db, requesting_user_id)
-        favorited_ids = {f.setup_id for f in favorites}
-
-    result = []
+    raw_feed = []
     for s in all_setups:
-        result.append({
+        raw_feed.append({
             "id": s.id,
             "title": s.name,
             "image": s.image_url,
             "author": f"@{s.user.username}",
-            "isFavorited": s.id in favorited_ids,
+            "isFavorited": False,
         })
-    return result
+
+    # Cache for 10 minutes (600s)
+    redis_client.set_cached_explore_setups(raw_feed, ttl=600)
+
+    # Enrich with user favorites
+    if requesting_user_id is not None:
+        favorites = get_favorites(db, requesting_user_id)
+        favorited_ids = {f.setup_id for f in favorites}
+        for item in raw_feed:
+            item["isFavorited"] = item["id"] in favorited_ids
+
+    return raw_feed
 
 
 def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) -> dict:
-    """Build the detailed setup response (with annotated items and social counts)."""
+    """Build the detailed setup response. Caches in Upstash Redis (15m TTL)."""
     from transactions import like_repo, comment_repo
+    from core import redis_client
+
+    # 1. Check Upstash Redis cache
+    cached_detail = redis_client.get_cached_setup_detail(setup.id)
+    if cached_detail is not None and isinstance(cached_detail, dict):
+        is_liked = False
+        if requesting_user_id is not None:
+            is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
+        return {**cached_detail, "is_liked": is_liked}
 
     try:
         annotations = json.loads(setup.annotations) if setup.annotations else []
@@ -143,14 +192,13 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
                 "y": ann["y"],
             })
 
-    # like_count and is_liked are computed via the relationship
     like_count = len(setup.likes)
     comment_count = len(setup.comments)
     is_liked = False
     if requesting_user_id is not None:
         is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
 
-    return {
+    payload = {
         "id": setup.id,
         "name": setup.name,
         "image_url": setup.image_url,
@@ -158,7 +206,13 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
         "author_username": setup.user.username,
         "author_avatar": setup.user.avatar_url,
         "like_count": like_count,
-        "is_liked": is_liked,
+        "is_liked": False,
         "comment_count": comment_count,
         "items": annotated_items,
     }
+
+    # Save to Redis cache for 15 minutes (900s)
+    redis_client.set_cached_setup_detail(setup.id, payload, ttl=900)
+
+    payload["is_liked"] = is_liked
+    return payload

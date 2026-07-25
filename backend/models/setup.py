@@ -1,6 +1,7 @@
 """Setup ORM model — column definitions only."""
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 
 from core.database import Base
 
@@ -12,6 +13,7 @@ class Setup(Base):
     name = Column(String(100), nullable=False)
     image_url = Column(String(1024))
     annotations = Column(Text)
+    embedding = Column(Vector(384), nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
