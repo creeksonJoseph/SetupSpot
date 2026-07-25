@@ -118,3 +118,47 @@ def set_cached_setup_detail(setup_id: int, data: dict, ttl: int = 900) -> bool:
 def invalidate_setup_detail(setup_id: int) -> bool:
     delete_key(f"similar_setups:{setup_id}")
     return delete_key(f"setup_detail:{setup_id}")
+
+
+# 4. Rate Limiting Helper (OTP / Auth actions)
+def check_rate_limit(key: str, max_limit: int = 4, window_seconds: int = 900) -> bool:
+    """
+    Check if a rate-limit key has exceeded max_limit within window_seconds.
+    Returns True if ALLOWED, False if RATE LIMITED (exceeded limit).
+    """
+    client = get_redis_client()
+    if client is None:
+        return True  # Graceful fallback to in-memory check
+
+    try:
+        current = client.get(key)
+        if current is not None:
+            count = int(current)
+            if count >= max_limit:
+                return False
+            client.set(key, count + 1, ex=window_seconds)
+        else:
+            client.set(key, 1, ex=window_seconds)
+        return True
+    except Exception as exc:
+        print(f"Redis rate limit error for '{key}': {exc}")
+        return True
+
+
+# 5. Persistent OTP Storage Helpers (TTL default: 15 minutes = 900s)
+def store_otp(purpose: str, key_identifier: str, otp: str, ttl_seconds: int = 900) -> bool:
+    """Store an OTP string in Redis with automatic TTL expiration."""
+    return set_json(f"otp:{purpose}:{key_identifier}", {"otp": otp}, ttl_seconds=ttl_seconds)
+
+
+def get_otp(purpose: str, key_identifier: str) -> Optional[str]:
+    """Retrieve an OTP string from Redis. Returns None if missing or expired."""
+    data = get_json(f"otp:{purpose}:{key_identifier}")
+    if isinstance(data, dict):
+        return data.get("otp")
+    return None
+
+
+def delete_otp(purpose: str, key_identifier: str) -> bool:
+    """Delete an OTP from Redis after verification."""
+    return delete_key(f"otp:{purpose}:{key_identifier}")

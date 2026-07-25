@@ -64,6 +64,14 @@ def signup_send_otp(db: Session, email: str) -> None:
     if user_repo.get_by_email(db, normalized):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
+    # Persistent Upstash Redis rate limit check
+    from core import redis_client
+    if not redis_client.check_rate_limit(f"rate_limit:SIGNUP:{normalized}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please wait 15 minutes.",
+        )
+
     now = datetime.now(timezone.utc)
     existing = _signup_otps.get(normalized, {})
     window_start = existing.get("window_start", now)
@@ -83,6 +91,9 @@ def signup_send_otp(db: Session, email: str) -> None:
         )
 
     otp = _generate_otp()
+    from core import redis_client
+    redis_client.store_otp("signup", normalized, otp, ttl_seconds=OTP_EXPIRY_MINUTES * 60)
+
     _signup_otps[normalized] = {
         "otp": otp,
         "expires_at": now + timedelta(minutes=OTP_EXPIRY_MINUTES),
@@ -93,22 +104,33 @@ def signup_send_otp(db: Session, email: str) -> None:
     send_otp_email(normalized, otp, purpose="signup")
 
 
-
 def signup_verify_otp(email: str, otp: str) -> str:
     """Step 2 — validate OTP and return a short-lived signup_token JWT."""
     normalized = email.strip().lower()
-    record = _signup_otps.get(normalized)
-    if not record:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No OTP found for this email")
-    expires_at = record["expires_at"]
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if datetime.now(timezone.utc) > expires_at:
+    from core import redis_client
+
+    # 1. Check Upstash Redis first
+    redis_otp = redis_client.get_otp("signup", normalized)
+    if redis_otp is not None:
+        if redis_otp.strip() != otp.strip():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
+        redis_client.delete_otp("signup", normalized)
         _signup_otps.pop(normalized, None)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP expired")
-    if record["otp"].strip() != otp.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
-    _signup_otps.pop(normalized, None)
+    else:
+        # Fallback to in-memory store if Redis missing key or offline
+        record = _signup_otps.get(normalized)
+        if not record:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No OTP found or code expired")
+        expires_at = record["expires_at"]
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            _signup_otps.pop(normalized, None)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP expired")
+        if record["otp"].strip() != otp.strip():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
+        _signup_otps.pop(normalized, None)
+
     expire = datetime.now(timezone.utc) + timedelta(minutes=SIGNUP_TOKEN_EXPIRY_MINUTES)
     signup_token = jwt.encode(
         {"sub": normalized, "purpose": "signup", "exp": expire},
@@ -202,6 +224,10 @@ def get_current_user(db: Session, user_id: int) -> User:
 
 def _check_rate_limit(store: dict, key, label: str) -> None:
     """Shared rate-limit check. Raises 429 if over OTP_RATE_LIMIT within OTP_RATE_WINDOW_MINUTES."""
+    from core import redis_client
+    if not redis_client.check_rate_limit(f"rate_limit:{label}:{key}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
+
     now = datetime.now(timezone.utc)
     rec = store.get(key, {})
     window_start = rec.get("window_start", now)
@@ -227,10 +253,14 @@ def request_password_reset(db: Session, email: str) -> None:
     _check_rate_limit(_reset_rate, normalized_email, "RESET")
     otp = _generate_otp()
     logger.info(f"[RESET] OTP generated | user_id={user.id} email={email}")
+
+    # Store OTP in Upstash Redis (15m TTL) & DB fallback
+    from core import redis_client
+    redis_client.store_otp("reset", normalized_email, otp, ttl_seconds=OTP_EXPIRY_MINUTES * 60)
+
     user.reset_token = otp
     user.reset_token_expires = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
     user_repo.save(db, user)
-    logger.info(f"[RESET] OTP saved to DB | user_id={user.id}")
     send_otp_email(user.email, otp, purpose="reset")
 
 
@@ -246,18 +276,39 @@ def reset_password(db: Session, email: str | None = None, otp: str | None = None
     """Validate the OTP or reset token and update the password."""
     clean_token = token.strip() if token else None
     clean_otp = otp.strip() if otp else None
+    provided_code = clean_token or clean_otp
 
+    if not provided_code:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or missing code")
+
+    normalized_email = email.strip().lower() if email else ""
+
+    # Check Upstash Redis first
+    from core import redis_client
+    redis_otp = redis_client.get_otp("reset", normalized_email) if normalized_email else None
+    if redis_otp is not None:
+        if redis_otp.strip() != provided_code:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+        user = user_repo.get_by_email(db, normalized_email)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        user._password_hash = hash_password(new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        user_repo.save(db, user)
+        redis_client.delete_otp("reset", normalized_email)
+        return
+
+    # Fallback to DB reset token check
     if clean_token:
         user = user_repo.get_by_reset_token(db, clean_token)
     else:
-        normalized_email = email.strip().lower() if email else ""
         user = user_repo.get_by_email(db, normalized_email)
 
     if not user or user.reset_token is None or _is_expired(user.reset_token_expires):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
 
-    provided_code = clean_token or clean_otp
-    if not provided_code or user.reset_token.strip() != provided_code:
+    if user.reset_token.strip() != provided_code:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
 
     user._password_hash = hash_password(new_password)
@@ -271,20 +322,41 @@ def send_change_password_otp(db: Session, user: User) -> None:
     _check_rate_limit(_change_rate, user.id, "CHANGE")
     logger.info(f"[CHANGE] OTP request | user_id={user.id} email={user.email}")
     otp = _generate_otp()
+
+    # Store OTP in Upstash Redis (15m TTL)
+    from core import redis_client
+    redis_client.store_otp("change", str(user.id), otp, ttl_seconds=OTP_EXPIRY_MINUTES * 60)
+
     user.reset_token = otp
     user.reset_token_expires = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
     user_repo.save(db, user)
-    logger.info(f"[CHANGE] OTP saved to DB | user_id={user.id}")
     send_otp_email(user.email, otp, purpose="change")
 
 
 def change_password(db: Session, user: User, otp: str, new_password: str) -> None:
     """Validate OTP then update password."""
     clean_otp = otp.strip() if otp else ""
+    if not clean_otp:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid code")
+
+    from core import redis_client
+    redis_otp = redis_client.get_otp("change", str(user.id))
+    if redis_otp is not None:
+        if redis_otp.strip() != clean_otp:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid code")
+        user._password_hash = hash_password(new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        user_repo.save(db, user)
+        redis_client.delete_otp("change", str(user.id))
+        return
+
+    # Fallback to DB reset token check
     if not user or user.reset_token is None or _is_expired(user.reset_token_expires):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
-    if not clean_otp or user.reset_token.strip() != clean_otp:
+    if user.reset_token.strip() != clean_otp:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
     user._password_hash = hash_password(new_password)
     user.reset_token = None
     user.reset_token_expires = None
