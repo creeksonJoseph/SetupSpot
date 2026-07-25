@@ -80,9 +80,8 @@ export function useCreateSetup() {
   const handleRemoteImageUrl = useCallback(async (imageUrl) => {
     try {
       setIsPhoneLoading(true);
-      setPhoneProgress(30);
+      setPhoneProgress(40);
 
-      setPhoneProgress(65);
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], `mobile_setup_${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
@@ -92,10 +91,8 @@ export function useCreateSetup() {
       setUploadedImageSrc(imageUrl);
 
       setPhoneProgress(100);
-      setTimeout(() => {
-        setIsAnnotating(true);
-        setIsPhoneLoading(false);
-      }, 400);
+      setIsAnnotating(true);
+      setIsPhoneLoading(false);
     } catch (err) {
       console.error("Failed to load remote image from phone:", err);
       setIsPhoneLoading(false);

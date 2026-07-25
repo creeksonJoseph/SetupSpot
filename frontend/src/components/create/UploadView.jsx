@@ -129,7 +129,7 @@ export const UploadView = ({
           Generate a secure live QR code to snap a photo from your phone camera directly to your screen.
         </p>
 
-        {isPhoneLoading ? (
+        {isPhoneLoading || receivedSuccess ? (
           <div className="flex flex-col items-center gap-4 select-none my-2">
             <svg width="100" height="100" viewBox="0 0 128 128">
               <circle

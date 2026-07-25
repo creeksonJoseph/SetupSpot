@@ -80,10 +80,8 @@ export function usePhoneUploadSocket(onImageReceived) {
           setStatusText("Photo received! Loading into editor...");
           if (heartbeatRef.current) clearInterval(heartbeatRef.current);
 
-          setTimeout(() => {
-            onImageReceived(data.image_url);
-            stopQrSession();
-          }, 800);
+          // Call handler immediately so progress ring starts instantly
+          onImageReceived(data.image_url);
         }
       } catch (err) {
         console.error("WebSocket message parse error:", err);

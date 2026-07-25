@@ -8,13 +8,13 @@ import sys
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
+from sqlalchemy import Table, Column, String, MetaData
 
 # Ensure backend root is on sys.path when invoked from root or GitHub Actions
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from core.cloudinary_client import init_cloudinary
 from core.database import SessionLocal
-from models.setup import Setup
 
 
 def cleanup_orphaned_images():
@@ -23,10 +23,13 @@ def cleanup_orphaned_images():
     # 1. Initialize Cloudinary SDK
     init_cloudinary()
 
-    # 2. Query Database for active setup image URLs
+    # 2. Query Database using lightweight Table reflection (decoupled from ORM/pgvector models)
     db = SessionLocal()
+    metadata = MetaData()
+    setups_table = Table("setups", metadata, Column("image_url", String))
+
     try:
-        active_setups = db.query(Setup.image_url).all()
+        active_setups = db.query(setups_table.c.image_url).all()
         active_urls = {s.image_url for s in active_setups if s.image_url}
         print(f"Found {len(active_urls)} active setup images in database.")
     finally:
