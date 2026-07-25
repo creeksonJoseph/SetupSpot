@@ -140,28 +140,19 @@ const PostDetailPage = () => {
           </div>
         </div>
 
-        {/* ── MIDDLE COLUMN — item list ────────────────────────── */}
+        {/* ── MIDDLE COLUMN — expandable item list accordion ──── */}
         <div className="h-full overflow-hidden">
           <SetupItemList
             items={items}
             hoveredItemId={hoveredItemId}
             setHoveredItemId={setHoveredItemId}
-            onOpenSidebar={handleOpenSidebar}
             onOpenModal={handleOpenModal}
           />
         </div>
 
-        {/* ── RIGHT COLUMN — item detail panel OR similar setups ────────────────── */}
+        {/* ── RIGHT COLUMN — similar setups (always visible) ───── */}
         <div className="h-full overflow-hidden">
-          {isSidebarOpen && selectedItemForDetail ? (
-            <ItemDetailsSidebar
-              isOpen={isSidebarOpen}
-              onClose={handleCloseSidebar}
-              item={selectedItemForDetail}
-            />
-          ) : (
-            <SimilarSetups currentSetupId={id} />
-          )}
+          <SimilarSetups currentSetupId={id} />
         </div>
       </div>
 

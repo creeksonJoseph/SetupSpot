@@ -1,55 +1,158 @@
-import React from "react";
-import { Plus } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronDown, ChevronUp, ExternalLink, Plus, ShoppingBag } from "lucide-react";
 
 const SetupItemList = ({
   items = [],
   hoveredItemId,
   setHoveredItemId,
-  onOpenSidebar,
   onOpenModal,
 }) => {
+  const [expandedItemId, setExpandedItemId] = useState(null);
+
+  const toggleExpand = (itemId) => {
+    setExpandedItemId((prev) => (prev === itemId ? null : itemId));
+  };
+
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-sm font-bold pb-3 shrink-0" style={{ color: "#0F172A" }}>
-        Items ({items.length})
+        Items in Setup ({items.length})
       </h2>
       <div
-        className="flex flex-col overflow-y-auto flex-1 border"
+        className="flex flex-col overflow-y-auto flex-1 border rounded-xl"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors border-b last:border-b-0"
-            style={{
-              backgroundColor: item.id === hoveredItemId ? "rgba(0,102,255,0.04)" : "transparent",
-              borderColor: "#E2E8F0",
-            }}
-            onMouseEnter={() => setHoveredItemId(item.id)}
-            onMouseLeave={() => setHoveredItemId(null)}
-            onClick={() => onOpenSidebar(item)}
-          >
+        {items.length === 0 ? (
+          <p className="text-xs text-center py-8" style={{ color: "#727687" }}>
+            No tagged items.
+          </p>
+        ) : (
+          items.map((item, index) => {
+            const isExpanded = expandedItemId === item.id;
+            const isHovered = hoveredItemId === item.id;
 
+            return (
+              <div
+                key={item.id || index}
+                className="border-b last:border-b-0 transition-colors"
+                style={{
+                  borderColor: "#E2E8F0",
+                  backgroundColor: isExpanded
+                    ? "rgba(0,102,255,0.02)"
+                    : isHovered
+                    ? "rgba(0,102,255,0.04)"
+                    : "transparent",
+                }}
+                onMouseEnter={() => setHoveredItemId(item.id)}
+                onMouseLeave={() => setHoveredItemId(null)}
+              >
+                {/* ── Accordion Header ── */}
+                <div
+                  className="flex items-center gap-2.5 px-3 py-3 cursor-pointer select-none"
+                  onClick={() => toggleExpand(item.id)}
+                >
+                  {/* Item index badge */}
+                  <span
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                    style={{
+                      backgroundColor: isExpanded || isHovered ? "#0066ff" : "#F1F5F9",
+                      color: isExpanded || isHovered ? "#ffffff" : "#475569",
+                    }}
+                  >
+                    {index + 1}
+                  </span>
 
-            {/* Name & price */}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: "#0F172A" }}>
-                {item.name}
-              </p>
-              <p className="text-xs" style={{ color: "#727687" }}>${item.price}</p>
-            </div>
+                  {/* Name & price */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-xs font-semibold truncate leading-snug"
+                      style={{ color: isExpanded ? "#0066ff" : "#0F172A" }}
+                    >
+                      {item.name}
+                    </p>
+                    <p className="text-[11px] font-medium mt-0.5" style={{ color: "#0066ff" }}>
+                      ${item.price}
+                    </p>
+                  </div>
 
-            {/* Add to Collection */}
-            <button
-              onClick={(e) => { e.stopPropagation(); onOpenModal(item); }}
-              className="flex items-center justify-center rounded-lg h-8 w-8 shrink-0 transition-colors"
-              style={{ backgroundColor: "#f7f9fb", border: "1px solid #E2E8F0" }}
-              title="Add to Collection"
-            >
-              <Plus size={16} style={{ color: "#727687" }} />
-            </button>
-          </div>
-        ))}
+                  {/* Expand chevron indicator */}
+                  <div
+                    className="p-1 rounded-md transition-transform duration-200 text-slate-400"
+                    style={{ color: isExpanded ? "#0066ff" : "#94A3B8" }}
+                  >
+                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+
+                  {/* Add to Collection modal button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenModal(item);
+                    }}
+                    className="flex items-center justify-center rounded-lg h-7 w-7 shrink-0 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                    style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#64748B" }}
+                    title="Add to Collection"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+
+                {/* ── Accordion Body (Expanded Content) ── */}
+                {isExpanded && (
+                  <div className="px-3 pb-3 pt-1 border-t flex flex-col gap-2.5 bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
+                    {/* Item Image preview if available */}
+                    {item.item_image_url && (
+                      <div className="w-full h-28 overflow-hidden rounded-lg border bg-white" style={{ borderColor: "#E2E8F0" }}>
+                        <img
+                          src={item.item_image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {item.description ? (
+                      <p className="text-xs leading-relaxed" style={{ color: "#475569" }}>
+                        {item.description}
+                      </p>
+                    ) : (
+                      <p className="text-xs italic" style={{ color: "#94A3B8" }}>
+                        No description provided.
+                      </p>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-1.5 pt-1">
+                      {item.link ? (
+                        <a
+                          href={item.link.startsWith("http") ? item.link : `https://${item.link}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold text-white transition-colors shadow-sm"
+                          style={{ backgroundColor: "#0066ff" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+                        >
+                          <ShoppingBag size={14} />
+                          <span>Buy on Merchant Site</span>
+                          <ExternalLink size={12} className="ml-auto opacity-80" />
+                        </a>
+                      ) : (
+                        <div
+                          className="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-[11px] font-medium bg-slate-100"
+                          style={{ color: "#94A3B8" }}
+                        >
+                          <span>No merchant link available</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
