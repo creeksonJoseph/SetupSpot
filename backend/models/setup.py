@@ -18,3 +18,5 @@ class Setup(Base):
     user = relationship("User", back_populates="setups")
     items = relationship("Item", back_populates="setup", cascade="all, delete-orphan")
     favorites = relationship("Favorite", back_populates="setup", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="setup", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="setup", cascade="all, delete-orphan")

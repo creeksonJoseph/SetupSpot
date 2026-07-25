@@ -8,6 +8,7 @@ class AnnotatedItemOut(BaseModel):
     price: float
     link: str | None
     description: str | None
+    item_image_url: str | None
     x: float | None
     y: float | None
 
@@ -27,4 +28,9 @@ class SetupDetailOut(BaseModel):
     name: str
     image_url: str | None
     user_id: int
+    author_username: str
+    author_avatar: str | None
+    like_count: int
+    is_liked: bool
+    comment_count: int
     items: list[AnnotatedItemOut]

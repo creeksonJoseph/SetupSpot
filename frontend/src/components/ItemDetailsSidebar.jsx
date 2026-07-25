@@ -1,62 +1,90 @@
 import React from "react";
 import { X, ShoppingBag } from "lucide-react";
 
-const ItemDetailsSidebar = ({ isOpen, onClose, item, hoveredItemId }) => {
-  const isVisible = isOpen && item;
-  if (!item) return null;
-
+/**
+ * ItemDetailsSidebar — inline right-column panel (not fixed overlay).
+ * Slides in as part of the grid layout when isSidebarOpen = true.
+ */
+const ItemDetailsSidebar = ({ isOpen, onClose, item }) => {
   return (
     <div
-      className={`fixed top-0 right-0 w-full md:w-1/2 lg:w-96 h-full p-6 flex flex-col gap-6 overflow-y-auto z-50 transition-transform duration-300 border-l ${
-        isVisible ? "translate-x-0" : "translate-x-full"
+      className={`flex flex-col h-full rounded-xl border overflow-hidden transition-all duration-300 ${
+        isOpen && item ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
     >
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold" style={{ color: "#0F172A" }}>
-          Item Details
-        </h3>
-        <button onClick={onClose} className="transition-colors" style={{ color: "#727687" }}>
-          <X size={20} />
-        </button>
-      </div>
+      {item && (
+        <>
+          {/* Header */}
+          <div
+            className="flex justify-between items-center px-4 py-3 border-b shrink-0"
+            style={{ borderColor: "#E2E8F0" }}
+          >
+            <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+              Item Details
+            </h3>
+            <button onClick={onClose} className="transition-colors" style={{ color: "#727687" }}>
+              <X size={16} />
+            </button>
+          </div>
 
-      <div className="flex-1 space-y-4">
-        <div
-          className="w-full aspect-video rounded-xl flex items-center justify-center border-2"
-          style={{
-            backgroundColor: "#f7f9fb",
-            borderColor: item.id === hoveredItemId ? "#0066ff" : "#E2E8F0",
-          }}
-        >
-          <img src={item.item_image_url} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
-        </div>
-        <div>
-          <h4 className="text-lg font-bold" style={{ color: "#0F172A" }}>
-            {item.name}
-          </h4>
-          <p className="text-sm font-light" style={{ color: "#727687" }}>
-            Price: ${item.price}
-          </p>
-        </div>
-        <p className="text-sm" style={{ color: "#475569" }}>
-          {item.description}
-        </p>
-      </div>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            {/* Image */}
+            <div
+              className="w-full rounded-xl flex items-center justify-center border-2 overflow-hidden"
+              style={{ aspectRatio: "16/9", backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
+            >
+              {item.item_image_url ? (
+                <img
+                  src={item.item_image_url}
+                  alt={item.name}
+                  className="w-full h-full object-contain p-4"
+                />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "#E2E8F0" }}
+                >
+                  <ShoppingBag size={20} style={{ color: "#727687" }} />
+                </div>
+              )}
+            </div>
 
-      <div className="mt-auto">
-        <a
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center justify-center rounded-lg h-11 px-4 text-sm font-bold text-white gap-2 transition-colors"
-          style={{ backgroundColor: "#0066ff" }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
-        >
-          <ShoppingBag size={18} /> Buy on Merchant Site
-        </a>
-      </div>
+            {/* Name & price */}
+            <div>
+              <h4 className="text-base font-bold" style={{ color: "#0F172A" }}>
+                {item.name}
+              </h4>
+              <p className="text-sm font-semibold mt-0.5" style={{ color: "#0066ff" }}>
+                ${item.price}
+              </p>
+            </div>
+
+            {/* Description */}
+            {item.description && (
+              <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
+                {item.description}
+              </p>
+            )}
+          </div>
+
+          {/* Buy button */}
+          <div className="px-4 py-3 border-t shrink-0" style={{ borderColor: "#E2E8F0" }}>
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center rounded-lg h-10 px-4 text-sm font-bold text-white gap-2 transition-colors"
+              style={{ backgroundColor: "#0066ff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+            >
+              <ShoppingBag size={16} /> Buy on Merchant Site
+            </a>
+          </div>
+        </>
+      )}
     </div>
   );
 };

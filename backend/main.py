@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from core.config import settings
 from core.cloudinary_client import init_cloudinary
 from api.routers import auth, setups, collections, favorites, users
+from api.routers import likes, comments
 
 # ── Init external services ────────────────────────────────────────────────────
 init_cloudinary()
@@ -55,6 +56,8 @@ app.include_router(setups.router)
 app.include_router(collections.router)
 app.include_router(favorites.router)
 app.include_router(users.router)
+app.include_router(likes.router)
+app.include_router(comments.router)
 
 
 @app.get("/", include_in_schema=False)

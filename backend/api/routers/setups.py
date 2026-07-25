@@ -39,10 +39,15 @@ def list_setups(
 
 
 @router.get("/{setup_id}", response_model=SetupDetailOut)
-def get_setup(setup_id: int, db: Session = Depends(get_db)):
-    """Return a single setup with annotated items."""
+def get_setup(
+    setup_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+):
+    """Return a single setup with annotated items and social counts."""
     setup = setup_service.get_setup_detail(db, setup_id)
-    return setup_service.serialize_setup_detail(setup)
+    requesting_user_id = current_user.id if current_user else None
+    return setup_service.serialize_setup_detail(setup, requesting_user_id)
 
 
 @router.post("", response_model=SetupDetailOut, status_code=201)
@@ -61,7 +66,7 @@ def create_setup(
         items_data=payload.get("items", []),
         user_id=current_user.id,
     )
-    return setup_service.serialize_setup_detail(setup)
+    return setup_service.serialize_setup_detail(setup, requesting_user_id=current_user.id)
 
 
 @router.delete("/{setup_id}", status_code=200)

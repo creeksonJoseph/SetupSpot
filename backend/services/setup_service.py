@@ -118,8 +118,10 @@ def list_setups_for_user(db: Session, requesting_user_id: int | None = None) -> 
     return result
 
 
-def serialize_setup_detail(setup: Setup) -> dict:
-    """Build the detailed setup response (with annotated items)."""
+def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) -> dict:
+    """Build the detailed setup response (with annotated items and social counts)."""
+    from transactions import like_repo, comment_repo
+
     try:
         annotations = json.loads(setup.annotations) if setup.annotations else []
     except json.JSONDecodeError:
@@ -136,14 +138,27 @@ def serialize_setup_detail(setup: Setup) -> dict:
                 "price": item.price,
                 "link": item.link,
                 "description": item.description,
+                "item_image_url": item.image_url if hasattr(item, "image_url") else None,
                 "x": ann["x"],
                 "y": ann["y"],
             })
+
+    # like_count and is_liked are computed via the relationship
+    like_count = len(setup.likes)
+    comment_count = len(setup.comments)
+    is_liked = False
+    if requesting_user_id is not None:
+        is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
 
     return {
         "id": setup.id,
         "name": setup.name,
         "image_url": setup.image_url,
         "user_id": setup.user_id,
+        "author_username": setup.user.username,
+        "author_avatar": setup.user.avatar_url,
+        "like_count": like_count,
+        "is_liked": is_liked,
+        "comment_count": comment_count,
         "items": annotated_items,
     }

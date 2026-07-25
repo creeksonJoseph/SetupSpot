@@ -15,6 +15,7 @@ export function usePostDetail(id) {
   const [selectedItemForDetail, setSelectedItemForDetail] = useState(null);
   const [selectedItemForCollection, setSelectedItemForCollection] = useState(null);
   const [hoveredItemId, setHoveredItemId] = useState(null);
+  const [commentsOpen, setCommentsOpen] = useState(false);
 
   const fetchSetup = useCallback(async () => {
     if (!id) return;
@@ -29,7 +30,11 @@ export function usePostDetail(id) {
         id: data.id,
         name: data.name,
         image_url: data.image_url,
-        author: data.user?.username || 'Unknown',
+        author: data.author_username || 'Unknown',
+        author_avatar: data.author_avatar || null,
+        like_count: data.like_count ?? 0,
+        is_liked: data.is_liked ?? false,
+        comment_count: data.comment_count ?? 0,
         items: data.items || [],
       };
 
@@ -66,42 +71,57 @@ export function usePostDetail(id) {
     setSelectedItemForCollection(null);
   }, []);
 
-  const toggleFavorite = useCallback(async (itemId, isFavorited) => {
+  /** Toggle setup-level like (separate from Favorites). */
+  const toggleLike = useCallback(async () => {
     if (!setup) return;
 
-    // Optimistically toggle state immediately (TikTok / Instagram style)
-    setSetup((prevSetup) => (prevSetup ? {
-      ...prevSetup,
-      items: prevSetup.items.map((item) =>
-        item.id === itemId
-          ? { ...item, is_favorited: !isFavorited }
-          : item
-      ),
-    } : null));
+    // Optimistic update
+    setSetup((prev) => prev ? {
+      ...prev,
+      is_liked: !prev.is_liked,
+      like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+    } : null);
+
+    try {
+      const res = await authFetch('/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setup_id: setup.id }),
+      });
+      if (!res.ok) throw new Error('Failed to toggle like');
+      const { liked, like_count } = await res.json();
+      setSetup((prev) => prev ? { ...prev, is_liked: liked, like_count } : null);
+    } catch (err) {
+      console.error(err);
+      // Revert
+      setSetup((prev) => prev ? {
+        ...prev,
+        is_liked: !prev.is_liked,
+        like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+      } : null);
+      showToast('Could not update like, try again.', 'error');
+    }
+  }, [setup, authFetch, showToast]);
+
+  /** Save setup to Favourites (separate from Like). */
+  const toggleFavorite = useCallback(async () => {
+    if (!setup) return;
+
+    const isFavorited = setup.is_favorited ?? false;
+    setSetup((prev) => prev ? { ...prev, is_favorited: !isFavorited } : null);
 
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
-      const response = await authFetch('/favorites', {
+      const res = await authFetch('/favorites', {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ setup_id: setup.id }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to toggle favorite');
-      }
+      if (!res.ok) throw new Error('Failed to toggle favorite');
     } catch (err) {
-      console.error('Error toggling favorite:', err);
-      // Revert optimistic update on error
-      setSetup((prevSetup) => (prevSetup ? {
-        ...prevSetup,
-        items: prevSetup.items.map((item) =>
-          item.id === itemId
-            ? { ...item, is_favorited: isFavorited }
-            : item
-        ),
-      } : null));
-      showToast('Could not save item to favorites, try again.', 'error');
+      console.error(err);
+      setSetup((prev) => prev ? { ...prev, is_favorited: isFavorited } : null);
+      showToast('Could not save to favourites, try again.', 'error');
     }
   }, [setup, authFetch, showToast]);
 
@@ -119,7 +139,10 @@ export function usePostDetail(id) {
     handleCloseSidebar,
     handleOpenModal,
     handleCloseModal,
+    toggleLike,
     toggleFavorite,
+    commentsOpen,
+    setCommentsOpen,
     refetch: fetchSetup,
   };
 }
