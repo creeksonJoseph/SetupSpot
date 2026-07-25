@@ -15,6 +15,8 @@ import PostDetailPage from './Pages/PostDetailPage'
 import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
 
+import MobileUploadPage from './Pages/MobileUploadPage'
+
 function App() {
   return (
     <ToastProvider>
@@ -26,6 +28,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/mobile-upload" element={<MobileUploadPage />} />
 
           {/* Layout wrapper — nav sidebar is visible for all children */}
           <Route path="/" element={<Layout />}>

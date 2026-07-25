@@ -71,6 +71,26 @@ export function useCreateSetup() {
     reader.readAsDataURL(file);
   }, []);
 
+  const handleRemoteImageUrl = useCallback(async (imageUrl) => {
+    try {
+      setIsUploading(true);
+      setUploadProgress(50);
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `mobile_setup_${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
+
+      setUploadedFile(file);
+      setUploadedImageSrc(imageUrl);
+      setUploadProgress(100);
+      setIsAnnotating(true);
+    } catch (err) {
+      console.error("Failed to load remote image from phone:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
   const handleImageClick = useCallback(
     (e) => {
       if (!isAnnotating) return;
@@ -204,6 +224,7 @@ export function useCreateSetup() {
     bgColor,
     cardBg,
     handleFileUpload,
+    handleRemoteImageUrl,
     handleImageClick,
     handleInputChange,
     handleRemoveAnnotation,

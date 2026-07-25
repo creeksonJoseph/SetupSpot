@@ -1,7 +1,86 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useCreateSetup } from "../hooks/useCreateSetup";
-import { Upload, Save, ArrowLeft, Trash2, CreditCard as Edit3, Image, Loader as Loader2 } from "lucide-react";
+import {
+  Upload,
+  Save,
+  ArrowLeft,
+  Trash2,
+  CreditCard as Edit3,
+  Image,
+  Loader as Loader2,
+  Smartphone,
+  QrCode,
+  X,
+  CheckCircle2,
+} from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { API } from "../hooks/api";
 
+import { usePhoneUploadSocket } from "../hooks/usePhoneUploadSocket";
+
+const RING_RADIUS = 52;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+/* ── Phone Upload QR Code Modal ────────────────────────────────────────── */
+const PhoneUploadModal = ({ isOpen, onClose, onImageReceived }) => {
+  const {
+    sessionId,
+    connected,
+    statusText,
+    receivedSuccess,
+    mobileUploadUrl,
+  } = usePhoneUploadSocket(isOpen, onImageReceived, onClose);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full border border-slate-200 shadow-2xl relative flex flex-col items-center text-center">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+        >
+          <X size={18} />
+        </button>
+
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+          <Smartphone size={24} />
+        </div>
+
+        <h3 className="text-base font-bold text-slate-900 mb-1">Upload via Phone Camera</h3>
+        <p className="text-xs text-slate-500 mb-5">
+          Scan this QR code with your phone camera to snap or select a setup photo.
+        </p>
+
+        {/* QR Code Container */}
+        <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-inner mb-4 flex items-center justify-center">
+          {sessionId ? (
+            <QRCodeSVG value={mobileUploadUrl} size={180} level="M" includeMargin={false} />
+          ) : (
+            <div className="w-[180px] h-[180px] flex items-center justify-center">
+              <Loader2 size={24} className="animate-spin text-blue-600" />
+            </div>
+          )}
+        </div>
+
+        {/* Connection & Upload Status */}
+        {receivedSuccess ? (
+          <div className="flex items-center gap-2 text-emerald-600 font-semibold text-xs py-1">
+            <CheckCircle2 size={16} />
+            <span>{statusText}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-slate-600 text-xs font-medium py-1">
+            <Loader2 size={14} className="animate-spin text-blue-600" />
+            <span>{connected ? statusText : "Connecting to socket..."}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── Annotation Hotspot Form Item ─────────────────────────────────────── */
 const AnnotationForm = React.memo(
   ({ annotation, onRemove, onChange, annotations, textPrimary, darkMode }) => (
     <div className="space-y-4">
@@ -104,14 +183,13 @@ const AnnotationForm = React.memo(
         }}
       />
     </div>
-  ),
+  )
 );
 
-const RING_RADIUS = 54;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
+/* ── Initial File & QR Upload Options View ─────────────────────────────── */
 const UploadView = ({
   handleFileUpload,
+  onOpenPhoneModal,
   textPrimary,
   textSecondary,
   darkMode,
@@ -126,9 +204,9 @@ const UploadView = ({
       Upload Setup Photo
     </h2>
     <p className={`mb-8 ${textSecondary}`}>
-      To start annotating, please upload a high-quality landscape or portrait
-      image of your desk.
+      To start annotating, please upload a high-quality image of your desk setup.
     </p>
+
     <label
       htmlFor="file-upload"
       className="w-full aspect-video border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-colors cursor-pointer"
@@ -184,7 +262,6 @@ const UploadView = ({
         <>
           <Upload size={48} className="mb-2" style={{ color: "#727687" }} />
           <p className={`font-medium ${textPrimary}`}>Click to Upload Image</p>
-
         </>
       )}
       <input
@@ -196,9 +273,27 @@ const UploadView = ({
         disabled={isUploading}
       />
     </label>
+
+    {/* Divider & Phone QR Option */}
+    <div className="my-6 flex items-center justify-center gap-3">
+      <div className="h-[1px] bg-slate-200 flex-1" />
+      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">OR</span>
+      <div className="h-[1px] bg-slate-200 flex-1" />
+    </div>
+
+    <button
+      onClick={onOpenPhoneModal}
+      className="w-full py-3 px-4 rounded-xl border font-bold text-xs transition-all flex items-center justify-center gap-2.5 shadow-sm hover:bg-blue-50 hover:border-blue-200"
+      style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0066ff" }}
+    >
+      <Smartphone size={18} />
+      <span>Scan QR Code to Upload from Phone</span>
+      <QrCode size={16} className="ml-auto opacity-70" />
+    </button>
   </div>
 );
 
+/* ── Setup Annotation View ───────────────────────────────────────────── */
 const AnnotationView = ({
   cardBg,
   textPrimary,
@@ -452,6 +547,8 @@ const AnnotationView = ({
 );
 
 const Create = () => {
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+
   const {
     darkMode,
     isAnnotating,
@@ -472,6 +569,7 @@ const Create = () => {
     bgColor,
     cardBg,
     handleFileUpload,
+    handleRemoteImageUrl,
     handleImageClick,
     handleInputChange,
     handleRemoveAnnotation,
@@ -526,6 +624,7 @@ const Create = () => {
         ) : (
           <UploadView
             handleFileUpload={handleFileUpload}
+            onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
             textPrimary={textPrimary}
             textSecondary={textSecondary}
             darkMode={darkMode}
@@ -535,6 +634,13 @@ const Create = () => {
           />
         )}
       </div>
+
+      {/* QR Code Phone Upload Modal */}
+      <PhoneUploadModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
+        onImageReceived={handleRemoteImageUrl}
+      />
     </div>
   );
 };
