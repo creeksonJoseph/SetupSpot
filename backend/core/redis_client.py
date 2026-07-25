@@ -84,13 +84,13 @@ def delete_key(key: str) -> bool:
 
 # ── Specialized Caching Helpers ──────────────────────────────────────────────
 
-# 1. Vector Similar Recommendations (TTL: 24 hours)
-def get_cached_similar_setups(setup_id: int) -> Optional[list]:
-    return get_json(f"similar_setups:{setup_id}")
+# 1. Vector Similar Recommendations (TTL: 24 hours, page chunked)
+def get_cached_similar_setups(setup_id: int, page: int = 1) -> Optional[list]:
+    return get_json(f"similar:{setup_id}:page:{page}")
 
 
-def set_cached_similar_setups(setup_id: int, data: list, ttl: int = 86400) -> bool:
-    return set_json(f"similar_setups:{setup_id}", data, ttl_seconds=ttl)
+def set_cached_similar_setups(setup_id: int, data: list, page: int = 1, ttl: int = 86400) -> bool:
+    return set_json(f"similar:{setup_id}:page:{page}", data, ttl_seconds=ttl)
 
 
 # 2. Explore Feed Setups (TTL: 10 minutes, invalidated on new setup create/delete)

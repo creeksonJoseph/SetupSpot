@@ -69,19 +69,20 @@ def embed_and_save_setup(db: Session, setup_id: int) -> None:
 def get_similar_setups(
     db: Session,
     setup_id: int,
+    page: int = 1,
     limit: int = 6,
     requesting_user_id: Optional[int] = None,
 ) -> List[dict]:
     """
     Find semantically similar setups using pgvector cosine distance search.
-    Caches recommendations in Upstash Redis (TTL: 24h) to protect DB quota.
+    Supports infinite scroll pagination by page chunks (e.g. similar:{setup_id}:page:{page}).
+    Caches each page chunk in Upstash Redis (TTL: 24h).
     """
     from core import redis_client
 
-    # 1. Check Upstash Redis cache
-    cached_raw = redis_client.get_cached_similar_setups(setup_id)
+    # 1. Check Upstash Redis cache for this page chunk
+    cached_raw = redis_client.get_cached_similar_setups(setup_id, page=page)
     if cached_raw is not None and isinstance(cached_raw, list):
-        # Cache hit! Enrich with isFavorited status if user logged in
         favorited_ids = set()
         if requesting_user_id is not None:
             user_favorites = favorite_repo.get_by_user(db, requesting_user_id)
@@ -99,19 +100,33 @@ def get_similar_setups(
     if not target_setup:
         return []
 
+    offset = (page - 1) * limit
     similar_setups: List[Setup] = []
 
-    # 2. Try vector cosine similarity search if embedding exists
+    # 2. Rank setups by vector similarity order, or newest if target has no embedding
     if target_setup.embedding is not None:
         similar_setups = (
             db.query(Setup)
-            .filter(Setup.id != setup_id, Setup.embedding.isnot(None))
-            .order_by(Setup.embedding.cosine_distance(target_setup.embedding))
+            .filter(Setup.id != setup_id)
+            .order_by(
+                Setup.embedding.cosine_distance(target_setup.embedding).nullslast(),
+                Setup.id.desc(),
+            )
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+    else:
+        similar_setups = (
+            db.query(Setup)
+            .filter(Setup.id != setup_id)
+            .order_by(Setup.id.desc())
+            .offset(offset)
             .limit(limit)
             .all()
         )
 
-    # 3. Fallback: if vector search returned fewer than limit setups, pad with popular/newest setups
+    # 3. Fallback: if current page query returned fewer than limit items, pad with popular setups
     if len(similar_setups) < limit:
         existing_ids = {s.id for s in similar_setups}
         existing_ids.add(setup_id)
@@ -119,7 +134,6 @@ def get_similar_setups(
         from models.like import Like
         from sqlalchemy import func
 
-        # Query setups ordered by like count desc, then id desc (popularity + chronological fallback)
         fallback_setups = (
             db.query(Setup)
             .outerjoin(Like, Setup.id == Like.setup_id)
@@ -142,8 +156,8 @@ def get_similar_setups(
         for s in similar_setups
     ]
 
-    # Save to Upstash Redis cache for 24 hours (86400s)
-    redis_client.set_cached_similar_setups(setup_id, serialized_setups, ttl=86400)
+    # Save page chunk to Upstash Redis cache for 24 hours (86400s)
+    redis_client.set_cached_similar_setups(setup_id, serialized_setups, page=page, ttl=86400)
 
     # Enrich with isFavorited status for requesting user
     if requesting_user_id is not None:

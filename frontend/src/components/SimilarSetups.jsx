@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuthFetch } from "../hooks/useAuthFetch";
 import { Loader2 } from "lucide-react";
@@ -6,27 +6,68 @@ import { Loader2 } from "lucide-react";
 const SimilarSetups = ({ currentSetupId }) => {
   const authFetch = useAuthFetch();
   const [recommendedSetups, setRecommendedSetups] = useState([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const scrollContainerRef = useRef(null);
 
-  const fetchSimilarSetups = useCallback(async () => {
-    if (!currentSetupId) return;
-    setLoading(true);
-    try {
-      const res = await authFetch(`/setups/${currentSetupId}/similar`);
-      if (res.ok) {
-        const data = await res.json();
-        setRecommendedSetups(data);
+  // Fetch page chunk
+  const fetchPage = useCallback(
+    async (pageNum) => {
+      if (!currentSetupId) return;
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      try {
+        const res = await authFetch(`/setups/${currentSetupId}/similar?page=${pageNum}&limit=6`);
+        if (res.ok) {
+          const data = await res.json();
+          if (pageNum === 1) {
+            setRecommendedSetups(data);
+          } else {
+            setRecommendedSetups((prev) => {
+              const existingIds = new Set(prev.map((s) => s.id));
+              const newItems = data.filter((s) => !existingIds.has(s.id));
+              return [...prev, ...newItems];
+            });
+          }
+          setHasMore(data.length === 6);
+        }
+      } catch (err) {
+        console.error("Failed to fetch similar setups page:", err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } catch (err) {
-      console.error("Failed to fetch similar setups:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentSetupId, authFetch]);
+    },
+    [currentSetupId, authFetch]
+  );
 
+  // Reset and fetch page 1 when currentSetupId changes
   useEffect(() => {
-    fetchSimilarSetups();
-  }, [fetchSimilarSetups]);
+    setPage(1);
+    setHasMore(true);
+    setRecommendedSetups([]);
+    fetchPage(1);
+  }, [currentSetupId, fetchPage]);
+
+  // Load next page
+  const loadNextPage = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPage(nextPage);
+    }
+  };
+
+  // Scroll handler for infinite scroll
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !loadingMore && !loading) {
+      loadNextPage();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -35,7 +76,9 @@ const SimilarSetups = ({ currentSetupId }) => {
       </h2>
 
       <div
-        className="flex flex-col rounded-xl overflow-y-auto flex-1 border p-2.5"
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex flex-col rounded-xl overflow-y-auto flex-1 border p-2.5 space-y-3"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {loading ? (
@@ -47,33 +90,41 @@ const SimilarSetups = ({ currentSetupId }) => {
             No similar setups found.
           </p>
         ) : (
-          <div className="columns-2 gap-2 space-y-2">
-            {recommendedSetups.map((setup) => (
-              <div key={setup.id} className="break-inside-avoid relative group">
-                <Link
-                  to={`/post/${setup.id}`}
-                  className="block relative overflow-hidden rounded-lg border transition-transform duration-200 hover:scale-[1.03]"
-                  style={{ borderColor: "#E2E8F0" }}
-                >
-                  <img
-                    src={setup.image}
-                    alt={setup.title}
-                    className="w-full h-auto object-cover rounded-lg"
-                    loading="lazy"
-                  />
-                  {/* Subtle dark gradient overlay with title */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                    <p className="text-white font-semibold text-xs leading-tight truncate">
-                      {setup.title}
-                    </p>
-                    <p className="text-white/80 text-[10px] truncate mt-0.5">
-                      {setup.author}
-                    </p>
-                  </div>
-                </Link>
+          <>
+            <div className="columns-2 gap-2 space-y-2">
+              {recommendedSetups.map((setup) => (
+                <div key={setup.id} className="break-inside-avoid relative group">
+                  <Link
+                    to={`/post/${setup.id}`}
+                    className="block relative overflow-hidden rounded-lg border transition-transform duration-200 hover:scale-[1.03]"
+                    style={{ borderColor: "#E2E8F0" }}
+                  >
+                    <img
+                      src={setup.image}
+                      alt={setup.title}
+                      className="w-full h-auto object-cover rounded-lg"
+                      loading="lazy"
+                    />
+                    {/* Subtle dark gradient overlay with title */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                      <p className="text-white font-semibold text-xs leading-tight truncate">
+                        {setup.title}
+                      </p>
+                      <p className="text-white/80 text-[10px] truncate mt-0.5">
+                        {setup.author}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {loadingMore && (
+              <div className="flex items-center justify-center py-3">
+                <Loader2 size={16} className="animate-spin" style={{ color: "#0066ff" }} />
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

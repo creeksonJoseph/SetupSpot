@@ -87,12 +87,81 @@ async def custom_general_exception_handler(request, exc: Exception):
     )
 
 
+DEFAULT_INDEX_HTML = """<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="google-site-verification" content="3M4KtstYqcaQZpp85WyDBq_hptNcZrSufcxKNGv9E_g"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SetupSpot API</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --accent: #5a27f1;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: Inter, "Segoe UI", sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #f8fafc 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+      .card {
+        width: min(92vw, 480px);
+        background: var(--card);
+        padding: 2.25rem;
+        border-radius: 1.25rem;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+        text-align: center;
+      }
+      .badge {
+        display: inline-block;
+        margin-bottom: 0.8rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(90, 39, 241, 0.1);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      h1 { margin: 0 0 0.75rem; font-size: clamp(1.8rem, 4vw, 2.4rem); }
+      p { margin: 0; color: var(--muted); line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <span class="badge">Backend Running</span>
+      <h1>SetupSpot API</h1>
+      <p>
+        The server is up and ready. Use the API endpoints for auth, setups,
+        collections, favorites, and users.
+      </p>
+    </main>
+  </body>
+</html>"""
+
+
 @app.get("/", include_in_schema=False)
 def root():
-    index_html_path = Path(__file__).resolve().parent / "index.html"
-    if index_html_path.exists():
-        return HTMLResponse(index_html_path.read_text(encoding="utf-8"))
-    return JSONResponse({"status": "ok", "message": "Backend is running"}, status_code=200)
+    candidate_paths = [
+        Path(__file__).resolve().parent / "index.html",
+        Path.cwd() / "index.html",
+        Path.cwd() / "backend" / "index.html",
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            return HTMLResponse(p.read_text(encoding="utf-8"))
+
+    return HTMLResponse(DEFAULT_INDEX_HTML)
 
 
 @app.get("/health")

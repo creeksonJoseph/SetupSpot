@@ -1,7 +1,7 @@
 """Setups router — one endpoint per HTTP method."""
 import json
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -53,6 +53,8 @@ def get_setup(
 @router.get("/{setup_id}/similar", response_model=list[SetupListItemOut])
 def get_similar_setups(
     setup_id: int,
+    page: int = Query(1, ge=1),
+    limit: int = Query(6, ge=1, le=20),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
@@ -61,7 +63,7 @@ def get_similar_setups(
 
     requesting_user_id = current_user.id if current_user else None
     return recommendation_service.get_similar_setups(
-        db, setup_id=setup_id, limit=6, requesting_user_id=requesting_user_id
+        db, setup_id=setup_id, page=page, limit=limit, requesting_user_id=requesting_user_id
     )
 
 
