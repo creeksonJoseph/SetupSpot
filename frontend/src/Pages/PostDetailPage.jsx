@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { Loader2 } from "lucide-react";
 import SetupImageCanvas from "../components/SetupImageCanvas";
@@ -12,6 +12,7 @@ import CommentSection from "../components/CommentSection";
 
 const PostDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const {
     setup,
@@ -57,6 +58,15 @@ const PostDetailPage = () => {
         <p className="text-xl mb-2" style={{ color: "#0F172A" }}>
           {error || "Setup not found"}
         </p>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 text-xs font-bold text-white rounded-lg transition-colors"
+          style={{ backgroundColor: "#0066ff" }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+        >
+          Back
+        </button>
       </div>
     );
   }
@@ -71,7 +81,7 @@ const PostDetailPage = () => {
     >
       {/*
         Fixed 3-column grid layout:
-        - Left: image + social bar + lazy comment section (1fr)
+        - Left: standalone back button + image + social bar + lazy comment section (1fr)
         - Middle: item list (260px)
         - Right: item detail panel OR similar setups recommendation column (300px)
       */}
@@ -84,35 +94,50 @@ const PostDetailPage = () => {
         }}
       >
         {/* ── LEFT COLUMN ─────────────────────────────────────── */}
-        <div className="flex flex-col gap-0 overflow-hidden rounded-xl border" style={{ borderColor: "#E2E8F0" }}>
-          {/* Setup image */}
-          <SetupImageCanvas
-            imageUrl={setup.image_url}
-            items={items}
-            hoveredItemId={hoveredItemId}
-            setHoveredItemId={setHoveredItemId}
-          />
+        <div className="flex flex-col gap-2.5 overflow-hidden">
+          {/* Standalone Back button item */}
+          <div className="shrink-0">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-colors shadow-sm"
+              style={{ backgroundColor: "#0066ff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+            >
+              Back
+            </button>
+          </div>
 
-          {/* Social bar */}
-          <PostSocialBar
-            author={setup.author}
-            authorAvatar={setup.author_avatar}
-            isLiked={setup.is_liked}
-            likeCount={setup.like_count}
-            commentCount={commentCount}
-            commentsOpen={commentsOpen}
-            onToggleLike={toggleLike}
-            onToggleComments={() => setCommentsOpen((o) => !o)}
-            onToggleFavorite={toggleFavorite}
-          />
-
-          {/* Comment section — lazy mount */}
-          {commentsOpen && (
-            <CommentSection
-              setupId={setup.id}
-              onCommentCountChange={handleCommentCountChange}
+          <div className="flex flex-col gap-0 overflow-hidden rounded-xl border" style={{ borderColor: "#E2E8F0" }}>
+            {/* Setup image */}
+            <SetupImageCanvas
+              imageUrl={setup.image_url}
+              items={items}
+              hoveredItemId={hoveredItemId}
+              setHoveredItemId={setHoveredItemId}
             />
-          )}
+
+            {/* Social bar */}
+            <PostSocialBar
+              author={setup.author}
+              authorAvatar={setup.author_avatar}
+              isLiked={setup.is_liked}
+              likeCount={setup.like_count}
+              commentCount={commentCount}
+              commentsOpen={commentsOpen}
+              onToggleLike={toggleLike}
+              onToggleComments={() => setCommentsOpen((o) => !o)}
+              onToggleFavorite={toggleFavorite}
+            />
+
+            {/* Comment section — lazy mount */}
+            {commentsOpen && (
+              <CommentSection
+                setupId={setup.id}
+                onCommentCountChange={handleCommentCountChange}
+              />
+            )}
+          </div>
         </div>
 
         {/* ── MIDDLE COLUMN — item list ────────────────────────── */}

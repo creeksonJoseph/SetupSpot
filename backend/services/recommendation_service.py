@@ -111,15 +111,21 @@ def get_similar_setups(
             .all()
         )
 
-    # 3. Fallback: if vector query returned fewer than limit setups, fill with recent setups
+    # 3. Fallback: if vector search returned fewer than limit setups, pad with popular/newest setups
     if len(similar_setups) < limit:
         existing_ids = {s.id for s in similar_setups}
         existing_ids.add(setup_id)
 
+        from models.like import Like
+        from sqlalchemy import func
+
+        # Query setups ordered by like count desc, then id desc (popularity + chronological fallback)
         fallback_setups = (
             db.query(Setup)
+            .outerjoin(Like, Setup.id == Like.setup_id)
             .filter(~Setup.id.in_(existing_ids))
-            .order_by(Setup.id.desc())
+            .group_by(Setup.id)
+            .order_by(func.count(Like.id).desc(), Setup.id.desc())
             .limit(limit - len(similar_setups))
             .all()
         )
