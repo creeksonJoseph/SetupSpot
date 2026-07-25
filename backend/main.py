@@ -60,6 +60,33 @@ app.include_router(likes.router)
 app.include_router(comments.router)
 
 
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request, exc: HTTPException):
+    origin = request.headers.get("origin", "*")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def custom_general_exception_handler(request, exc: Exception):
+    origin = request.headers.get("origin", "*")
+    print(f"Unhandled Server Exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
+
+
 @app.get("/", include_in_schema=False)
 def root():
     index_html_path = Path(__file__).resolve().parent / "index.html"

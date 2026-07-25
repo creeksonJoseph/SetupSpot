@@ -34,7 +34,8 @@ export function AuthProvider({ children }) {
     try {
       return await fetch(primaryUrl, options);
     } catch (err) {
-      if (API !== FALLBACK_API) {
+      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (isLocal && API !== FALLBACK_API) {
         const fallbackUrl = `${FALLBACK_API}${endpoint}`;
         return await fetch(fallbackUrl, options);
       }

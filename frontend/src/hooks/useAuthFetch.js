@@ -34,7 +34,8 @@ export function useAuthFetch() {
         const response = await fetch(primaryUrl, { ...options, headers });
         return response;
       } catch (err) {
-        if (API !== FALLBACK_API) {
+        const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        if (isLocal && API !== FALLBACK_API) {
           console.warn(`Primary API (${primaryUrl}) unreachable. Retrying with fallback (${FALLBACK_API})...`, err);
           const fallbackUrl = resolveUrl(FALLBACK_API, pathOrUrl);
           return await fetch(fallbackUrl, { ...options, headers });

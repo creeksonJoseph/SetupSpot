@@ -72,7 +72,7 @@ def signup_send_otp(db: Session, email: str) -> None:
     resend_count = existing.get("resend_count", 0)
 
     # Reset window if it has expired
-    if now - window_start > timedelta(minutes=SIGNUP_RATE_WINDOW_MINUTES):
+    if now - window_start > timedelta(minutes=OTP_RATE_WINDOW_MINUTES):
         window_start = now
         resend_count = 0
 
