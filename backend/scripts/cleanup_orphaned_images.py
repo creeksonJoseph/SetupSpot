@@ -27,11 +27,21 @@ def cleanup_orphaned_images():
     db = SessionLocal()
     metadata = MetaData()
     setups_table = Table("setups", metadata, Column("image_url", String))
+    items_table = Table("items", metadata, Column("image_url", String))
+    users_table = Table("users", metadata, Column("avatar_url", String))
 
     try:
         active_setups = db.query(setups_table.c.image_url).all()
-        active_urls = {s.image_url for s in active_setups if s.image_url}
-        print(f"Found {len(active_urls)} active setup images in database.")
+        active_items = db.query(items_table.c.image_url).all()
+        active_users = db.query(users_table.c.avatar_url).all()
+
+        active_urls = {
+            url
+            for sublist in (active_setups, active_items, active_users)
+            for (url,) in sublist
+            if url
+        }
+        print(f"Found {len(active_urls)} total active images/avatars in database.")
     finally:
         db.close()
 
