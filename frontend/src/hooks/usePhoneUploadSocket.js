@@ -51,9 +51,10 @@ export function usePhoneUploadSocket(onImageReceived) {
     setReceivedSuccess(false);
     setStatusText("Generating QR code...");
 
-    // Build WebSocket URL
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const backendHost = API.replace(/^https?:\/\//, "");
+    // Build WebSocket URL based on API scheme (https -> wss, http -> ws)
+    const isSecureApi = API.startsWith("https:");
+    const wsProtocol = isSecureApi ? "wss:" : "ws:";
+    const backendHost = API.replace(/^https?:\/\//, "").replace(/\/$/, "");
     const socketUrl = `${wsProtocol}//${backendHost}/ws/upload/${newSessionId}`;
 
     const socket = new WebSocket(socketUrl);
