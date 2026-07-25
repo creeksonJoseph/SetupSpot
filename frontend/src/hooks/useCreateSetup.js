@@ -14,6 +14,9 @@ export function useCreateSetup() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const [isPhoneLoading, setIsPhoneLoading] = useState(false);
+  const [phoneProgress, setPhoneProgress] = useState(0);
+
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadedImageSrc, setUploadedImageSrc] = useState(null);
   const [setupName, setSetupName] = useState('');
@@ -41,6 +44,8 @@ export function useCreateSetup() {
     setApiMessage({ text: '', type: '' });
     setIsUploading(false);
     setUploadProgress(0);
+    setIsPhoneLoading(false);
+    setPhoneProgress(0);
   }, []);
 
   const handleFileUpload = useCallback((event) => {
@@ -74,15 +79,26 @@ export function useCreateSetup() {
   // Remote image received via phone QR WebSocket
   const handleRemoteImageUrl = useCallback(async (imageUrl) => {
     try {
+      setIsPhoneLoading(true);
+      setPhoneProgress(30);
+
+      setPhoneProgress(65);
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], `mobile_setup_${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
 
+      setPhoneProgress(90);
       setUploadedFile(file);
       setUploadedImageSrc(imageUrl);
-      setIsAnnotating(true);
+
+      setPhoneProgress(100);
+      setTimeout(() => {
+        setIsAnnotating(true);
+        setIsPhoneLoading(false);
+      }, 400);
     } catch (err) {
       console.error("Failed to load remote image from phone:", err);
+      setIsPhoneLoading(false);
     }
   }, []);
 
@@ -206,6 +222,8 @@ export function useCreateSetup() {
     apiMessage,
     isUploading,
     uploadProgress,
+    isPhoneLoading,
+    phoneProgress,
     uploadedImageSrc,
     setupName,
     setSetupName,

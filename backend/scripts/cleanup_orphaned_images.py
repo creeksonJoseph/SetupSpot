@@ -32,15 +32,29 @@ def cleanup_orphaned_images():
     finally:
         db.close()
 
-    # 3. List images in Cloudinary 'setupspot' folder
+    # 3. List all images in Cloudinary 'setupspot' folder using pagination cursor
+    cloudinary_resources = []
+    next_cursor = None
+
     try:
-        res = cloudinary.api.resources(
-            type="upload",
-            prefix="setupspot/",
-            max_results=500,
-        )
-        cloudinary_resources = res.get("resources", [])
-        print(f"Retrieved {len(cloudinary_resources)} resources from Cloudinary 'setupspot/' folder.")
+        while True:
+            params = {
+                "type": "upload",
+                "prefix": "setupspot/",
+                "max_results": 500,
+            }
+            if next_cursor:
+                params["next_cursor"] = next_cursor
+
+            res = cloudinary.api.resources(**params)
+            resources = res.get("resources", [])
+            cloudinary_resources.extend(resources)
+
+            next_cursor = res.get("next_cursor")
+            if not next_cursor:
+                break
+
+        print(f"Retrieved {len(cloudinary_resources)} total resources from Cloudinary 'setupspot/' folder.")
     except Exception as exc:
         print(f"Error fetching Cloudinary resources: {exc}")
         sys.exit(1)
@@ -48,12 +62,12 @@ def cleanup_orphaned_images():
     cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
     deleted_count = 0
 
-    # 4. Check each Cloudinary resource
+    # 4. Check each Cloudinary resource safely
     for item in cloudinary_resources:
         public_id = item.get("public_id")
-        secure_url = item.get("secure_url")
-        url = item.get("url")
-        created_at_str = item.get("created_at")  # Format e.g., '2026-07-25T14:00:00Z'
+        secure_url = item.get("secure_url", "")
+        url = item.get("url", "")
+        created_at_str = item.get("created_at")
 
         if not public_id:
             continue
@@ -64,8 +78,12 @@ def cleanup_orphaned_images():
         except Exception:
             created_at = datetime.now(timezone.utc)
 
-        # Check if orphaned (not in DB) and older than 24 hours
-        is_active = (secure_url in active_urls) or (url in active_urls)
+        # Safety check: active if exact URL match OR public_id contained in any DB image_url
+        is_active = (
+            (secure_url in active_urls)
+            or (url in active_urls)
+            or any(public_id in db_url for db_url in active_urls)
+        )
         is_old_enough = created_at < cutoff_time
 
         if not is_active and is_old_enough:
