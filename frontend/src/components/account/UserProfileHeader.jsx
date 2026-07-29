@@ -5,11 +5,11 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
   const avatarUrl = user?.avatar || user?.profile_picture || user?.avatar_url;
 
   return (
-    <section className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
+    <section className="flex flex-col sm:flex-row items-start gap-8 mb-12">
       {/* Avatar Container */}
       <div className="relative shrink-0">
         <div
-          className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 shadow-lg overflow-hidden flex items-center justify-center text-white"
+          className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 shadow-lg overflow-hidden flex items-center justify-center text-white"
           style={{
             borderColor: "#ffffff",
             background: "linear-gradient(135deg, #0066ff 0%, #5a27f1 100%)",
@@ -29,10 +29,9 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
         </div>
       </div>
 
-
       {/* User Info & Actions */}
-      <div className="flex-1 text-center md:text-left w-full">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex-1 text-left w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1
               className="text-3xl md:text-4xl font-black tracking-[-0.033em]"
@@ -45,7 +44,7 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
             </p>
           </div>
 
-          <div className="flex items-center justify-center md:justify-end gap-3 flex-wrap">
+          <div className="flex items-center justify-start sm:justify-end gap-3 flex-wrap">
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200"
@@ -88,8 +87,8 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
         </p>
 
         {/* Stats */}
-        <div className="flex items-center justify-center md:justify-start gap-8 mt-6">
-          <div className="flex flex-col items-center md:items-start">
+        <div className="flex items-center justify-start gap-8 mt-6">
+          <div className="flex flex-col items-start">
             <span className="font-extrabold text-2xl" style={{ color: "#0F172A" }}>
               {setupCount}
             </span>
@@ -102,5 +101,6 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
     </section>
   );
 };
+
 
 

@@ -12,4 +12,8 @@ class UserOut(BaseModel):
     id: int
     username: str
     email: str
-    setups: list[UserSetupOut]
+    bio: str | None = None
+    avatar_url: str | None = None
+    post_count: int = 0
+    setups: list[UserSetupOut] = []
+
