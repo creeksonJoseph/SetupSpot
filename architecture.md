@@ -126,6 +126,14 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 ### 5. Responsive CSS Multi-Column Masonry
 - Explore and Favourites pages use Tailwind CSS multi-column rules (`columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4`) combined with `break-inside-avoid` on child cards to create native masonry layouts.
 
+### 6. Compact UI Spacing & Ergonomic Viewport Fitting
+- **Rule**: Avoid excessive, wasteful whitespace, oversized gaps, and unnecessary vertical padding (`py-12`, `mb-12`, over-spaced form fields).
+- **Goal**: UI pages, form cards, and settings panels MUST be kept compact, ergonomic, and designed to fit comfortably within the viewport without forcing unnecessary vertical scrolling.
+
+### 7. Component Abstraction for Multi-Tab & Complex Pages
+- **Rule**: Pages (`frontend/src/Pages/`) MUST NOT contain long, inline JSX blocks for sub-views, forms, or tabs.
+- **Solution**: Abstract sub-sections, tabs, and cards into dedicated presentation components placed in feature-specific directories under `frontend/src/components/<feature>/` (e.g. `components/settings/ProfileTab.jsx`, `components/settings/SecurityTab.jsx`, `components/account/UserProfileHeader.jsx`).
+
 ---
 
 ## 5. Guidelines for Future LLMs & Developers
@@ -135,3 +143,7 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 3. **Preserve Compatibility**: When updating services or endpoints, preserve existing return contracts and optional parameter fallbacks.
 4. **No Blocking Operations**: Ensure all database and socket handling on the backend remains async/non-blocking.
 5. **Always Verify Visual Layouts**: Ensure dropdowns, popovers, and modals render without clipping inside layout containers.
+6. **Avoid Unnecessary Spacing & Excessive Padding**: Keep margins, gaps, and vertical paddings compact (`p-4` to `p-5`, `space-y-3` to `space-y-4`, `gap-4` to `gap-5`). Never over-space components or force users to scroll unnecessarily to view standard forms and cards.
+7. **Abstract Complex Views into Modular Components**: Avoid writing long inline code in page files. Extract tabs, forms, headers, and list views into dedicated components in `frontend/src/components/<feature>/`.
+
+
