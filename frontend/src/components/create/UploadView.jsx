@@ -29,6 +29,7 @@ export const UploadView = ({
     connected,
     statusText,
     receivedSuccess,
+    isExpired,
     mobileUploadUrl,
     startQrSession,
     stopQrSession,
@@ -199,6 +200,23 @@ export const UploadView = ({
               <div className="flex items-center gap-2 text-emerald-600 font-semibold text-xs py-1">
                 <CheckCircle2 size={16} />
                 <span>{statusText}</span>
+              </div>
+            ) : isExpired ? (
+              // Socket closed before image was received — session expired or dropped
+              <div className="flex flex-col items-center gap-3 py-1">
+                <p className="text-xs font-semibold text-amber-600">
+                  QR session expired. Generate a new code to try again.
+                </p>
+                <button
+                  onClick={startQrSession}
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs text-white flex items-center gap-2 shadow-sm"
+                  style={{ backgroundColor: "#0066ff" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+                >
+                  <QrCode size={15} />
+                  Regenerate QR Code
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-slate-600 text-xs font-medium py-1">

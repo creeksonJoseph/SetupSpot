@@ -7,6 +7,7 @@ export function usePhoneUploadSocket(onImageReceived) {
   const [connected, setConnected] = useState(false);
   const [statusText, setStatusText] = useState("Generating QR code...");
   const [receivedSuccess, setReceivedSuccess] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
 
   const socketRef = useRef(null);
   const heartbeatRef = useRef(null);
@@ -36,6 +37,7 @@ export function usePhoneUploadSocket(onImageReceived) {
     setConnected(false);
     setSessionId("");
     setReceivedSuccess(false);
+    setIsExpired(false);
     setStatusText("Waiting for phone scan...");
   }, []);
 
@@ -49,6 +51,7 @@ export function usePhoneUploadSocket(onImageReceived) {
     setIsQrActive(true);
     setConnected(false);
     setReceivedSuccess(false);
+    setIsExpired(false);
     setStatusText("Generating QR code...");
 
     // Build WebSocket URL based on API scheme (https -> wss, http -> ws)
@@ -96,6 +99,12 @@ export function usePhoneUploadSocket(onImageReceived) {
     socket.onclose = () => {
       setConnected(false);
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+      // If the socket closed before we received an image, the session expired
+      // or was dropped. Mark it so the UI can offer a regenerate button.
+      setReceivedSuccess((prev) => {
+        if (!prev) setIsExpired(true);
+        return prev;
+      });
     };
   }, [stopQrSession, onImageReceived]);
 
@@ -126,6 +135,7 @@ export function usePhoneUploadSocket(onImageReceived) {
     connected,
     statusText,
     receivedSuccess,
+    isExpired,
     mobileUploadUrl,
     startQrSession,
     stopQrSession,

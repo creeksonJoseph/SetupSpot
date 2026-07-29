@@ -71,8 +71,12 @@ export default function MobileUploadPage() {
             <form onSubmit={handleUpload} className="w-full flex flex-col items-center gap-4">
               {/* Photo Preview Container */}
               {previewUrl ? (
-                <div className="w-full h-56 border rounded-2xl overflow-hidden relative border-slate-200 bg-slate-50">
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                <div className="w-full border rounded-2xl overflow-hidden relative border-slate-200 bg-slate-50">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-auto block object-contain max-h-[70vh]"
+                  />
                   <button
                     type="button"
                     onClick={resetSelection}

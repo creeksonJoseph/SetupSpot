@@ -58,54 +58,61 @@ export const AnnotationView = ({
         />
       </div>
 
+      {/* Image canvas + pins — scrollable wrapper keeps image visible without forced cropping */}
       <div
-        onClick={handleImageClick}
-        className="w-full flex-1  relative overflow-hidden cursor-crosshair border flex items-center justify-center bg-slate-900/5"
+        className="w-full flex-1 min-h-0 overflow-auto flex items-center justify-center cursor-crosshair border bg-slate-900/5"
         style={{ borderColor: "#E2E8F0" }}
       >
         {uploadedImageSrc ? (
-          <img
-            src={uploadedImageSrc}
-            alt="Uploaded Setup"
-            className="w-full h-full object-contain block"
-          />
+          // This wrapper is exactly the rendered image size — all pin % coords are relative to it
+          <div
+            className="relative inline-block"
+            onClick={handleImageClick}
+          >
+            <img
+              src={uploadedImageSrc}
+              alt="Uploaded Setup"
+              className="block max-w-full"
+              style={{ maxHeight: "calc(100vh - 200px)" }}
+              draggable={false}
+            />
+            {/* Hotspot Pins — positioned relative to the image wrapper, not the outer flex container */}
+            {annotations.map((ann) => (
+              <div
+                key={ann.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedAnnotationId(ann.id);
+                }}
+                className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
+                  ann.id === selectedAnnotationId
+                    ? "bg-red-500 border-white scale-125 ring-4 ring-red-300 z-10"
+                    : "bg-white border-[#E2E8F0] hover:bg-blue-50"
+                }`}
+                style={{
+                  left: `${ann.x}%`,
+                  top: `${ann.y}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                title={ann.name || "Click to edit"}
+              >
+                <span
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] font-bold pointer-events-none"
+                  style={{
+                    color: ann.id === selectedAnnotationId ? "#ffffff" : "#0F172A",
+                  }}
+                >
+                  {annotations.findIndex((a) => a.id === ann.id) + 1}
+                </span>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col items-center text-slate-400">
             <Image size={40} />
             <span className="text-xs mt-2">No image loaded</span>
           </div>
         )}
-
-        {/* Hotspot Pins */}
-        {annotations.map((ann) => (
-          <div
-            key={ann.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedAnnotationId(ann.id);
-            }}
-            className={`absolute w-5 h-5 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
-              ann.id === selectedAnnotationId
-                ? "bg-red-500 border-white scale-125 ring-4 ring-red-300 z-10"
-                : "bg-white border-[#E2E8F0] hover:bg-blue-50"
-            }`}
-            style={{
-              left: `${ann.x}%`,
-              top: `${ann.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-            title={ann.name || "Click to edit"}
-          >
-            <span
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] font-bold pointer-events-none"
-              style={{
-                color: ann.id === selectedAnnotationId ? "#ffffff" : "#0F172A",
-              }}
-            >
-              {annotations.findIndex((a) => a.id === ann.id) + 1}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
 
