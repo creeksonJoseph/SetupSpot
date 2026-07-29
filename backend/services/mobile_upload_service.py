@@ -17,7 +17,7 @@ async def process_mobile_upload(file: UploadFile, session_id: str) -> dict:
         ws_manager.disconnect(session_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="QR upload session has expired (10-minute limit). Please generate a new QR code on your desktop screen.",
+            detail="QR session closed. The session is no longer active — either the image was already sent, or the 10-minute limit was reached. Please generate a new QR code on your desktop screen.",
         )
 
     # 2. File type validation

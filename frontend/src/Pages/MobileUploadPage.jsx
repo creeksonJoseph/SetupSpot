@@ -43,16 +43,10 @@ export default function MobileUploadPage() {
             <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
               <CheckCircle2 size={36} />
             </div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1">Photo Sent!</h2>
-            <p className="text-xs text-slate-500 mb-6 max-w-[240px]">
-              Your photo is now displayed on your desktop screen.
+            <h2 className="text-lg font-bold text-slate-900 mb-1">Image Sent!</h2>
+            <p className="text-xs text-slate-500 max-w-[240px]">
+              Your image was successfully sent to the desktop. You can now close this page.
             </p>
-            <button
-              onClick={resetSelection}
-              className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors"
-            >
-              Take / Select Another Photo
-            </button>
           </div>
         ) : (
           <>
@@ -64,7 +58,13 @@ export default function MobileUploadPage() {
             {error && (
               <div className="w-full mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 text-left">
                 <AlertCircle size={16} className="shrink-0" />
-                <span>{error}</span>
+                <span>
+                  {/* If the upload already completed, the backend closed the session intentionally.
+                      Show a clear "closed" message instead of the generic TTL expiry wording. */}
+                  {success
+                    ? "QR session closed — your image was already sent to the desktop."
+                    : error}
+                </span>
               </div>
             )}
 

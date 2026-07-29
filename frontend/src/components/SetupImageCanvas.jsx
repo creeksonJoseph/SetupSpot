@@ -1,12 +1,14 @@
-import React from "react";
-
 const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemId }) => {
   return (
-    <div className="w-full rounded-xl border overflow-hidden relative" style={{ aspectRatio: "16/10", backgroundColor: "#E2E8F0", borderColor: "#E2E8F0" }}>
-      <div
-        className="w-full h-full bg-center bg-no-repeat bg-cover relative"
-        style={{ backgroundImage: `url("${imageUrl}")` }}
-      >
+    <div className="w-full rounded-xl border overflow-hidden relative" style={{ backgroundColor: "#E2E8F0", borderColor: "#E2E8F0" }}>
+      {/* Relative container — pins are placed as % of the image's natural size */}
+      <div className="relative">
+        <img
+          src={imageUrl}
+          alt="Setup"
+          className="w-full h-auto block"
+          draggable={false}
+        />
         {items.map((item, index) => (
           <div
             key={item.id}
