@@ -40,7 +40,7 @@ export function useAddToCollection({ isOpen }) {
   }, [isOpen, authFetch]);
 
   const createCollection = useCallback(async () => {
-    if (!newCollectionName.trim()) return;
+    if (!newCollectionName.trim() || loading) return;
     setLoading(true);
     try {
       const res = await authFetch('/collections', {
@@ -50,7 +50,10 @@ export function useAddToCollection({ isOpen }) {
       });
       if (res.ok) {
         const created = await res.json();
-        setCollections((prev) => [...prev, created]);
+        setCollections((prev) => {
+          if (prev.some((c) => c.id === created.id)) return prev;
+          return [...prev, created];
+        });
         setSelectedCollection(created.id.toString());
         setShowCreateNew(false);
         setNewCollectionName('');
@@ -60,10 +63,10 @@ export function useAddToCollection({ isOpen }) {
     } finally {
       setLoading(false);
     }
-  }, [authFetch, newCollectionName]);
+  }, [authFetch, newCollectionName, loading]);
 
   const addItemToCollection = useCallback(async (itemId, onClose) => {
-    if (!selectedCollection || !itemId) return;
+    if (!selectedCollection || !itemId || loading) return;
     setLoading(true);
     try {
       await authFetch(`/collections/${selectedCollection}/items`, {
@@ -73,6 +76,7 @@ export function useAddToCollection({ isOpen }) {
       });
       onClose();
     } catch (err) {
+
       console.error('useAddToCollection: error adding item', err);
     } finally {
       setLoading(false);

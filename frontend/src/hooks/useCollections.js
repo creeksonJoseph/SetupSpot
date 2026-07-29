@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
+import { useToast } from '../context/ToastContext';
 
 export function useCollections() {
   const [selectedCollection, setSelectedCollection] = useState(null);
@@ -7,6 +8,7 @@ export function useCollections() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const authFetch = useAuthFetch();
+  const { showToast } = useToast();
 
   const fetchCollections = useCallback(async () => {
     setLoading(true);
@@ -15,49 +17,85 @@ export function useCollections() {
       const response = await authFetch('/collections');
       if (!response.ok) throw new Error('Failed to fetch collections');
       const data = await response.json();
+      setCollections(data);
 
-      const transformedCollections = data.map((collection) => ({
-        id: collection.id,
-        name: collection.name,
-        image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=600&h=400&fit=crop",
-        items: collection.items || [],
-        blur: "blur-lg",
-      }));
-
-      setCollections(transformedCollections);
+      // Keep selectedCollection in sync if open
+      if (selectedCollection) {
+        const updated = data.find((c) => c.id === selectedCollection.id);
+        setSelectedCollection(updated || null);
+      }
     } catch (err) {
       console.error('Error fetching collections:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [authFetch]);
+  }, [authFetch, selectedCollection]);
 
   useEffect(() => {
     fetchCollections();
-  }, [fetchCollections]);
-
-  const toggleBlur = useCallback((collectionId) => {
-    setCollections((prev) =>
-      prev.map((col) => {
-        if (col.id === collectionId) {
-          const nextBlur = col.blur === 'blur-lg' ? 'blur-none' : 'blur-lg';
-          return { ...col, blur: nextBlur };
-        }
-        return col;
-      })
-    );
   }, []);
 
-  const removeItem = useCallback((collectionId, itemId) => {
-    setCollections((prev) =>
-      prev.map((col) =>
-        col.id === collectionId
-          ? { ...col, items: col.items.filter((item) => item.id !== itemId) }
-          : col
-      )
-    );
-  }, []);
+  const createCollection = useCallback(async (name) => {
+    if (!name.trim()) return;
+    try {
+      const res = await authFetch('/collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      if (!res.ok) throw new Error('Failed to create collection');
+      const created = await res.json();
+      setCollections((prev) => [...prev, created]);
+      showToast(`Collection "${name}" created!`, 'success');
+      return created;
+    } catch (err) {
+      showToast(err.message || 'Error creating collection', 'error');
+    }
+  }, [authFetch, showToast]);
+
+  const renameCollection = useCallback(async (collectionId, newName) => {
+    if (!newName.trim()) return;
+    try {
+      const res = await authFetch(`/collections/${collectionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      if (!res.ok) throw new Error('Failed to rename collection');
+      const updated = await res.json();
+      setCollections((prev) =>
+        prev.map((c) => (c.id === collectionId ? updated : c))
+      );
+      if (selectedCollection?.id === collectionId) {
+        setSelectedCollection(updated);
+      }
+      showToast('Collection renamed!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Error renaming collection', 'error');
+    }
+  }, [authFetch, selectedCollection, showToast]);
+
+  const removeItem = useCallback(async (collectionId, itemId) => {
+    try {
+      const res = await authFetch(`/collections/${collectionId}/items/${itemId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to remove item');
+      const updatedCollection = await res.json();
+
+      setCollections((prev) =>
+        prev.map((col) => (col.id === collectionId ? updatedCollection : col))
+      );
+      if (selectedCollection?.id === collectionId) {
+        setSelectedCollection(updatedCollection);
+      }
+      showToast('Item removed from collection', 'info');
+    } catch (err) {
+      console.error('Error removing item:', err);
+      showToast('Error removing item', 'error');
+    }
+  }, [authFetch, selectedCollection, showToast]);
 
   const deleteCollection = useCallback(async (collectionId) => {
     try {
@@ -67,11 +105,13 @@ export function useCollections() {
       if (res.ok) {
         setCollections((prev) => prev.filter((col) => col.id !== collectionId));
         setSelectedCollection(null);
+        showToast('Collection deleted!', 'info');
       }
     } catch (err) {
       console.error('Error deleting collection:', err);
+      showToast('Error deleting collection', 'error');
     }
-  }, [authFetch]);
+  }, [authFetch, showToast]);
 
   return {
     collections,
@@ -79,9 +119,11 @@ export function useCollections() {
     error,
     selectedCollection,
     setSelectedCollection,
-    toggleBlur,
+    createCollection,
+    renameCollection,
     removeItem,
     deleteCollection,
     refetch: fetchCollections,
   };
 }
+
