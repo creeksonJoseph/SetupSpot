@@ -69,19 +69,30 @@ def get_similar_setups(
 
 @router.post("", response_model=SetupDetailOut, status_code=201)
 def create_setup(
-    file: UploadFile = File(...),
     data: str = Form(...),
+    file: UploadFile | None = File(None),
+    image_url: str | None = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Upload a setup image and create the setup with annotated items."""
+    """
+    Create a setup with annotated items.
+
+    Supports two image paths:
+    - Early Upload (preferred): pass ``image_url`` (the Cloudinary URL returned
+      by ``POST /api/early-upload``). The image is already hosted; no re-upload
+      is performed.
+    - Legacy: pass a raw ``file`` multipart field. The image is uploaded to
+      Cloudinary during this request.
+    """
     payload = json.loads(data)
     setup = setup_service.create_setup(
         db,
-        file_obj=file.file,
         setup_name=payload.get("setup_name", ""),
         items_data=payload.get("items", []),
         user_id=current_user.id,
+        file_obj=file.file if file else None,
+        pre_uploaded_url=image_url or None,
     )
     return setup_service.serialize_setup_detail(setup, requesting_user_id=current_user.id)
 

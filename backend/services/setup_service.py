@@ -43,13 +43,32 @@ def _parse_price(raw: str | float | None) -> float:
 
 def create_setup(
     db: Session,
-    file_obj,
     setup_name: str,
     items_data: list[dict],
     user_id: int,
+    file_obj=None,
+    pre_uploaded_url: str | None = None,
 ) -> Setup:
-    """Upload image, persist setup + items, write annotations. Returns the saved Setup."""
-    image_url = _upload_image(file_obj)
+    """
+    Persist a setup + its annotated items. Supports two image paths:
+
+    - Early Upload path (preferred): pass ``pre_uploaded_url`` with the
+      Cloudinary URL returned by ``POST /api/early-upload``. No second
+      Cloudinary upload is performed — the already-hosted URL is stored
+      directly in the database.
+
+    - Legacy path: pass ``file_obj`` (a raw file-like object). The image
+      is uploaded to Cloudinary on the fly. Kept for backwards compatibility.
+    """
+    if pre_uploaded_url:
+        image_url = pre_uploaded_url
+    elif file_obj is not None:
+        image_url = _upload_image(file_obj)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either a file upload or a pre-uploaded image URL must be provided.",
+        )
 
     setup = setup_repo.create(db, name=setup_name, image_url=image_url, user_id=user_id)
 
