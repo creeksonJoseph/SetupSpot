@@ -31,3 +31,15 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_db_schema():
+    """Safely verify and auto-add missing columns (e.g. bio) to database tables."""
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;"))
+            conn.commit()
+    except Exception as err:
+        print(f"Database schema verification notice: {err}")
+

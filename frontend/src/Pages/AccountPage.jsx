@@ -2,30 +2,11 @@ import React, { useState } from "react";
 import { useAccount } from "../hooks/useAccount";
 import { UserProfileHeader } from "../components/account/UserProfileHeader";
 import { UserSetupsGrid } from "../components/account/UserSetupsGrid";
-import { PasswordChangeCard } from "../components/account/PasswordChangeCard";
+
 
 const AccountPage = () => {
-  const [showSettings, setShowSettings] = useState(false);
-  const {
-    user,
-    loading,
-    pwdStep,
-    setPwdStep,
-    pwdForm,
-    setPwdForm,
-    showPwd,
-    setShowPwd,
-    pwdLoading,
-    pwdError,
-    setPwdError,
-    pwdSuccess,
-    pwdCountdown,
-    handleRequestChangeOtp,
-    handleResendChangeOtp,
-    handleChangePassword,
-    deleteSetup,
-    handleLogout,
-  } = useAccount();
+  const { user, loading, deleteSetup, handleLogout } = useAccount();
+
 
   if (loading) {
     return (

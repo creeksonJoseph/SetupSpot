@@ -14,11 +14,14 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.config import settings
 from core.cloudinary_client import init_cloudinary
+from core.database import ensure_db_schema
 from api.routers import auth, setups, collections, favorites, users
 from api.routers import likes, comments, mobile_upload, early_upload
 
-# ── Init external services ────────────────────────────────────────────────────
+# ── Init external services & DB schema checks ────────────────────────────────
 init_cloudinary()
+ensure_db_schema()
+
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
