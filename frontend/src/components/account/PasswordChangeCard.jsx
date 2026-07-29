@@ -17,38 +17,55 @@ export const PasswordChangeCard = ({
   handleRequestChangeOtp,
   handleResendChangeOtp,
   handleChangePassword,
-  inputBase,
-  inputStyle,
-  onFocus,
-  onBlur,
 }) => (
-  <div className="max-w-md">
-    <h2 className="text-xl font-bold mb-4" style={{ color: "#0F172A" }}>
-      Change Password
-    </h2>
+  <div
+    className="rounded-2xl border p-6 md:p-8 shadow-sm max-w-lg mb-12"
+    style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
+  >
+    <div className="flex items-center gap-3 mb-6">
+      <div
+        className="p-2.5 rounded-xl flex items-center justify-center"
+        style={{ backgroundColor: "rgba(0,102,255,0.08)", color: "#0066ff" }}
+      >
+        <KeyRound size={22} />
+      </div>
+      <div>
+        <h2 className="text-xl font-bold" style={{ color: "#0F172A" }}>
+          Account Security
+        </h2>
+        <p className="text-xs mt-0.5" style={{ color: "#727687" }}>
+          Update your account password and security settings
+        </p>
+      </div>
+    </div>
 
     {pwdSuccess && (
       <div
-        className="mb-4 p-3 rounded-lg border text-sm"
+        className="mb-4 p-4 rounded-xl border text-sm font-medium flex items-center gap-2"
         style={{
           backgroundColor: "rgba(21,128,61,0.08)",
           borderColor: "rgba(21,128,61,0.2)",
           color: "#15803D",
         }}
       >
+        <span className="material-symbols-outlined text-[18px]">check_circle</span>
         {pwdSuccess}
       </div>
     )}
 
     {pwdStep === 1 ? (
-      <form onSubmit={handleRequestChangeOtp} className="flex flex-col gap-3">
-        <p className="text-sm" style={{ color: "#475569" }}>
-          We'll send a 6-digit code to{" "}
-          <span style={{ color: "#0F172A", fontWeight: 600 }}>{user.email}</span> to verify it's you.
+      <form onSubmit={handleRequestChangeOtp} className="flex flex-col gap-4">
+        <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
+          We'll send a 6-digit verification code to{" "}
+          <span className="font-semibold" style={{ color: "#0F172A" }}>
+            {user?.email}
+          </span>{" "}
+          to verify your identity.
         </p>
+
         {pwdError && (
           <div
-            className="p-3 rounded-lg border text-sm"
+            className="p-3.5 rounded-xl border text-sm"
             style={{
               backgroundColor: "rgba(186,26,26,0.08)",
               borderColor: "rgba(186,26,26,0.2)",
@@ -58,36 +75,41 @@ export const PasswordChangeCard = ({
             {pwdError}
           </div>
         )}
+
         <button
           type="submit"
           disabled={pwdLoading}
-          className="flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           style={{ backgroundColor: "#0066ff" }}
           onMouseEnter={(e) => !pwdLoading && (e.currentTarget.style.backgroundColor = "#0050cb")}
           onMouseLeave={(e) => !pwdLoading && (e.currentTarget.style.backgroundColor = "#0066ff")}
         >
           {pwdLoading ? (
-            <div
-              className="w-4 h-4 border-2 rounded-full animate-spin"
-              style={{ borderColor: "rgba(248,247,255,0.3)", borderTopColor: "#f8f7ff" }}
-            />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
               <KeyRound size={16} />
-              <span>Send verification code</span>
+              <span>Send Verification Code</span>
             </>
           )}
         </button>
       </form>
     ) : (
-      <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
-        <p className="text-xs" style={{ color: "#ca8a04" }}>
-          Code sent — check your spam folder if you don't see it.
-        </p>
+      <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+        <div
+          className="p-3 rounded-xl border text-xs font-medium"
+          style={{
+            backgroundColor: "rgba(202,138,4,0.08)",
+            borderColor: "rgba(202,138,4,0.2)",
+            color: "#ca8a04",
+          }}
+        >
+          Verification code sent to your email. Check your inbox & spam folder.
+        </div>
 
         {pwdError && (
           <div
-            className="p-3 rounded-lg border text-sm"
+            className="p-3.5 rounded-xl border text-sm"
             style={{
               backgroundColor: "rgba(186,26,26,0.08)",
               borderColor: "rgba(186,26,26,0.2)",
@@ -98,9 +120,9 @@ export const PasswordChangeCard = ({
           </div>
         )}
 
-        <div className="space-y-1">
-          <label className="block text-[13px] font-semibold" style={{ color: "#0F172A", letterSpacing: "0.02em" }}>
-            Verification code
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: "#0F172A" }}>
+            Verification Code
           </label>
           <input
             type="text"
@@ -113,16 +135,22 @@ export const PasswordChangeCard = ({
               setPwdError("");
             }}
             placeholder="000000"
-            className={`${inputBase} tracking-[0.5em] text-center`}
-            style={inputStyle}
-            onFocus={onFocus}
-            onBlur={onBlur}
+            className="w-full px-4 py-2.5 rounded-xl tracking-[0.5em] text-center font-mono text-lg outline-none transition-all border"
+            style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#0066ff";
+              e.target.style.boxShadow = "0 0 0 2px rgba(0,102,255,0.1)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#E2E8F0";
+              e.target.style.boxShadow = "none";
+            }}
           />
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-[13px] font-semibold" style={{ color: "#0F172A", letterSpacing: "0.02em" }}>
-            New password
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: "#0F172A" }}>
+            New Password
           </label>
           <div className="relative">
             <input
@@ -134,10 +162,16 @@ export const PasswordChangeCard = ({
                 setPwdError("");
               }}
               placeholder="Min. 8 characters"
-              className={`${inputBase} pr-10`}
-              style={inputStyle}
-              onFocus={onFocus}
-              onBlur={onBlur}
+              className="w-full pl-4 pr-11 py-2.5 rounded-xl text-sm outline-none transition-all border"
+              style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#0066ff";
+                e.target.style.boxShadow = "0 0 0 2px rgba(0,102,255,0.1)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#E2E8F0";
+                e.target.style.boxShadow = "none";
+              }}
             />
             <button
               type="button"
@@ -145,14 +179,14 @@ export const PasswordChangeCard = ({
               className="absolute right-0 inset-y-0 px-3 flex items-center"
               style={{ color: "#727687" }}
             >
-              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-[13px] font-semibold" style={{ color: "#0F172A", letterSpacing: "0.02em" }}>
-            Confirm password
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: "#0F172A" }}>
+            Confirm Password
           </label>
           <input
             type={showPwd ? "text" : "password"}
@@ -162,50 +196,54 @@ export const PasswordChangeCard = ({
               setPwdForm((p) => ({ ...p, confirm: e.target.value }));
               setPwdError("");
             }}
-            placeholder="••••••••"
-            className={inputBase}
+            placeholder="Confirm new password"
+            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all border"
             style={{
-              ...inputStyle,
+              backgroundColor: "#ffffff",
               borderColor: pwdForm.confirm && pwdForm.next !== pwdForm.confirm ? "#ba1a1a" : "#E2E8F0",
+              color: "#0F172A",
             }}
-            onFocus={onFocus}
-            onBlur={onBlur}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#0066ff";
+              e.target.style.boxShadow = "0 0 0 2px rgba(0,102,255,0.1)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#E2E8F0";
+              e.target.style.boxShadow = "none";
+            }}
           />
         </div>
 
         <button
           type="submit"
           disabled={pwdLoading}
-          className="flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm mt-2"
           style={{ backgroundColor: "#0066ff" }}
           onMouseEnter={(e) => !pwdLoading && (e.currentTarget.style.backgroundColor = "#0050cb")}
           onMouseLeave={(e) => !pwdLoading && (e.currentTarget.style.backgroundColor = "#0066ff")}
         >
           {pwdLoading ? (
-            <div
-              className="w-4 h-4 border-2 rounded-full animate-spin"
-              style={{ borderColor: "rgba(248,247,255,0.3)", borderTopColor: "#f8f7ff" }}
-            />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
               <KeyRound size={16} />
-              <span>Update password</span>
+              <span>Update Password</span>
             </>
           )}
         </button>
 
-        <div className="flex flex-col items-center gap-1 pt-1">
+        <div className="flex flex-col items-center gap-2 pt-2">
           {pwdCountdown > 0 ? (
-            <p className="text-[13px]" style={{ color: "#727687" }}>
-              Resend code in <span style={{ color: "#0050cb", fontWeight: 600 }}>{pwdCountdown}s</span>
+            <p className="text-xs" style={{ color: "#727687" }}>
+              Resend code in <span className="font-bold" style={{ color: "#0066ff" }}>{pwdCountdown}s</span>
             </p>
           ) : (
             <button
               type="button"
               onClick={handleResendChangeOtp}
               disabled={pwdLoading}
-              className="text-[13px] font-semibold hover:underline disabled:opacity-50"
-              style={{ color: "#0050cb" }}
+              className="text-xs font-semibold hover:underline disabled:opacity-50"
+              style={{ color: "#0066ff" }}
             >
               {pwdLoading ? "Sending..." : "Resend code"}
             </button>
@@ -216,13 +254,15 @@ export const PasswordChangeCard = ({
               setPwdStep(1);
               setPwdError("");
             }}
-            className="text-[13px] hover:underline"
+            className="text-xs transition-colors hover:underline"
             style={{ color: "#727687" }}
           >
-            ← Back
+            ← Back to request code
           </button>
         </div>
       </form>
     )}
   </div>
 );
+
+
