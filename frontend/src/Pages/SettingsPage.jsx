@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import { ProfileTab } from '../components/settings/ProfileTab';
 import { SecurityTab } from '../components/settings/SecurityTab';
-import { KeyRound, User } from 'lucide-react';
+import { KeyRound, User, ArrowLeft } from 'lucide-react';
 
 const SettingsPage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') === 'security' ? 'security' : 'profile';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -41,14 +42,26 @@ const SettingsPage = () => {
     <main className="flex-1 px-4 py-4 sm:px-6 md:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Page Header */}
-        <div className="mb-4 px-1">
-          <h1 className="text-3xl font-black leading-tight tracking-[-0.033em]" style={{ color: '#0F172A' }}>
-            Account Settings
-          </h1>
-          <p className="text-sm font-normal leading-normal mt-1" style={{ color: '#475569' }}>
-            Update your public profile, bio, and account security preferences.
-          </p>
+        <div className="mb-4 px-1 flex flex-col gap-2">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold self-start transition-all hover:bg-slate-100 shadow-2xs"
+            style={{ borderColor: '#E2E8F0', color: '#0F172A', backgroundColor: '#ffffff' }}
+          >
+            <ArrowLeft size={15} />
+            <span>Back</span>
+          </button>
+
+          <div>
+            <h1 className="text-3xl font-black leading-tight tracking-[-0.033em]" style={{ color: '#0F172A' }}>
+              Account Settings
+            </h1>
+            <p className="text-sm font-normal leading-normal mt-1" style={{ color: '#475569' }}>
+              Update your public profile, bio, and account security preferences.
+            </p>
+          </div>
         </div>
+
 
         {/* Tab Selector */}
         <div className="flex items-center gap-2 mb-5 border-b pb-2.5" style={{ borderColor: '#E2E8F0' }}>

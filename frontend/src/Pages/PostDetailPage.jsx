@@ -71,17 +71,17 @@ const PostDetailPage = () => {
 
   return (
     <div
-      className="flex h-screen -m-8 overflow-hidden"
+      className="flex min-h-screen md:h-screen -m-8 overflow-y-auto md:overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/*
-        Fixed 3-column grid layout:
-        - Left: standalone back button + image + social bar + lazy comment section (1fr)
+        3-column grid layout:
+        - Left: standalone back button + image + social bar + scrollable comment section (1fr)
         - Middle: item list accordion (260px)
         - Right: similar setups recommendation column (300px)
       */}
       <div
-        className="flex flex-1 gap-4 p-4 lg:p-5 overflow-hidden"
+        className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto md:overflow-hidden h-full w-full"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 260px 300px",
@@ -89,7 +89,7 @@ const PostDetailPage = () => {
         }}
       >
         {/* ── LEFT COLUMN ─────────────────────────────────────── */}
-        <div className="flex flex-col gap-2.5 overflow-hidden">
+        <div className="flex flex-col gap-2.5 overflow-y-auto max-h-full pr-1">
           {/* Standalone Back button item */}
           <div className="shrink-0">
             <button
@@ -103,7 +103,7 @@ const PostDetailPage = () => {
             </button>
           </div>
 
-          <div className="flex flex-col gap-0 overflow-hidden rounded-xl border" style={{ borderColor: "#E2E8F0" }}>
+          <div className="flex flex-col gap-0 rounded-xl border bg-white overflow-hidden shrink-0" style={{ borderColor: "#E2E8F0" }}>
             {/* Setup image */}
             <SetupImageCanvas
               imageUrl={setup.image_url}

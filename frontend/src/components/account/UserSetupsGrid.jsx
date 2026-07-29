@@ -1,47 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { MoreVertical, Share2, Trash2 } from "lucide-react";
+import { DeletePostModal } from "./DeletePostModal";
+import { ShareMenu } from "../ShareMenu";
 
 export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
-  const [viewMode, setViewMode] = useState("grid"); // "grid" (masonry) | "list"
+  const [pendingDeleteSetup, setPendingDeleteSetup] = useState(null);
+  const [shareSetup, setShareSetup] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const handleSharePost = (e, setup) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMenuId(null);
+    setShareSetup(setup);
+  };
 
   return (
     <section className="mb-16">
-      {/* Header with Title and View Switcher */}
+      {/* Share Modal */}
+      {shareSetup && (
+        <ShareMenu setup={shareSetup} onClose={() => setShareSetup(null)} />
+      )}
+
+      {/* Delete Confirmation Modal with Progress Bar */}
+      <DeletePostModal
+        isOpen={!!pendingDeleteSetup}
+        onClose={() => setPendingDeleteSetup(null)}
+        onConfirm={async () => {
+          if (pendingDeleteSetup) {
+            await deleteSetup(pendingDeleteSetup.id);
+          }
+        }}
+        setupTitle={pendingDeleteSetup?.title}
+        setupImage={pendingDeleteSetup?.image}
+      />
+
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
           Your Posts
         </h2>
-        <div
-          className="flex items-center gap-1.5 p-1 rounded-xl border"
-          style={{ backgroundColor: "#f7f9fb", borderColor: "#E2E8F0" }}
-        >
-          <button
-            onClick={() => setViewMode("grid")}
-            className="p-2 rounded-lg transition-all"
-            style={{
-              backgroundColor: viewMode === "grid" ? "#ffffff" : "transparent",
-              color: viewMode === "grid" ? "#0066ff" : "#727687",
-              boxShadow: viewMode === "grid" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-            }}
-            title="Masonry Grid View"
-            aria-label="Masonry Grid View"
-          >
-            <span className="material-symbols-outlined text-[20px] block">grid_view</span>
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className="p-2 rounded-lg transition-all"
-            style={{
-              backgroundColor: viewMode === "list" ? "#ffffff" : "transparent",
-              color: viewMode === "list" ? "#0066ff" : "#727687",
-              boxShadow: viewMode === "list" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-            }}
-            title="List View"
-            aria-label="List View"
-          >
-            <span className="material-symbols-outlined text-[20px] block">list</span>
-          </button>
-        </div>
       </div>
 
       {/* Empty State */}
@@ -73,7 +78,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
             Create Your First Setup
           </Link>
         </div>
-      ) : viewMode === "grid" ? (
+      ) : (
         /* Responsive Multi-Column Masonry Layout */
         <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
           {setups.map((setup) => (
@@ -81,100 +86,67 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
               key={setup.id}
               className="break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl"
             >
-              <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-                <img
-                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                  alt={setup.title}
-                  src={setup.image}
-                  loading="lazy"
-                />
+              <div className="relative overflow-hidden rounded-2xl">
+                <Link to={`/post/${setup.id}`} className="block relative overflow-hidden">
+                  <img
+                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                    alt={setup.title}
+                    src={setup.image}
+                    loading="lazy"
+                  />
 
-                {/* Subtle dark shade overlay on hover */}
-                <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  {/* Subtle dark shade overlay on hover */}
+                  <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                </Link>
 
-                {/* Delete button — top right */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    deleteSetup(setup.id);
-                  }}
-                  className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 active:scale-95 transition-all duration-200"
-                  style={{ backgroundColor: "#ba1a1a", color: "#ffffff" }}
-                  title="Delete setup"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
-                    delete
-                  </span>
-                </button>
+                {/* 3-Dots Menu Button — top right */}
+                <div className="absolute top-3 right-3 z-20">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpenMenuId((prev) => (prev === setup.id ? null : setup.id));
+                    }}
+                    className="flex items-center justify-center w-8 h-8 rounded-full shadow-md bg-white/90 backdrop-blur-xs text-slate-700 hover:text-slate-900 opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-200 cursor-pointer hover:bg-white"
+                    title="Post options"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+
+                  {/* Options Dropdown */}
+                  {openMenuId === setup.id && (
+                    <div
+                      className="absolute top-10 right-0 z-30 w-36 bg-white rounded-xl shadow-xl border p-1 text-xs font-semibold space-y-0.5"
+                      style={{ borderColor: "#E2E8F0" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => handleSharePost(e, setup)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <Share2 size={14} style={{ color: "#0066ff" }} /> Share
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOpenMenuId(null);
+                          setPendingDeleteSetup(setup);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Gradient overlay with setup title */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <Link to={`/post/${setup.id}`} className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                   <p className="text-white font-semibold text-base leading-tight drop-shadow">
                     {setup.title}
                   </p>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* List View */
-        <div className="space-y-4">
-          {setups.map((setup) => (
-            <div
-              key={setup.id}
-              className="group flex items-center gap-4 p-3 border rounded-2xl hover:shadow-md transition-all duration-200"
-              style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
-            >
-              <Link to={`/post/${setup.id}`} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden relative">
-                <img
-                  src={setup.image}
-                  alt={setup.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </Link>
-
-              <div className="flex-1 min-w-0">
-                <Link to={`/post/${setup.id}`} className="block">
-                  <h3
-                    className="font-bold text-lg transition-colors truncate"
-                    style={{ color: "#0F172A" }}
-                  >
-                    {setup.title}
-                  </h3>
                 </Link>
-                {setup.description && (
-                  <p className="text-sm mt-1 line-clamp-1" style={{ color: "#727687" }}>
-                    {setup.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 pr-2">
-                <Link
-                  to={`/post/${setup.id}`}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: "#727687" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#0066ff")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#727687")}
-                  title="View post"
-                >
-                  <span className="material-symbols-outlined text-[20px]">visibility</span>
-                </Link>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    deleteSetup(setup.id);
-                  }}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: "#ba1a1a" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(186,26,26,0.08)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                  title="Delete setup"
-                >
-                  <span className="material-symbols-outlined text-[20px]">delete</span>
-                </button>
               </div>
             </div>
           ))}
@@ -201,6 +173,8 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
     </section>
   );
 };
+
+
 
 
 
