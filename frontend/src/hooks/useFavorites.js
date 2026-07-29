@@ -6,6 +6,9 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [removingId, setRemovingId] = useState(null);
+  const [activeShareSetup, setActiveShareSetup] = useState(null);
+
   const authFetch = useAuthFetch();
   const { showToast } = useToast();
 
@@ -29,36 +32,76 @@ export function useFavorites() {
     fetchFavorites();
   }, [fetchFavorites]);
 
-  const removeFavorite = useCallback(async (setupId) => {
-    let originalFavorites;
-    setFavorites((prev) => {
-      originalFavorites = prev;
-      return prev.filter((fav) => fav.id !== setupId);
-    });
+  const removeFavorite = useCallback(
+    async (setupId) => {
+      setRemovingId(setupId);
 
-    try {
-      const response = await authFetch('/favorites', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setup_id: setupId }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to remove favorite');
+      // Give visual feedback for smooth animation before removing from state
+      setTimeout(async () => {
+        let originalFavorites;
+        setFavorites((prev) => {
+          originalFavorites = prev;
+          return prev.filter((fav) => fav.id !== setupId);
+        });
+
+        try {
+          const response = await authFetch('/favorites', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ setup_id: setupId }),
+          });
+          if (!response.ok) {
+            throw new Error('Failed to remove favorite');
+          }
+        } catch (err) {
+          console.error('Error removing favorite:', err);
+          if (originalFavorites) {
+            setFavorites(originalFavorites);
+          }
+          showToast('Could not remove setup from favorites, try again.', 'error');
+        } finally {
+          setRemovingId(null);
+        }
+      }, 150);
+    },
+    [authFetch, showToast]
+  );
+
+  const handleShare = useCallback(async (e, setup) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shareUrl = `${window.location.origin}/post/${setup.id}`;
+    const shareData = {
+      title: setup.title,
+      text: `Check out this setup: ${setup.title} by ${setup.author}`,
+      url: shareUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled native share sheet
       }
-    } catch (err) {
-      console.error('Error removing favorite:', err);
-      if (originalFavorites) {
-        setFavorites(originalFavorites);
-      }
-      showToast('Could not remove setup from favorites, try again.', 'error');
+    } else {
+      setActiveShareSetup(setup);
     }
-  }, [authFetch, showToast]);
+  }, []);
+
+  const closeShare = useCallback(() => {
+    setActiveShareSetup(null);
+  }, []);
 
   return {
     favorites,
     loading,
     error,
+    removingId,
+    activeShareSetup,
     removeFavorite,
+    handleShare,
+    closeShare,
     refetch: fetchFavorites,
   };
 }

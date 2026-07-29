@@ -2,89 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSetups } from '../hooks/useSetups';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
 import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
-
-/**
- * Desktop-only fallback share menu.
- * Only rendered when navigator.share is unavailable (i.e. desktop browsers).
- * On mobile, the native OS share sheet is triggered directly instead.
- */
-const ShareMenu = ({ setup, onClose }) => {
-  const shareUrl = `${window.location.origin}/post/${setup.id}`;
-  const shareText = `Check out this setup: ${setup.title} by ${setup.author}`;
-  const { showToast } = useToast();
-
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = shareUrl;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    showToast('Link copied to clipboard!', 'success');
-    onClose();
-  };
-
-  const openWindow = (url) => {
-    window.open(url, '_blank', 'noopener,noreferrer,width=600,height=500');
-    onClose();
-  };
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-40"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onClose();
-        }}
-      />
-      <div
-        className="absolute bottom-12 right-2 z-50 w-52 rounded-xl shadow-2xl bg-white border border-gray-200 overflow-hidden"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <button
-          onClick={() => openWindow(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`)}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chat</span>
-          WhatsApp
-        </button>
-        <button
-          onClick={() => openWindow(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`)}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>tag</span>
-          Twitter / X
-        </button>
-        <button
-          onClick={() => openWindow(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`)}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>public</span>
-          Facebook
-        </button>
-        <button
-          onClick={copyLink}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left border-t border-gray-100"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>link</span>
-          Copy link
-        </button>
-      </div>
-    </>
-  );
-};
+import ShareMenu from '../components/ShareMenu';
 
 const SetupCard = ({ setup, toggleFavorite }) => {
   const { auth } = useAuth();
@@ -115,68 +35,67 @@ const SetupCard = ({ setup, toggleFavorite }) => {
       url: shareUrl,
     };
 
-    // On mobile: fire the native OS share sheet immediately like TikTok.
-    // WhatsApp, Instagram, Telegram, Snapchat etc. all appear automatically.
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch { /* user dismissed — no action needed */ }
+      } catch { /* user dismissed */ }
     } else {
-      // Desktop fallback: show the custom dropdown
       setShareOpen((v) => !v);
     }
   };
 
   return (
-    <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
-      <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-        <img
-          className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-          alt={setup.title}
-          src={setup.image}
-          loading="lazy"
-        />
+    <>
+      <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
+        <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
+          <img
+            className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+            alt={setup.title}
+            src={setup.image}
+            loading="lazy"
+          />
 
-        {/* Unsplash-style subtle dark/grey shade overlay on hover */}
-        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          {/* Unsplash-style subtle dark/grey shade overlay on hover */}
+          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Save button — top right, icon only */}
-        <button
-          onClick={handleSave}
-          className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10"
-          style={{
-            backgroundColor: setup.isFavorited ? '#e11d48' : '#ffffff',
-            color: setup.isFavorited ? '#ffffff' : '#0F172A',
-            transform: saveAnimating ? 'scale(1.4)' : 'scale(1)',
-            transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s, color 0.2s, opacity 0.2s',
-          }}
-          aria-label={setup.isFavorited ? 'Remove from saved' : 'Save'}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-            {setup.isFavorited ? 'favorite' : 'bookmark'}
-          </span>
-        </button>
+          {/* Save button — top right, icon only */}
+          <button
+            onClick={handleSave}
+            className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10"
+            style={{
+              backgroundColor: setup.isFavorited ? '#e11d48' : '#ffffff',
+              color: setup.isFavorited ? '#ffffff' : '#0F172A',
+              transform: saveAnimating ? 'scale(1.4)' : 'scale(1)',
+              transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s, color 0.2s, opacity 0.2s',
+            }}
+            aria-label={setup.isFavorited ? 'Remove from saved' : 'Save'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              {setup.isFavorited ? 'favorite' : 'bookmark'}
+            </span>
+          </button>
 
-        {/* Share button — bottom right, icon only */}
-        <button
-          onClick={handleShare}
-          className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10"
-          style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: '#0F172A' }}
-          aria-label="Share"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span>
-        </button>
+          {/* Share button — bottom right, icon only */}
+          <button
+            onClick={handleShare}
+            className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10"
+            style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: '#0F172A' }}
+            aria-label="Share"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span>
+          </button>
 
-        {/* Desktop-only fallback dropdown */}
-        {shareOpen && <ShareMenu setup={setup} onClose={() => setShareOpen(false)} />}
+          {/* Gradient overlay with setup title & author */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <p className="text-white font-semibold text-base leading-tight drop-shadow">{setup.title}</p>
+            <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
+          </div>
+        </Link>
+      </div>
 
-        {/* Gradient overlay with setup title & author — pops out on hover over the grey shade */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <p className="text-white font-semibold text-base leading-tight drop-shadow">{setup.title}</p>
-          <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
-        </div>
-      </Link>
-    </div>
+      {/* Standardized Share Modal */}
+      {shareOpen && <ShareMenu setup={setup} onClose={() => setShareOpen(false)} />}
+    </>
   );
 };
 
@@ -198,7 +117,7 @@ const ExplorePage = () => {
     setSearchHits(hits);
   }, []);
 
-  const isSearching  = searchHits !== null;
+  const isSearching = searchHits !== null;
   const displayedSetups = isSearching ? searchHits.map(hitToSetup) : setups;
 
   if (loading && !isSearching) {
