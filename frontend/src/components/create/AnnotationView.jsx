@@ -34,7 +34,7 @@ export const AnnotationView = ({
     style={{
       display: "grid",
       gridTemplateColumns: "1fr 280px 320px",
-      maxHeight: "calc(100vh - 120px)",
+      height: "calc(100vh - 120px)",
     }}
   >
     {/* ── Column 1: Setup Title & Interactive Image Canvas ── */}
