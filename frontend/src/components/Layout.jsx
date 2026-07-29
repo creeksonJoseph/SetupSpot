@@ -13,8 +13,10 @@ export default function Layout() {
         if (path.startsWith('/collections')) return 'collections'
         if (path.startsWith('/create')) return 'create'
         if (path.startsWith('/account')) return 'account'
+        if (path.startsWith('/settings')) return 'account'
         return 'explore'
     }
+
 
     const activeTab = getActiveTab()
 

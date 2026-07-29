@@ -17,3 +17,10 @@ class UserOut(BaseModel):
     post_count: int = 0
     setups: list[UserSetupOut] = []
 
+
+class UpdateProfileRequest(BaseModel):
+    username: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
+
+

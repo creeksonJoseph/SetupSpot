@@ -72,35 +72,7 @@ const AccountPage = () => {
     <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Profile Header */}
-        <UserProfileHeader
-          user={user}
-          handleLogout={handleLogout}
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
-        />
-
-        {/* Settings / Password Change Drawer Section */}
-        {showSettings && (
-          <div className="mb-12 transition-all duration-300">
-            <PasswordChangeCard
-              user={user}
-              pwdStep={pwdStep}
-              setPwdStep={setPwdStep}
-              pwdForm={pwdForm}
-              setPwdForm={setPwdForm}
-              showPwd={showPwd}
-              setShowPwd={setShowPwd}
-              pwdLoading={pwdLoading}
-              pwdError={pwdError}
-              setPwdError={setPwdError}
-              pwdSuccess={pwdSuccess}
-              pwdCountdown={pwdCountdown}
-              handleRequestChangeOtp={handleRequestChangeOtp}
-              handleResendChangeOtp={handleResendChangeOtp}
-              handleChangePassword={handleChangePassword}
-            />
-          </div>
-        )}
+        <UserProfileHeader user={user} handleLogout={handleLogout} />
 
         {/* Divider */}
         <div className="h-px w-full bg-slate-200 dark:bg-slate-800 mb-12" />
@@ -110,8 +82,8 @@ const AccountPage = () => {
       </div>
     </main>
   );
-
 };
 
 export default AccountPage;
+
 

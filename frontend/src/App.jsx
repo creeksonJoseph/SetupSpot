@@ -14,6 +14,7 @@ import ExplorePage from './Pages/ExplorePage'
 import PostDetailPage from './Pages/PostDetailPage'
 import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
+import SettingsPage from './Pages/SettingsPage'
 
 import MobileUploadPage from './Pages/MobileUploadPage'
 
@@ -71,8 +72,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
+
       </BrowserRouter>
       </AuthProvider>
     </ToastProvider>

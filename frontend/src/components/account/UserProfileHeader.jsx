@@ -1,8 +1,26 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Settings, KeyRound, User } from "lucide-react";
 
-export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSettings }) => {
-  const setupCount = user?.setups?.length || 0;
-  const avatarUrl = user?.avatar || user?.profile_picture || user?.avatar_url;
+
+export const UserProfileHeader = ({ user, handleLogout }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const navigate = useNavigate();
+
+  const setupCount = user?.post_count ?? user?.setups?.length ?? 0;
+  const avatarUrl = user?.avatar_url || user?.avatar || user?.profile_picture;
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <section className="flex flex-col sm:flex-row items-start gap-8 mb-12">
@@ -44,25 +62,59 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
             </p>
           </div>
 
-          <div className="flex items-center justify-start sm:justify-end gap-3 flex-wrap">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200"
-              style={{
-                borderColor: "#E2E8F0",
-                backgroundColor: showSettings ? "rgba(0,102,255,0.08)" : "#ffffff",
-                color: showSettings ? "#0066ff" : "#0F172A",
-              }}
-              onMouseEnter={(e) => {
-                if (!showSettings) e.currentTarget.style.backgroundColor = "#f7f9fb";
-              }}
-              onMouseLeave={(e) => {
-                if (!showSettings) e.currentTarget.style.backgroundColor = "#ffffff";
-              }}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-              Settings
-            </button>
+          <div className="flex items-center justify-start sm:justify-end gap-3 flex-wrap relative" ref={menuRef}>
+            {/* Settings Popup Menu Toggle */}
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200 shadow-sm"
+                style={{
+                  borderColor: "#E2E8F0",
+                  backgroundColor: menuOpen ? "rgba(0,102,255,0.08)" : "#ffffff",
+                  color: menuOpen ? "#0066ff" : "#0F172A",
+                }}
+              >
+                <span className="material-symbols-outlined text-[20px]">settings</span>
+                Settings
+              </button>
+
+              {/* Popup Dropdown Menu */}
+              {menuOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+                  style={{ borderColor: "#E2E8F0" }}
+                >
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate("/settings?tab=profile");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-left transition-colors hover:bg-slate-50"
+                    style={{ color: "#0F172A" }}
+                  >
+                    <span className="material-symbols-outlined text-[20px]" style={{ color: "#0066ff" }}>
+                      edit_note
+                    </span>
+                    Edit Bio & Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate("/settings?tab=security");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-left transition-colors hover:bg-slate-50"
+                    style={{ color: "#0F172A" }}
+                  >
+                    <span className="material-symbols-outlined text-[20px]" style={{ color: "#0066ff" }}>
+                      lock_reset
+                    </span>
+                    Change Password
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200"
@@ -79,6 +131,7 @@ export const UserProfileHeader = ({ user, handleLogout, showSettings, setShowSet
             </button>
           </div>
         </div>
+
 
         {/* Bio */}
         <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "#475569" }}>
