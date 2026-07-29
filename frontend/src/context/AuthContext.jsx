@@ -117,14 +117,40 @@ export function AuthProvider({ children }) {
     persist(null);
   }, []);
 
+  const updateAuthUser = useCallback((updatedUserData) => {
+    setAuth((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        user: {
+          ...(prev.user || {}),
+          ...updatedUserData,
+        },
+      };
+      localStorage.setItem("auth", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ auth, login, logout, register, googleLogin, signupSendOtp, signupVerifyOtp, signupComplete }}
+      value={{
+        auth,
+        login,
+        logout,
+        register,
+        googleLogin,
+        signupSendOtp,
+        signupVerifyOtp,
+        signupComplete,
+        updateAuthUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
+
 
 export function useAuth() {
   const ctx = useContext(AuthContext);

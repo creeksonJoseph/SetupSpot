@@ -77,7 +77,7 @@ export function useSettings() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await authFetch('/early-upload', {
+      const res = await authFetch('/api/early-upload', {
         method: 'POST',
         body: formData,
       });
@@ -86,8 +86,29 @@ export function useSettings() {
 
       const imageUrl = data.image_url || data.url;
       setProfileForm((prev) => ({ ...prev, avatar_url: imageUrl }));
+
+      // Auto-persist new avatar_url to DB and global AuthContext
+      const patchRes = await authFetch('/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: profileForm.username.trim() || user?.username,
+          bio: profileForm.bio.trim(),
+          avatar_url: imageUrl,
+        }),
+      });
+
+      if (patchRes.ok) {
+        const updatedUserData = await patchRes.json();
+        setUser(updatedUserData);
+        if (updateAuthUser) {
+          updateAuthUser(updatedUserData);
+        }
+      }
+
       showToast('Avatar uploaded successfully!', 'success');
     } catch (err) {
+      console.error('Avatar upload error:', err);
       showToast(err.message || 'Error uploading profile image', 'error');
     } finally {
       setUploadingAvatar(false);
@@ -119,6 +140,7 @@ export function useSettings() {
       if (updateAuthUser) {
         updateAuthUser(data);
       }
+
       showToast('Profile updated successfully!', 'success');
     } catch (err) {
       showToast(err.message || 'Failed to update profile', 'error');
