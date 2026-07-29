@@ -55,18 +55,42 @@ export default function MobileUploadPage() {
               Select a photo from your gallery or snap a new picture to send directly to your desktop.
             </p>
 
-            {error && (
-              <div className="w-full mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 text-left">
-                <AlertCircle size={16} className="shrink-0" />
-                <span>
-                  {/* If the upload already completed, the backend closed the session intentionally.
-                      Show a clear "closed" message instead of the generic TTL expiry wording. */}
-                  {success
-                    ? "QR session closed — your image was already sent to the desktop."
-                    : error}
-                </span>
-              </div>
-            )}
+            {error && (() => {
+              // Detect session-expired errors (covers both the post-upload close
+              // and the genuine TTL expiry) so we can show a more helpful message.
+              const isSessionExpired =
+                error.toLowerCase().includes("session") ||
+                error.toLowerCase().includes("expired") ||
+                error.toLowerCase().includes("closed");
+
+              if (isSessionExpired) {
+                return (
+                  <div className="w-full mb-4 p-4 rounded-xl bg-blue-50 border border-blue-200 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <AlertCircle size={16} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-900 mb-0.5">
+                          This QR code has expired
+                        </p>
+                        <p className="text-[11px] text-blue-700 leading-relaxed">
+                          Look at your desktop screen — a new QR code may have been generated.
+                          Close this page and scan the new code.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="w-full mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 text-left">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{success ? "QR session closed — your image was already sent to the desktop." : error}</span>
+                </div>
+              );
+            })()}
 
             <form onSubmit={handleUpload} className="w-full flex flex-col items-center gap-4">
               {/* Photo Preview Container */}
