@@ -73,7 +73,8 @@ export const SuggestFeatureModal = ({ isOpen, onClose }) => {
               className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               style={{ borderColor: "#E2E8F0", color: "#0F172A", backgroundColor: "#ffffff" }}
             >
-              <option value="feature_suggestion">✨ Feature Suggestion</option>
+              <option value="feature_suggestion">💡 Feature Suggestion</option>
+
               <option value="ui_improvement">🎨 UI & Design Improvement</option>
               <option value="bug_report">🐞 Bug Report</option>
               <option value="other">💬 General Feedback</option>

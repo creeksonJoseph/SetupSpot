@@ -73,7 +73,9 @@ export const AdminPortalPage = () => {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
+  const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState("all");
   const [replyingToId, setReplyingToId] = useState(null);
+
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
 
@@ -261,13 +263,18 @@ export const AdminPortalPage = () => {
     (c) => c.name.toLowerCase().includes(q) || c.owner.toLowerCase().includes(q)
   );
 
-  const filteredFeedback = feedbackList.filter(
-    (f) =>
+  const filteredFeedback = feedbackList.filter((f) => {
+    const matchesCategory =
+      feedbackCategoryFilter === "all" || f.category === feedbackCategoryFilter;
+    const matchesSearch =
+      !q ||
       f.username.toLowerCase().includes(q) ||
       f.user_email.toLowerCase().includes(q) ||
       f.message.toLowerCase().includes(q) ||
-      f.category.toLowerCase().includes(q)
-  );
+      f.category.toLowerCase().includes(q);
+    return matchesCategory && matchesSearch;
+  });
+
 
   if (!auth) {
     return <Navigate to="/login" replace />;
@@ -309,19 +316,21 @@ export const AdminPortalPage = () => {
 
         {/* Universal Search Bar */}
         <div className="relative w-full md:w-72">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <Search size={16} />
+          </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users, setups, collections..."
-            className="w-full pl-10 pr-4 py-2 text-xs font-medium bg-white rounded-2xl border shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-10 pr-8 py-2 text-xs font-medium bg-white rounded-2xl border shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             style={{ borderColor: "#CBD5E1" }}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
             >
               ✕
             </button>
@@ -349,7 +358,7 @@ export const AdminPortalPage = () => {
             color: activeTab === "users" ? "#ffffff" : "#64748B",
           }}
         >
-          Users ({filteredUsers.length})
+          Users ({loadedTabs.users ? filteredUsers.length : (stats?.total_users ?? 0)})
         </button>
         <button
           onClick={() => setActiveTab("setups")}
@@ -359,7 +368,7 @@ export const AdminPortalPage = () => {
             color: activeTab === "setups" ? "#ffffff" : "#64748B",
           }}
         >
-          Setups ({filteredSetups.length})
+          Setups ({loadedTabs.setups ? filteredSetups.length : (stats?.total_setups ?? 0)})
         </button>
         <button
           onClick={() => setActiveTab("collections")}
@@ -369,7 +378,7 @@ export const AdminPortalPage = () => {
             color: activeTab === "collections" ? "#ffffff" : "#64748B",
           }}
         >
-          Collections ({filteredCollections.length})
+          Collections ({loadedTabs.collections ? filteredCollections.length : (stats?.total_collections ?? 0)})
         </button>
         <button
           onClick={() => setActiveTab("feedback")}
@@ -379,9 +388,10 @@ export const AdminPortalPage = () => {
             color: activeTab === "feedback" ? "#ffffff" : "#64748B",
           }}
         >
-          User Feedback ({filteredFeedback.length})
+          User Feedback ({loadedTabs.feedback ? filteredFeedback.length : (stats?.total_feedback ?? 0)})
         </button>
       </div>
+
 
 
       {loading ? (
@@ -451,8 +461,9 @@ export const AdminPortalPage = () => {
               <p className="text-2xl font-black" style={{ color: "#0F172A" }}>
                 {stats?.total_feedback ?? 0}
               </p>
-              <p className="text-[10px] font-medium text-blue-600 mt-1">Direct feedback</p>
+              <p className="text-[10px] font-medium text-slate-500 mt-1">Direct feedback</p>
             </div>
+
           </div>
 
           {/* TAB 1: OVERVIEW */}
@@ -465,32 +476,50 @@ export const AdminPortalPage = () => {
                 <div className="flex flex-col gap-3 text-xs">
                   <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
                     <span className="text-slate-500 font-medium">Database Status</span>
-                    <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Connected & Healthy</span>
+                    <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                      {stats?.db_status || "Connected & Healthy"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
                     <span className="text-slate-500 font-medium">Admin Notification Target</span>
-                    <span className="font-mono font-semibold" style={{ color: "#0066ff" }}>charanajoseph@gmail.com</span>
+                    <span className="font-mono font-semibold" style={{ color: "#0066ff" }}>
+                      {stats?.admin_email || "charanajoseph@gmail.com"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between py-2" style={{ borderColor: "#F1F5F9" }}>
                     <span className="text-slate-500 font-medium">Pre-computed Stats Latency</span>
-                    <span className="font-semibold text-slate-700">&lt; 15ms</span>
+                    <span className="font-semibold text-slate-700">
+                      {stats?.latency_ms || "< 15 ms"}
+                    </span>
                   </div>
                 </div>
               </div>
 
+
               <div className="p-6 rounded-3xl border bg-white" style={{ borderColor: "#E2E8F0" }}>
-                <h3 className="text-base font-bold mb-4" style={{ color: "#0F172A" }}>
-                  User Feedback
-                </h3>
-                {feedbackList.length === 0 ? (
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold" style={{ color: "#0F172A" }}>
+                    User Feedback
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab("feedback")}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                  >
+                    View All →
+                  </button>
+                </div>
+                {(feedbackList.length > 0 ? feedbackList : (stats?.recent_feedback || [])).length === 0 ? (
                   <p className="text-xs text-slate-400 py-6 text-center">No user feedback submitted yet.</p>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    {feedbackList.slice(0, 3).map((fb) => (
+                    {(feedbackList.length > 0 ? feedbackList : (stats?.recent_feedback || [])).slice(0, 4).map((fb) => (
                       <div key={fb.id} className="p-3 rounded-2xl bg-slate-50 border text-xs" style={{ borderColor: "#E2E8F0" }}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-slate-800">@{fb.username}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(fb.created_at).toLocaleDateString()}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-800">@{fb.username}</span>
+                            <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full capitalize">{fb.category}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400">{fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'Just now'}</span>
                         </div>
                         <p className="text-slate-600 text-[11px] line-clamp-2">{fb.message}</p>
                       </div>
@@ -498,6 +527,7 @@ export const AdminPortalPage = () => {
                   </div>
                 )}
               </div>
+
             </div>
           )}
 
@@ -900,9 +930,33 @@ export const AdminPortalPage = () => {
               <TabSkeletonLoader />
             ) : (
               <div className="flex flex-col gap-4">
-                <h3 className="text-base font-bold px-1" style={{ color: "#0F172A" }}>
-                  User Feedback ({filteredFeedback.length})
-                </h3>
+                {/* Header & Category Filter Bar */}
+                <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-4 rounded-3xl border shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+                  <div>
+                    <h3 className="text-base font-bold" style={{ color: "#0F172A" }}>
+                      User Feedback ({filteredFeedback.length})
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Filter suggestions, bug reports, and design feedback</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-slate-500">Category:</span>
+                    <select
+                      value={feedbackCategoryFilter}
+                      onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
+                      className="px-3.5 py-2 rounded-2xl border text-xs font-bold bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                      style={{ borderColor: "#CBD5E1" }}
+                    >
+                      <option value="all">All Categories ({feedbackList.length})</option>
+                      <option value="feature_suggestion">💡 Feature Suggestions</option>
+
+                      <option value="ui_improvement">🎨 UI & Design Improvements</option>
+                      <option value="bug_report">🐞 Bug Reports</option>
+                      <option value="other">💬 General Feedback</option>
+                    </select>
+                  </div>
+                </div>
+
 
                 {filteredFeedback.length === 0 ? (
                   <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>

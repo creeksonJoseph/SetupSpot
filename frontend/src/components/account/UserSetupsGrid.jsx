@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { MoreVertical, Share2, Trash2 } from "lucide-react";
 import { DeletePostModal } from "./DeletePostModal";
@@ -8,12 +8,34 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
   const [pendingDeleteSetup, setPendingDeleteSetup] = useState(null);
   const [shareSetup, setShareSetup] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [visibleLimit, setVisibleLimit] = useState(24);
+  const sentinelRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
+
+  // Automatic Infinite Scroll Handler
+  useEffect(() => {
+    if (visibleLimit >= setups.length || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleLimit((prev) => prev + 24);
+        }
+      },
+      { rootMargin: "300px" }
+    );
+
+    const currentSentinel = sentinelRef.current;
+    observer.observe(currentSentinel);
+    return () => {
+      if (currentSentinel) observer.unobserve(currentSentinel);
+    };
+  }, [visibleLimit, setups.length]);
 
   const handleSharePost = (e, setup) => {
     e.preventDefault();
@@ -45,7 +67,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
-          Your Posts
+          Your Posts ({setups.length})
         </h2>
       </div>
 
@@ -69,7 +91,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
           </p>
           <Link
             to="/create"
-            className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white transition-all shadow-sm hover:shadow-md"
+            className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white transition-all shadow-sm hover:shadow-md cursor-pointer"
             style={{ backgroundColor: "#0066ff" }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
@@ -79,15 +101,15 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
           </Link>
         </div>
       ) : (
-        /* Responsive Multi-Column Masonry Layout */
-        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-          {setups.map((setup) => (
-            <div
-              key={setup.id}
-              className="break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl"
-            >
-              <div className="relative overflow-hidden rounded-2xl">
-                <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden">
+        /* Responsive Multi-Column Masonry Layout — Matches Explore Page */
+        <div>
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+            {setups.slice(0, visibleLimit).map((setup) => (
+              <div
+                key={setup.id}
+                className="break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl"
+              >
+                <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
                   <img
                     className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                     alt={setup.title}
@@ -95,63 +117,73 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                     loading="lazy"
                   />
 
-                  {/* Subtle dark shade overlay on hover */}
+                  {/* Dark shade overlay on hover */}
                   <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                </Link>
 
-                {/* 3-Dots Menu Button — top right */}
-                <div className="absolute top-3 right-3 z-20">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setOpenMenuId((prev) => (prev === setup.id ? null : setup.id));
-                    }}
-                    className="flex items-center justify-center w-8 h-8 rounded-full shadow-md bg-white/90 backdrop-blur-xs text-slate-700 hover:text-slate-900 opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-200 cursor-pointer hover:bg-white"
-                    title="Post options"
-                  >
-                    <MoreVertical size={16} />
-                  </button>
-
-                  {/* Options Dropdown */}
-                  {openMenuId === setup.id && (
-                    <div
-                      className="absolute top-10 right-0 z-30 w-36 bg-white rounded-xl shadow-xl border p-1 text-xs font-semibold space-y-0.5"
-                      style={{ borderColor: "#E2E8F0" }}
-                      onClick={(e) => e.stopPropagation()}
+                  {/* 3-Dots Menu Button — top right */}
+                  <div className="absolute top-3 right-3 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpenMenuId((prev) => (prev === setup.id ? null : setup.id));
+                      }}
+                      className="flex items-center justify-center w-8 h-8 rounded-full shadow-md bg-white/90 backdrop-blur-xs text-slate-700 hover:text-slate-900 opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-200 cursor-pointer hover:bg-white"
+                      title="Post options"
                     >
-                      <button
-                        onClick={(e) => handleSharePost(e, setup)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                      >
-                        <Share2 size={14} style={{ color: "#0066ff" }} /> Share
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setOpenMenuId(null);
-                          setPendingDeleteSetup(setup);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                      <MoreVertical size={16} />
+                    </button>
 
-                {/* Gradient overlay with setup title */}
-                <Link to={`/setup/${setup.id}`} className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <p className="text-white font-semibold text-base leading-tight drop-shadow">
-                    {setup.title}
-                  </p>
+                    {/* Options Dropdown */}
+                    {openMenuId === setup.id && (
+                      <div
+                        className="absolute top-10 right-0 z-30 w-36 bg-white rounded-xl shadow-xl border p-1 text-xs font-semibold space-y-0.5"
+                        style={{ borderColor: "#E2E8F0" }}
+                      >
+                        <button
+                          onClick={(e) => handleSharePost(e, setup)}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-left rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                          <Share2 size={14} className="text-slate-500" />
+                          <span>Share</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            setPendingDeleteSetup(setup);
+                          }}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-left rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          <Trash2 size={14} className="text-red-500" />
+                          <span>Delete Post</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Gradient overlay with setup title — Matches Explore Page */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <p className="text-white font-semibold text-base leading-tight drop-shadow truncate">
+                      {setup.title}
+                    </p>
+                  </div>
                 </Link>
               </div>
+            ))}
+          </div>
+
+          {/* Automatic Infinite Scroll Sentinel */}
+          {visibleLimit < setups.length && (
+            <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
+              <span className="text-xs font-medium text-slate-400">Loading more posts...</span>
             </div>
-          ))}
+          )}
         </div>
       )}
+
+
 
       {/* Explore More Collections Footer Button */}
       {setups.length > 0 && (

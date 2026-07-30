@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useSetups } from '../hooks/useSetups';
 import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
 import { SetupCard } from '../components/explore/SetupCard';
+import { SetupGridSkeleton } from '../components/CardSkeleton';
 
 // Convert an Algolia hit to the same shape as a setup from the REST API
 const hitToSetup = (hit) => ({
@@ -18,6 +19,8 @@ const ExplorePage = () => {
   const { setups, loading, toggleFavorite } = useSetups();
   // null = no active search; array = Algolia hits (may be empty)
   const [searchHits, setSearchHits] = useState(null);
+  const [visibleLimit, setVisibleLimit] = useState(24);
+  const sentinelRef = useRef(null);
 
   const handleSearchResults = useCallback((hits) => {
     setSearchHits(hits);
@@ -26,21 +29,25 @@ const ExplorePage = () => {
   const isSearching = searchHits !== null;
   const displayedSetups = isSearching ? searchHits.map(hitToSetup) : setups;
 
-  if (loading && !isSearching) {
-    return (
-      <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
-        <div className="mx-auto max-w-7xl flex justify-center items-center h-64">
-          <div className="flex items-center gap-3" style={{ color: '#727687' }}>
-            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0066ff' }}>
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
-            </svg>
-            <span className="text-sm font-medium">Loading setups...</span>
-          </div>
-        </div>
-      </main>
+  // Automatic Infinite Scroll Handler
+  useEffect(() => {
+    if (visibleLimit >= displayedSetups.length || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleLimit((prev) => prev + 24);
+        }
+      },
+      { rootMargin: "300px" }
     );
-  }
+
+    const currentSentinel = sentinelRef.current;
+    observer.observe(currentSentinel);
+    return () => {
+      if (currentSentinel) observer.unobserve(currentSentinel);
+    };
+  }, [visibleLimit, displayedSetups.length]);
 
   return (
     <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
@@ -55,7 +62,7 @@ const ExplorePage = () => {
               Discover and get inspired by amazing computer setups from around the world.
             </p>
             {isSearching && (
-              <p className="mt-2 text-sm" style={{ color: '#64748B' }}>
+              <p className="mt-2 text-sm font-semibold" style={{ color: '#0066ff' }}>
                 {displayedSetups.length > 0
                   ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
                   : <>No results found</>}
@@ -69,7 +76,9 @@ const ExplorePage = () => {
           </div>
         </div>
 
-        {displayedSetups.length === 0 ? (
+        {loading && !isSearching ? (
+          <SetupGridSkeleton count={8} />
+        ) : displayedSetups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>
               {isSearching ? 'search_off' : 'grid_view'}
@@ -79,10 +88,19 @@ const ExplorePage = () => {
             </p>
           </div>
         ) : (
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-            {displayedSetups.map((setup) => (
-              <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
-            ))}
+          <div>
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+              {displayedSetups.slice(0, visibleLimit).map((setup) => (
+                <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
+              ))}
+            </div>
+
+            {/* Automatic Infinite Scroll Sentinel */}
+            {visibleLimit < displayedSetups.length && (
+              <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
+                <span className="text-xs font-medium text-slate-400">Loading more setups...</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -91,3 +109,5 @@ const ExplorePage = () => {
 };
 
 export default ExplorePage;
+
+

@@ -1,6 +1,7 @@
 """Admin database operations and pre-computed stats queries."""
+import time
 from datetime import datetime, timedelta
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from models.user import User
@@ -12,6 +13,19 @@ from models.feedback import Feedback
 
 def get_dashboard_stats(db: Session) -> dict:
     """Pre-compute summary analytics on backend."""
+    start_time = time.perf_counter()
+
+    # Dynamic DB Health Ping
+    try:
+        db.execute(text("SELECT 1")).scalar()
+        db_status = "Connected & Healthy"
+    except Exception:
+        db_status = "Degraded"
+
+    # Dynamic Admin Email
+    admin_user = db.query(User).filter(User.is_admin == True).first()
+    admin_email = admin_user.email if admin_user else "charanajoseph@gmail.com"
+
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
 
     total_users = db.query(func.count(User.id)).scalar() or 0
@@ -33,8 +47,32 @@ def get_dashboard_stats(db: Session) -> dict:
         or 0
     )
 
+    recent_feedback = (
+        db.query(Feedback)
+        .order_by(Feedback.id.desc())
+        .limit(5)
+        .all()
+    )
+    feedback_dtos = [
+        {
+            "id": fb.id,
+            "user_id": fb.user_id,
+            "username": fb.user.username if fb.user else "Anonymous",
+            "user_email": fb.user.email if fb.user else "unknown",
+            "category": fb.category,
+            "message": fb.message,
+            "status": fb.status or "pending",
+            "created_at": fb.created_at.isoformat() if fb.created_at else None,
+        }
+        for fb in recent_feedback
+    ]
+
+    elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
     return {
+        "db_status": db_status,
+        "admin_email": admin_email,
+        "latency_ms": f"{elapsed_ms} ms",
         "total_users": total_users,
         "total_setups": total_setups,
         "total_comments": total_comments,
@@ -42,7 +80,10 @@ def get_dashboard_stats(db: Session) -> dict:
         "total_feedback": total_feedback,
         "recent_users_count_7d": recent_users_count_7d,
         "recent_setups_count_7d": recent_setups_count_7d,
+        "recent_feedback": feedback_dtos,
     }
+
+
 
 
 
