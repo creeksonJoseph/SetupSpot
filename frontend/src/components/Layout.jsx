@@ -64,7 +64,7 @@ export default function Layout() {
                     ))}
 
                     {/* Admin Portal Button — ONLY shown for Admin */}
-                    {Boolean(auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")) && (
+                    {Boolean(auth?.is_admin || auth?.user?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com") || (auth?.user?.email && auth.user.email.toLowerCase() === "charanajoseph@gmail.com")) && (
                         <div className="relative group flex items-center mt-2 pt-4 border-t border-slate-100">
                             <Link
                                 to="/admin"
@@ -83,6 +83,7 @@ export default function Layout() {
                             </div>
                         </div>
                     )}
+
                 </div>
 
 

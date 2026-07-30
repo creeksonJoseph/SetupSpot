@@ -22,11 +22,13 @@ def get_by_reset_token(db: Session, token: str) -> User | None:
 
 
 def create(db: Session, email: str, username: str, password_hash: str) -> User:
-    user = User(email=email, username=username, _password_hash=password_hash)
+    clean_email = email.strip().lower()
+    user = User(email=clean_email, username=username, _password_hash=password_hash)
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
 
 
 def save(db: Session, user: User) -> User:

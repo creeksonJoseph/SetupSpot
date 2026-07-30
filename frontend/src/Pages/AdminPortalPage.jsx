@@ -8,12 +8,13 @@ import {
   Image,
   MessageSquare,
   FolderHeart,
-  Sparkles,
+  Lightbulb,
   TrendingUp,
   Loader2,
   Mail,
   UserCheck,
 } from "lucide-react";
+
 
 export const AdminPortalPage = () => {
   const { auth } = useAuth();
@@ -178,8 +179,9 @@ export const AdminPortalPage = () => {
             <div className="p-4 rounded-2xl border bg-white shadow-2xs col-span-2 sm:col-span-1" style={{ borderColor: "#E2E8F0" }}>
               <div className="flex items-center justify-between text-slate-400 mb-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Suggestions</span>
-                <Sparkles size={18} style={{ color: "#0066ff" }} />
+                <Lightbulb size={18} style={{ color: "#0066ff" }} />
               </div>
+
               <p className="text-2xl font-black" style={{ color: "#0F172A" }}>
                 {stats?.total_feedback ?? 0}
               </p>

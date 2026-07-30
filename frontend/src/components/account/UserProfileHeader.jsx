@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { MessageSquarePlus } from "lucide-react";
 import { SuggestFeatureModal } from "../feedback/SuggestFeatureModal";
+
 
 export const UserProfileHeader = ({ user, handleLogout }) => {
   const setupCount = user?.post_count ?? user?.setups?.length ?? 0;
@@ -62,9 +63,10 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
             >
-              <Sparkles size={15} />
+              <MessageSquarePlus size={15} />
               <span>Suggest features to add</span>
             </button>
+
 
             {/* Settings Button — Direct link to Settings Page */}
             <Link

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Sparkles, Send, Loader2 } from "lucide-react";
+import { X, MessageSquarePlus, Send, Loader2 } from "lucide-react";
 import { useFeedback } from "../../hooks/useFeedback";
 
 export const SuggestFeatureModal = ({ isOpen, onClose }) => {
@@ -37,8 +37,9 @@ export const SuggestFeatureModal = ({ isOpen, onClose }) => {
                 color: "#0066ff",
               }}
             >
-              <Sparkles size={20} />
+              <MessageSquarePlus size={20} />
             </div>
+
             <div>
               <h2 className="text-lg font-black leading-tight" style={{ color: "#0F172A" }}>
                 Suggest Features & Feedback

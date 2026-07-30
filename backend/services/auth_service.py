@@ -42,6 +42,23 @@ def verify_password(plain: str, hashed: str) -> bool:
     return _pwd_context.verify(plain, hashed)
 
 
+def is_admin_user(user: User) -> bool:
+    if not user:
+        return False
+    return bool(user.is_admin or (user.email and user.email.lower() == "charanajoseph@gmail.com"))
+
+
+def _auth_response(token: str, user: User) -> dict:
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email.lower(),
+        "is_admin": is_admin_user(user),
+    }
+
+
 def register(db: Session, email: str, username: str, password: str) -> dict:
     """Create a new user and return an access token."""
     normalized_email = email.strip().lower()
@@ -53,7 +70,8 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     hashed = hash_password(password)
     user = user_repo.create(db, email=normalized_email, username=username, password_hash=hashed)
     token = create_access_token(subject=user.id)
-    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+    return _auth_response(token, user)
+
 
 
 
@@ -158,7 +176,7 @@ def signup_complete(db: Session, signup_token: str, username: str, password: str
     user = user_repo.create(db, email=email, username=username, password_hash=hashed)
     token = create_access_token(subject=user.id)
     logger.info(f"[SIGNUP] User created | user_id={user.id} email={email}")
-    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+    return _auth_response(token, user)
 
 
 def login(db: Session, email: str, password: str) -> dict:
@@ -171,7 +189,7 @@ def login(db: Session, email: str, password: str) -> dict:
             detail="Invalid email or password",
         )
     token = create_access_token(subject=user.id)
-    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+    return _auth_response(token, user)
 
 
 def google_login(db: Session, credential: str) -> dict:
@@ -208,7 +226,8 @@ def google_login(db: Session, credential: str) -> dict:
         )
 
     token = create_access_token(subject=user.id)
-    return {"access_token": token, "token_type": "bearer", "user_id": user.id, "username": user.username}
+    return _auth_response(token, user)
+
 
 
 def get_current_user(db: Session, user_id: int) -> User:
