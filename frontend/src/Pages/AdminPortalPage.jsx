@@ -13,6 +13,8 @@ import {
   Loader2,
   Mail,
   UserCheck,
+  Send,
+  CheckCircle2,
 } from "lucide-react";
 
 
@@ -27,9 +29,25 @@ export const AdminPortalPage = () => {
     fetchDashboard,
     fetchUsers,
     fetchFeedback,
+    replyToFeedback,
   } = useAdmin();
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
+
+  const handleSendReply = async (feedbackId) => {
+    if (!replyText.trim() || sendingReply) return;
+    setSendingReply(true);
+    const ok = await replyToFeedback(feedbackId, replyText.trim());
+    setSendingReply(false);
+    if (ok) {
+      setReplyingToId(null);
+      setReplyText("");
+    }
+  };
+
 
   const isAdmin = Boolean(
     auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
@@ -319,28 +337,97 @@ export const AdminPortalPage = () => {
                               <p className="text-[10px] font-mono text-slate-500">{fb.user_email}</p>
                             </div>
                           </div>
-                          <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            {fb.category.replace("_", " ")}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {fb.status === "replied" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 size={11} /> Replied
+                              </span>
+                            )}
+                            <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              {fb.category.replace("_", " ")}
+                            </span>
+                          </div>
                         </div>
 
-                        <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-2xl border" style={{ borderColor: "#F1F5F9" }}>
+                        <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-2xl border mb-3" style={{ borderColor: "#F1F5F9" }}>
                           "{fb.message}"
                         </p>
+
+                        {/* Inline Reply Text Box */}
+                        {replyingToId === fb.id && (
+                          <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 flex flex-col gap-2 animate-fadeIn mb-3">
+                            <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                              <span>Reply via Email</span>
+                              <span className="text-[10px] text-slate-400 font-normal">From productteam@setupspot.tech</span>
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder={`Type your response to @${fb.username}...`}
+                              className="w-full text-xs p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                              style={{ borderColor: "#CBD5E1" }}
+                            />
+                            <p className="text-[10px] text-slate-500 italic">
+                              * Disclaimer template will be automatically appended to the email footer.
+                            </p>
+                            <div className="flex items-center justify-end gap-2 mt-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setReplyingToId(null);
+                                  setReplyText("");
+                                }}
+                                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSendReply(fb.id)}
+                                disabled={!replyText.trim() || sendingReply}
+                                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                                style={{ backgroundColor: "#0066ff" }}
+                              >
+                                {sendingReply ? (
+                                  <>
+                                    <Loader2 size={13} className="animate-spin" />
+                                    <span>Sending...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send size={13} />
+                                    <span>Send Email</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-4 pt-3 border-t" style={{ borderColor: "#F1F5F9" }}>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-3 border-t" style={{ borderColor: "#F1F5F9" }}>
                         <span>Submitted {new Date(fb.created_at).toLocaleString()}</span>
-                        <a
-                          href={`mailto:${fb.user_email}`}
-                          className="inline-flex items-center gap-1 text-blue-600 font-bold hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (replyingToId === fb.id) {
+                              setReplyingToId(null);
+                            } else {
+                              setReplyingToId(fb.id);
+                              setReplyText("");
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 text-blue-600 font-bold hover:underline cursor-pointer text-xs"
                         >
-                          <Mail size={12} /> Reply to User
-                        </a>
+                          <Mail size={13} />
+                          <span>{replyingToId === fb.id ? "Close Reply" : "Reply to User"}</span>
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
+
               )}
             </div>
           )}

@@ -66,6 +66,32 @@ export const useAdmin = () => {
     [authFetch, showToast]
   );
 
+  const replyToFeedback = useCallback(
+    async (feedbackId, replyMessage) => {
+      try {
+        const res = await authFetch(`/feedback/${feedbackId}/reply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reply_message: replyMessage }),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Failed to send email reply");
+        }
+        const updated = await res.json();
+        setFeedbackList((prev) =>
+          prev.map((item) => (item.id === feedbackId ? updated : item))
+        );
+        showToast("Reply email sent to user!", "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to send email reply", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
   return {
     stats,
     users,
@@ -76,5 +102,7 @@ export const useAdmin = () => {
     fetchUsers,
     fetchFeedback,
     adminDeleteComment,
+    replyToFeedback,
   };
 };
+

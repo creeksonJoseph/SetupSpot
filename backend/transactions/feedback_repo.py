@@ -32,3 +32,22 @@ def list_all_feedback(db: Session) -> list:
             "created_at": fb.created_at,
         })
     return list_out
+
+
+def get_feedback_by_id(db: Session, feedback_id: int) -> tuple[Feedback, User] | None:
+    result = (
+        db.query(Feedback, User)
+        .join(User, Feedback.user_id == User.id)
+        .filter(Feedback.id == feedback_id)
+        .first()
+    )
+    return result
+
+
+def update_feedback_status(db: Session, feedback: Feedback, status: str = "replied") -> Feedback:
+    feedback.status = status
+    db.commit()
+    db.refresh(feedback)
+    return feedback
+
+

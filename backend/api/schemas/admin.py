@@ -45,3 +45,8 @@ class FeedbackOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FeedbackReplyRequest(BaseModel):
+    reply_message: str
+

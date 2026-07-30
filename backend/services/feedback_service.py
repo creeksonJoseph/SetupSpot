@@ -85,3 +85,50 @@ def list_feedback_for_admin(db: Session, current_user: User):
         raise HTTPException(status_code=403, detail="Admin access required")
     return feedback_repo.list_all_feedback(db)
 
+
+def send_reply_email(user_email: str, username: str, reply_message: str) -> None:
+    """Send reply email to user from productteam@setupspot.tech with non-replyable footer disclaimer."""
+    import resend
+    from core.config import settings
+
+    if settings.RESEND_API_KEY:
+        try:
+            resend.api_key = settings.RESEND_API_KEY
+            resend.Emails.send({
+                "from": "SetupSpot Product Team <noreply@setupspot.tech>",
+                "to": user_email,
+                "subject": "Re: Your SetupSpot Feedback",
+                "html": f"""
+                    <div style="font-family: Arial, sans-serif; padding: 24px; color: #0F172A; max-width: 600px; border: 1px solid #E2E8F0; border-radius: 16px;">
+                        
+                        <p style="font-size: 14px; color: #334155;">Hi @{username},</p>
+                        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #1E293B; margin: 16px 0;">
+                            {reply_message}
+                        </div>
+                        <p style="font-size: 12px; color: #64748B; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; line-height: 1.5;">
+                            <em>Please note: You cannot reply directly to this automated email. If you need to speak to a live support agent, please use the contact details provided in our Contact section on <a href="https://setupspot.tech/">SetupSpot.tech</em>
+                        </p>
+                    </div>
+                """,
+            })
+            logger.info(f"[REPLY EMAIL SENT VIA RESEND TO {user_email}]")
+        except Exception as err:
+            logger.error(f"[REPLY EMAIL FAILED TO SEND VIA RESEND] error={err}")
+
+
+def reply_to_feedback(db: Session, current_user: User, feedback_id: int, reply_message: str) -> dict:
+    from fastapi import HTTPException
+    from services.admin_service import is_admin_user
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    result = feedback_repo.get_feedback_by_id(db, feedback_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+
+    fb, u = result
+    send_reply_email(user_email=u.email, username=u.username, reply_message=reply_message)
+    feedback_repo.update_feedback_status(db, fb, status="replied")
+    return format_feedback_out(fb, u)
+
+
