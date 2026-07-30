@@ -42,7 +42,7 @@ function App() {
             {/* Public routes — no auth required */}
             <Route path="explore" element={<ExplorePage />} />
             <Route path="setup/:id" element={<PostDetailPage />} />
-            <Route path="user/:id" element={<UserProfilePage />} />
+            <Route path="user/:username" element={<UserProfilePage />} />
             <Route path="collections" element={<Collections />} />
 
             {/* Protected routes — auth required */}

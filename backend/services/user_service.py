@@ -27,14 +27,15 @@ def get_user_profile(user: User) -> UserOut:
 
 
 
-def get_public_profile(db: Session, user_id: int) -> PublicUserOut | None:
+def get_public_profile(db: Session, username: str) -> PublicUserOut | None:
     """Return a pre-computed public profile for any user (no email, no favorites).
 
     All aggregation is done here so the frontend just renders.
     """
-    user = user_repo.get_by_id(db, user_id)
+    user = user_repo.get_by_username(db, username)
     if not user:
         return None
+
 
     user_setups = [
         UserSetupOut(id=s.id, title=s.name, image=s.image_url)

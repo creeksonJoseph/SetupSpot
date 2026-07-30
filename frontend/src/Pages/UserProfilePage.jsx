@@ -9,9 +9,10 @@ import { UserProfileSkeleton } from "../components/CardSkeleton";
 const TABS = ["Posts", "Collections"];
 
 const UserProfilePage = () => {
-  const { id } = useParams();
+  const { username } = useParams();
   const navigate = useNavigate();
-  const { profile, loading, error } = usePublicProfile(id);
+  const { profile, loading, error } = usePublicProfile(username);
+
   const [activeTab, setActiveTab] = useState("Posts");
 
   if (loading) {

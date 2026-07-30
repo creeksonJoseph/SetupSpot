@@ -16,13 +16,14 @@ def get_me(current_user: User = Depends(get_current_user)):
     return user_service.get_user_profile(current_user)
 
 
-@router.get("/{user_id}", response_model=PublicUserOut)
-def get_public_profile(user_id: int, db: Session = Depends(get_db)):
+@router.get("/{username}", response_model=PublicUserOut)
+def get_public_profile(username: str, db: Session = Depends(get_db)):
     """Public profile endpoint — returns posts and collections, no email or favorites."""
-    profile = user_service.get_public_profile(db, user_id)
+    profile = user_service.get_public_profile(db, username)
     if not profile:
         raise HTTPException(status_code=404, detail="User not found")
     return profile
+
 
 
 @router.patch("/me", response_model=UserOut)

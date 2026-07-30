@@ -2,22 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
 
 /**
- * Fetch the public profile for any user by id.
+ * Fetch the public profile for any user by username.
  * Returns: { profile, loading, error }
  * Profile shape: { id, username, bio, avatar_url, post_count, collection_count, setups[], collections[] }
  */
-export function usePublicProfile(userId) {
+export function usePublicProfile(username) {
   const authFetch = useAuthFetch();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!userId) return;
+    if (!username) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await authFetch(`/users/${userId}`);
+      const res = await authFetch(`/users/${username}`);
+
       if (!res.ok) throw new Error('User not found');
       const data = await res.json();
       setProfile(data);
@@ -27,7 +28,8 @@ export function usePublicProfile(userId) {
     } finally {
       setLoading(false);
     }
-  }, [userId, authFetch]);
+  }, [username, authFetch]);
+
 
   useEffect(() => {
     fetchProfile();
