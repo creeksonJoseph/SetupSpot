@@ -1,103 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { useSetups } from '../hooks/useSetups';
-import { useAuth } from '../context/AuthContext';
 import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
-import ShareMenu from '../components/ShareMenu';
-
-const SetupCard = ({ setup, toggleFavorite }) => {
-  const { auth } = useAuth();
-  const [shareOpen, setShareOpen] = useState(false);
-  const [saveAnimating, setSaveAnimating] = useState(false);
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!auth) {
-      window.location.href = '/login';
-      return;
-    }
-    // Spring-bounce pulse so the user knows the tap registered
-    setSaveAnimating(true);
-    setTimeout(() => setSaveAnimating(false), 350);
-    toggleFavorite(setup.id, setup.isFavorited);
-  };
-
-  const handleShare = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const shareUrl = `${window.location.origin}/setup/${setup.id}`;
-    const shareData = {
-      title: setup.title,
-      text: `Check out this setup: ${setup.title} by ${setup.author}`,
-      url: shareUrl,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch { /* user dismissed */ }
-    } else {
-      setShareOpen((v) => !v);
-    }
-  };
-
-  return (
-    <>
-      <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
-        <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-          <img
-            className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-            alt={setup.title}
-            src={setup.image}
-            loading="lazy"
-          />
-
-          {/* Unsplash-style subtle dark/grey shade overlay on hover */}
-          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-          {/* Save button — top right, icon only */}
-          <button
-            onClick={handleSave}
-            className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10"
-            style={{
-              backgroundColor: setup.isFavorited ? '#e11d48' : '#ffffff',
-              color: setup.isFavorited ? '#ffffff' : '#0F172A',
-              transform: saveAnimating ? 'scale(1.4)' : 'scale(1)',
-              transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s, color 0.2s, opacity 0.2s',
-            }}
-            aria-label={setup.isFavorited ? 'Remove from saved' : 'Save'}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-              {setup.isFavorited ? 'favorite' : 'bookmark'}
-            </span>
-          </button>
-
-          {/* Share button — bottom right, icon only */}
-          <button
-            onClick={handleShare}
-            className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10"
-            style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: '#0F172A' }}
-            aria-label="Share"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span>
-          </button>
-
-          {/* Gradient overlay with setup title & author */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <p className="text-white font-semibold text-base leading-tight drop-shadow">{setup.title}</p>
-            <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Standardized Share Modal */}
-      {shareOpen && <ShareMenu setup={setup} onClose={() => setShareOpen(false)} />}
-    </>
-  );
-};
+import { SetupCard } from '../components/explore/SetupCard';
 
 // Convert an Algolia hit to the same shape as a setup from the REST API
 const hitToSetup = (hit) => ({
@@ -107,6 +12,7 @@ const hitToSetup = (hit) => ({
   author: `@${hit.author}`,
   isFavorited: false,
 });
+
 
 const ExplorePage = () => {
   const { setups, loading, toggleFavorite } = useSetups();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MoreVertical, Share2, Trash2, ShoppingBag } from "lucide-react";
 import { ShareMenu } from "../ShareMenu";
+import { DeletePostModal } from "../account/DeletePostModal";
 
 export const CollectionItemCard = ({
   item,
@@ -10,6 +11,7 @@ export const CollectionItemCard = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = () => setMenuOpen(false);
@@ -44,16 +46,29 @@ export const CollectionItemCard = ({
     }
   };
 
-  const handleRemove = (e) => {
+  const handleRemoveClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setMenuOpen(false);
-    onRemoveItem(collectionId, item.id);
+    setDeleteModalOpen(true);
   };
 
   return (
     <>
-      {/* Share Menu Modal (for desktop browsers without navigator.share) */}
+      {/* Delete Confirmation Modal */}
+      <DeletePostModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={async () => {
+          await onRemoveItem(collectionId, item.id);
+        }}
+        title="Remove Item from Collection?"
+        setupTitle={item.name}
+        setupImage={item.setup_image_url}
+        confirmText="Remove Item"
+      />
+
+      {/* Share Menu Modal */}
       {shareModalOpen && (
         <ShareMenu
           customUrl={itemUrl}
@@ -61,6 +76,7 @@ export const CollectionItemCard = ({
           onClose={() => setShareModalOpen(false)}
         />
       )}
+
 
       <div
         onClick={onNavigate}
@@ -121,7 +137,7 @@ export const CollectionItemCard = ({
                   <Share2 size={14} style={{ color: "#0066ff" }} /> Share
                 </button>
                 <button
-                  onClick={handleRemove}
+                  onClick={handleRemoveClick}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   <Trash2 size={14} /> Delete

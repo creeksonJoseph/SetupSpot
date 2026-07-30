@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
 
-export const DeletePostModal = ({ isOpen, onClose, onConfirm, setupTitle, setupImage }) => {
+export const DeletePostModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "Delete Setup Post?",
+  setupTitle,
+  setupImage,
+  confirmText = "Delete Post",
+  description,
+}) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -37,11 +46,22 @@ export const DeletePostModal = ({ isOpen, onClose, onConfirm, setupTitle, setupI
     }
   };
 
+  const displayDescription =
+    description || (
+      <>
+        Are you sure you want to delete{" "}
+        <strong style={{ color: "#0F172A" }}>
+          "{setupTitle || "this item"}"
+        </strong>
+        ? This action cannot be undone.
+      </>
+    );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
       <div
         className="bg-white rounded-2xl border shadow-2xl max-w-xs sm:max-w-sm w-full p-5 relative overflow-hidden transition-all transform scale-100"
-        style={{ borderColor: '#E2E8F0' }}
+        style={{ borderColor: "#E2E8F0" }}
       >
         {/* Close Button */}
         {!isDeleting && (
@@ -58,21 +78,22 @@ export const DeletePostModal = ({ isOpen, onClose, onConfirm, setupTitle, setupI
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center mb-3 border"
             style={{
-              backgroundColor: 'rgba(186,26,26,0.08)',
-              borderColor: 'rgba(186,26,26,0.2)',
-              color: '#ba1a1a',
+              backgroundColor: "rgba(186,26,26,0.08)",
+              borderColor: "rgba(186,26,26,0.2)",
+              color: "#ba1a1a",
             }}
           >
             <Trash2 size={22} />
           </div>
 
-          <h3 className="text-base font-bold" style={{ color: '#0F172A' }}>
-            Delete Setup Post?
+          <h3 className="text-base font-bold" style={{ color: "#0F172A" }}>
+            {title}
           </h3>
-          <p className="text-xs mt-1 leading-relaxed" style={{ color: '#727687' }}>
-            Are you sure you want to delete <strong style={{ color: '#0F172A' }}>"{setupTitle || 'this post'}"</strong>? This action cannot be undone.
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: "#727687" }}>
+            {displayDescription}
           </p>
         </div>
+
 
         {/* Thumbnail Preview */}
         {setupImage && (
@@ -117,7 +138,7 @@ export const DeletePostModal = ({ isOpen, onClose, onConfirm, setupTitle, setupI
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#9e1414')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ba1a1a')}
             >
-              Delete Post
+              {confirmText}
             </button>
           </div>
         )}

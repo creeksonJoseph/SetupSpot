@@ -58,8 +58,7 @@ export function useSetups() {
 
   const toggleFavorite = useCallback(async (setupId, isFavorited) => {
     if (!auth?.access_token) {
-      window.location.href = '/login';
-      return;
+      return false;
     }
 
     // Optimistically toggle state immediately (TikTok / Instagram style)

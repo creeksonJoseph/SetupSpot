@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, ArrowLeft, Edit3, Share2, Trash2, Folder, Sparkles } from "lucide-react";
+import { Plus, ArrowLeft, Edit3, Share2, Trash2, Folder } from "lucide-react";
 import { useCollections } from "../hooks/useCollections";
 import { SimilarCollections } from "../components/collections/SimilarCollections";
 import { CreateCollectionModal } from "../components/collections/CreateCollectionModal";
 import { RenameCollectionModal } from "../components/collections/RenameCollectionModal";
 import { CollectionFolderCard } from "../components/collections/CollectionFolderCard";
 import { CollectionItemCard } from "../components/collections/CollectionItemCard";
+import { DeletePostModal } from "../components/account/DeletePostModal";
 import { useToast } from "../context/ToastContext";
 
 const Collections = () => {
@@ -31,7 +32,9 @@ const Collections = () => {
   const [newFolderTitle, setNewFolderTitle] = useState("");
   const [editingCollection, setEditingCollection] = useState(null);
   const [editFolderTitle, setEditFolderTitle] = useState("");
+  const [pendingDeleteCollection, setPendingDeleteCollection] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -104,6 +107,21 @@ const Collections = () => {
         title={editFolderTitle}
         setTitle={setEditFolderTitle}
         onSubmit={handleRenameSubmit}
+      />
+
+      {/* Delete Collection Folder Modal */}
+      <DeletePostModal
+        isOpen={!!pendingDeleteCollection}
+        onClose={() => setPendingDeleteCollection(null)}
+        onConfirm={async () => {
+          if (pendingDeleteCollection) {
+            await deleteCollection(pendingDeleteCollection.id);
+            setPendingDeleteCollection(null);
+          }
+        }}
+        title="Delete Collection Folder?"
+        setupTitle={pendingDeleteCollection?.name}
+        confirmText="Delete Folder"
       />
 
       <div className="mx-auto max-w-7xl">
@@ -206,7 +224,7 @@ const Collections = () => {
                   <span>Share</span>
                 </button>
                 <button
-                  onClick={() => deleteCollection(selectedCollection.id)}
+                  onClick={() => setPendingDeleteCollection(selectedCollection)}
                   className="px-3 py-2 rounded-xl border text-xs font-semibold transition-all hover:bg-red-50 hover:border-red-200 flex items-center gap-1.5 cursor-pointer"
                   style={{
                     borderColor: "rgba(186,26,26,0.2)",
@@ -221,6 +239,7 @@ const Collections = () => {
             </div>
           </div>
         )}
+
 
         {/* Content Section */}
         {loading ? (
@@ -295,7 +314,7 @@ const Collections = () => {
                     setEditFolderTitle(c.name);
                   }}
                   onShare={handleShareCollection}
-                  onDelete={deleteCollection}
+                  onDelete={(id) => setPendingDeleteCollection(collections.find((c) => c.id === id))}
                 />
               ))}
             </div>
