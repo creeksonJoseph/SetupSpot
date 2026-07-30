@@ -3,7 +3,7 @@
  * Provides login(), logout(), and register() to the whole app.
  * Token is persisted to localStorage so sessions survive page reload.
  */
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { API, FALLBACK_API } from "../hooks/api";
 
 const AuthContext = createContext(null);
@@ -42,6 +42,33 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
+
+  // Sync latest user profile (/users/me) on mount so email & is_admin are populated
+  useEffect(() => {
+    if (auth?.access_token) {
+      fetchWithFallback("/users/me", {
+        headers: { Authorization: `Bearer ${auth.access_token}` },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((userData) => {
+          if (userData) {
+            setAuth((prev) => {
+              if (!prev) return prev;
+              const updated = {
+                ...prev,
+                email: userData.email,
+                is_admin: userData.is_admin,
+                user: userData,
+              };
+              localStorage.setItem("auth", JSON.stringify(updated));
+              return updated;
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [auth?.access_token]);
+
 
   const register = useCallback(async (email, username, password) => {
     const res = await fetchWithFallback("/auth/register", {

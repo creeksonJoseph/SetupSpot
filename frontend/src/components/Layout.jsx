@@ -9,6 +9,7 @@ export default function Layout() {
 
     const getActiveTab = () => {
         const path = location.pathname
+        if (path.startsWith('/admin')) return 'admin'
         if (path.startsWith('/favorites')) return 'favorites'
         if (path.startsWith('/collections')) return 'collections'
         if (path.startsWith('/create')) return 'create'
@@ -16,6 +17,7 @@ export default function Layout() {
         if (path.startsWith('/settings')) return 'account'
         return 'explore'
     }
+
 
 
     const activeTab = getActiveTab()
@@ -65,24 +67,28 @@ export default function Layout() {
 
                     {/* Admin Portal Button — ONLY shown for Admin */}
                     {Boolean(auth?.is_admin || auth?.user?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com") || (auth?.user?.email && auth.user.email.toLowerCase() === "charanajoseph@gmail.com")) && (
-                        <div className="relative group flex items-center mt-2 pt-4 border-t border-slate-100">
+                        <div className="relative group flex items-center">
                             <Link
                                 to="/admin"
                                 className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-102 cursor-pointer"
                                 style={{
-                                    backgroundColor: activeTab === 'admin' ? "rgba(0,102,255,0.12)" : "rgba(0,102,255,0.05)",
-                                    color: "#0066ff",
+                                    backgroundColor: activeTab === 'admin' ? "rgba(0,102,255,0.08)" : "transparent",
+                                    color: activeTab === 'admin' ? "#0066ff" : "#727687",
                                 }}
                             >
-                                <span className="material-symbols-outlined block group-hover:scale-110">
+                                <span
+                                    className="material-symbols-outlined transition-transform duration-200 ease-out block group-hover:scale-110"
+                                    style={{ fontVariationSettings: activeTab === 'admin' ? "'FILL' 1" : "'FILL' 0" }}
+                                >
                                     shield_person
                                 </span>
                             </Link>
-                            <div className="absolute left-full ml-3.5 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-lg border border-slate-800 whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-50">
+                            <div className="absolute left-full ml-3.5 px-3 py-1.5 bg-white text-slate-800 text-xs font-semibold rounded-lg shadow-lg border border-slate-200 whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-50">
                                 Admin Portal
                             </div>
                         </div>
                     )}
+
 
                 </div>
 
