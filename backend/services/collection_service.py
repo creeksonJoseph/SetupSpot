@@ -100,8 +100,11 @@ def add_item(db: Session, collection_id: int, item_id: int, user_id: int) -> dic
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    updated = collection_repo.add_item(db, collection, item)
-    return format_collection_dto(updated)
+    updated, already_present = collection_repo.add_item(db, collection, item)
+    dto = format_collection_dto(updated)
+    dto["already_added"] = already_present
+    return dto
+
 
 
 def remove_item(db: Session, collection_id: int, item_id: int, user_id: int) -> dict:

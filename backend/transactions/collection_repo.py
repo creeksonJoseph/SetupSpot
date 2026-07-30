@@ -46,12 +46,14 @@ def update_name(db: Session, collection: Collection, name: str) -> Collection:
     return collection
 
 
-def add_item(db: Session, collection: Collection, item: Item) -> Collection:
-    if item not in collection.items:
+def add_item(db: Session, collection: Collection, item: Item) -> tuple[Collection, bool]:
+    already_present = item in collection.items
+    if not already_present:
         collection.items.append(item)
         db.commit()
         db.refresh(collection)
-    return collection
+    return collection, already_present
+
 
 
 def remove_item(db: Session, collection: Collection, item: Item) -> Collection:

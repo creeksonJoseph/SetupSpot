@@ -110,6 +110,12 @@ export function usePostDetail(id) {
     const isFavorited = setup.is_favorited ?? false;
     setSetup((prev) => prev ? { ...prev, is_favorited: !isFavorited } : null);
 
+    if (isFavorited) {
+      showToast('Removed setup from favourites', 'info');
+    } else {
+      showToast('Setup saved to favourites!', 'success');
+    }
+
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
       const res = await authFetch('/favorites', {
@@ -124,6 +130,7 @@ export function usePostDetail(id) {
       showToast('Could not save to favourites, try again.', 'error');
     }
   }, [setup, authFetch, showToast]);
+
 
   return {
     setup,

@@ -9,9 +9,12 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
+import { useToast } from '../context/ToastContext';
 
 export function useAddToCollection({ isOpen }) {
   const authFetch = useAuthFetch();
+  const { showToast } = useToast();
+
 
   const [collections, setCollections]           = useState([]);
   const [selectedCollection, setSelectedCollection] = useState('');
@@ -69,19 +72,28 @@ export function useAddToCollection({ isOpen }) {
     if (!selectedCollection || !itemId || loading) return;
     setLoading(true);
     try {
-      await authFetch(`/collections/${selectedCollection}/items`, {
+      const res = await authFetch(`/collections/${selectedCollection}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ item_id: itemId }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.already_added) {
+          showToast('Item already added to this collection', 'info');
+        } else {
+          showToast('Item added to collection!', 'success');
+        }
+      }
       onClose();
     } catch (err) {
-
       console.error('useAddToCollection: error adding item', err);
+      showToast('Could not add item to collection', 'error');
     } finally {
       setLoading(false);
     }
-  }, [authFetch, selectedCollection]);
+  }, [authFetch, selectedCollection, loading, showToast]);
+
 
   return {
     collections,
