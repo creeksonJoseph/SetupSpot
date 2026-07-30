@@ -7,6 +7,9 @@ ADMIN_EMAIL = "charanajoseph@gmail.com"
 
 
 class AdminDashboardStats(BaseModel):
+    db_status: Optional[str] = "Connected & Healthy"
+    admin_email: Optional[str] = "charanajoseph@gmail.com"
+    latency_ms: Optional[str] = "< 15 ms"
     total_users: int
     total_setups: int
     total_comments: int
@@ -14,6 +17,8 @@ class AdminDashboardStats(BaseModel):
     total_feedback: int
     recent_users_count_7d: int
     recent_setups_count_7d: int
+    recent_feedback: list[dict] = []
+
 
 
 class AdminUserOut(BaseModel):
