@@ -82,7 +82,7 @@ export const AdminDashboardSkeleton = () => {
 
       {/* 2 large overview cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 rounded-3xl border bg-white space-y-4" style={{ borderColor: "#E2E8F0" }}>
+        <div className="p-6 border bg-white space-y-4" style={{ borderColor: "#E2E8F0" }}>
           <div className="h-5 w-48 bg-slate-200 rounded-md" />
           <div className="space-y-3 pt-2">
             <div className="h-10 w-full bg-slate-100 rounded-xl" />
@@ -90,7 +90,8 @@ export const AdminDashboardSkeleton = () => {
             <div className="h-10 w-full bg-slate-100 rounded-xl" />
           </div>
         </div>
-        <div className="p-6 rounded-3xl border bg-white space-y-4" style={{ borderColor: "#E2E8F0" }}>
+        <div className="p-6 border bg-white space-y-4" style={{ borderColor: "#E2E8F0" }}>
+
           <div className="h-5 w-48 bg-slate-200 rounded-md" />
           <div className="space-y-3 pt-2">
             <div className="h-16 w-full bg-slate-100 rounded-xl" />

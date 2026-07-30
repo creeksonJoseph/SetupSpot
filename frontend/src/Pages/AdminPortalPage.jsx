@@ -24,11 +24,18 @@ import {
 
 import { AdminDashboardSkeleton } from "../components/CardSkeleton";
 import { DeletePostModal } from "../components/account/DeletePostModal";
+import { AdminOverviewTab } from "../components/admin/AdminOverviewTab";
+import { AdminUsersTab } from "../components/admin/AdminUsersTab";
+import { AdminSetupsTab } from "../components/admin/AdminSetupsTab";
+import { AdminCollectionsTab } from "../components/admin/AdminCollectionsTab";
+import { AdminFeedbackTab } from "../components/admin/AdminFeedbackTab";
+
 
 
 
 const TabSkeletonLoader = () => (
-  <div className="p-6 bg-white rounded-3xl border shadow-2xs space-y-4 animate-pulse" style={{ borderColor: "#E2E8F0" }}>
+  <div className="p-6 bg-white border shadow-2xs space-y-4 animate-pulse" style={{ borderColor: "#E2E8F0" }}>
+
     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
       <div className="h-4 w-40 bg-slate-200 rounded-md" />
       <div className="h-4 w-20 bg-slate-100 rounded-md" />
@@ -470,212 +477,27 @@ export const AdminPortalPage = () => {
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-3xl border bg-white" style={{ borderColor: "#E2E8F0" }}>
-                <h3 className="text-base font-bold mb-4" style={{ color: "#0F172A" }}>
-                  System Health & Metrics
-                </h3>
-                <div className="flex flex-col gap-3 text-xs">
-                  <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
-                    <span className="text-slate-500 font-medium">Database Status</span>
-                    <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                      {stats?.db_status || "Connected & Healthy"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
-                    <span className="text-slate-500 font-medium">Admin Notification Target</span>
-                    <span className="font-mono font-semibold" style={{ color: "#0066ff" }}>
-                      {stats?.admin_email || "charanajoseph@gmail.com"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between py-2" style={{ borderColor: "#F1F5F9" }}>
-                    <span className="text-slate-500 font-medium">Pre-computed Stats Latency</span>
-                    <span className="font-semibold text-slate-700">
-                      {stats?.latency_ms || "< 15 ms"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="p-6 rounded-3xl border bg-white" style={{ borderColor: "#E2E8F0" }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold" style={{ color: "#0F172A" }}>
-                    User Feedback
-                  </h3>
-                  <button
-                    onClick={() => setActiveTab("feedback")}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
-                  >
-                    View All →
-                  </button>
-                </div>
-                {(feedbackList.length > 0 ? feedbackList : (stats?.recent_feedback || [])).length === 0 ? (
-                  <p className="text-xs text-slate-400 py-6 text-center">No user feedback submitted yet.</p>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    {(feedbackList.length > 0 ? feedbackList : (stats?.recent_feedback || [])).slice(0, 4).map((fb) => (
-                      <div key={fb.id} className="p-3 rounded-2xl bg-slate-50 border text-xs" style={{ borderColor: "#E2E8F0" }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-800">@{fb.username}</span>
-                            <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full capitalize">{fb.category}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-400">{fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'Just now'}</span>
-                        </div>
-                        <p className="text-slate-600 text-[11px] line-clamp-2">{fb.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            </div>
+            <AdminOverviewTab
+              stats={stats}
+              feedbackList={feedbackList}
+              setActiveTab={setActiveTab}
+            />
           )}
 
-
           {/* TAB 2: USERS */}
-
           {activeTab === "users" && (
             loadingTab === "users" ? (
               <TabSkeletonLoader />
             ) : (
-              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                    Registered Users ({filteredUsers.length})
-                  </h3>
-                  {selectedUserIds.length > 0 && (
-                    <div className="flex items-center gap-3 animate-fadeIn">
-                      <span className="text-xs font-bold text-slate-700">
-                        {selectedUserIds.length} user{selectedUserIds.length > 1 ? "s" : ""} selected
-                      </span>
-                      <button
-                        onClick={handleBulkDeleteUsers}
-                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                      >
-                        <Trash2 size={13} /> Delete Selected ({selectedUserIds.length})
-                      </button>
-                      <button
-                        onClick={() => setSelectedUserIds([])}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                      <tr>
-                        <th className="p-3.5 w-10 text-center">
-                          <input
-                            type="checkbox"
-                            checked={
-                              filteredUsers.length > 0 &&
-                              selectedUserIds.length ===
-                                filteredUsers.filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com").length
-                            }
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedUserIds(
-                                  filteredUsers
-                                    .filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com")
-                                    .map((u) => u.id)
-                                );
-                              } else {
-                                setSelectedUserIds([]);
-                              }
-                            }}
-                            className="rounded cursor-pointer accent-blue-600"
-                          />
-                        </th>
-                        <th className="p-3.5">User</th>
-                        <th className="p-3.5">Email</th>
-                        <th className="p-3.5">Setups</th>
-                        <th className="p-3.5">Role</th>
-                        <th className="p-3.5">Joined</th>
-                        <th className="p-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                      {filteredUsers.slice(0, visibleLimits.users).map((u) => (
-                        <tr
-                          key={u.id}
-                          className={`hover:bg-slate-50/60 transition-colors ${
-                            selectedUserIds.includes(u.id) ? "bg-blue-50/40" : ""
-                          }`}
-                        >
-
-                        <td className="p-3.5 w-10 text-center">
-                          {u.email.toLowerCase() !== "charanajoseph@gmail.com" && (
-                            <input
-                              type="checkbox"
-                              checked={selectedUserIds.includes(u.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedUserIds((prev) => [...prev, u.id]);
-                                } else {
-                                  setSelectedUserIds((prev) => prev.filter((id) => id !== u.id));
-                                }
-                              }}
-                              className="rounded cursor-pointer accent-blue-600"
-                            />
-                          )}
-                        </td>
-                        <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                            {u.username[0].toUpperCase()}
-                          </div>
-                          <span>@{u.username}</span>
-                        </td>
-                        <td className="p-3.5 font-mono text-slate-600">{u.email}</td>
-                        <td className="p-3.5 font-bold text-slate-900">{u.setup_count}</td>
-                        <td className="p-3.5">
-                          {u.is_admin ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                              <UserCheck size={11} /> Admin
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
-                              Member
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3.5 text-slate-500">
-                          {u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          {u.email.toLowerCase() !== "charanajoseph@gmail.com" ? (
-                            <button
-                              onClick={() => handleDeleteUser(u)}
-                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete User"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 italic">Primary Admin</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                  {filteredUsers.length > visibleLimits.users && (
-                    <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
-                      <button
-                        onClick={() => setVisibleLimits((prev) => ({ ...prev, users: prev.users + 25 }))}
-                        className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                      >
-                        Load More Users ({filteredUsers.length - visibleLimits.users} remaining)
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <AdminUsersTab
+                filteredUsers={filteredUsers}
+                selectedUserIds={selectedUserIds}
+                setSelectedUserIds={setSelectedUserIds}
+                handleBulkDeleteUsers={handleBulkDeleteUsers}
+                handleDeleteUser={handleDeleteUser}
+                visibleLimits={visibleLimits}
+                setVisibleLimits={setVisibleLimits}
+              />
             )
           )}
 
@@ -684,124 +506,15 @@ export const AdminPortalPage = () => {
             loadingTab === "setups" ? (
               <TabSkeletonLoader />
             ) : (
-              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                    All Setups ({filteredSetups.length})
-                  </h3>
-                  {selectedSetupIds.length > 0 && (
-                    <div className="flex items-center gap-3 animate-fadeIn">
-                      <span className="text-xs font-bold text-slate-700">
-                        {selectedSetupIds.length} setup{selectedSetupIds.length > 1 ? "s" : ""} selected
-                      </span>
-                      <button
-                        onClick={handleBulkDeleteSetups}
-                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                      >
-                        <Trash2 size={13} /> Delete Selected ({selectedSetupIds.length})
-                      </button>
-                      <button
-                        onClick={() => setSelectedSetupIds([])}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {filteredSetups.length === 0 ? (
-                  <div className="p-12 text-center text-xs text-slate-400">No setups found matching your query.</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                        <tr>
-                          <th className="p-3.5 w-10 text-center">
-                            <input
-                              type="checkbox"
-                              checked={
-                                filteredSetups.length > 0 &&
-                                selectedSetupIds.length === filteredSetups.length
-                              }
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedSetupIds(filteredSetups.map((s) => s.id));
-                                } else {
-                                  setSelectedSetupIds([]);
-                                }
-                              }}
-                              className="rounded cursor-pointer accent-blue-600"
-                            />
-                          </th>
-                          <th className="p-3.5">Setup</th>
-                          <th className="p-3.5">Author</th>
-                          <th className="p-3.5">Items</th>
-                          <th className="p-3.5">Created</th>
-                          <th className="p-3.5 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                        {filteredSetups.slice(0, visibleLimits.setups).map((s) => (
-                          <tr
-                            key={s.id}
-                            className={`hover:bg-slate-50/60 transition-colors ${
-                              selectedSetupIds.includes(s.id) ? "bg-blue-50/40" : ""
-                            }`}
-                          >
-                            <td className="p-3.5 w-10 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedSetupIds.includes(s.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedSetupIds((prev) => [...prev, s.id]);
-                                  } else {
-                                    setSelectedSetupIds((prev) => prev.filter((id) => id !== s.id));
-                                  }
-                                }}
-                                className="rounded cursor-pointer accent-blue-600"
-                              />
-                            </td>
-                            <td className="p-3.5 font-bold text-slate-900 flex items-center gap-3">
-                              <img
-                                src={s.image_url}
-                                alt={s.name}
-                                className="w-10 h-10 rounded-xl object-cover border"
-                                style={{ borderColor: "#E2E8F0" }}
-                              />
-                              <span>{s.name}</span>
-                            </td>
-                            <td className="p-3.5 font-semibold text-slate-700">@{s.author}</td>
-                            <td className="p-3.5 font-bold text-slate-900">{s.item_count} items</td>
-                            <td className="p-3.5 text-slate-500">
-                              {s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
-                            </td>
-                            <td className="p-3.5 text-right">
-                              <button
-                                onClick={() => handleDeleteSetup(s)}
-                                className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                                title="Delete Setup"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {filteredSetups.length > visibleLimits.setups && (
-                      <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
-                        <button
-                          onClick={() => setVisibleLimits((prev) => ({ ...prev, setups: prev.setups + 25 }))}
-                          className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                        >
-                          Load More Setups ({filteredSetups.length - visibleLimits.setups} remaining)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <AdminSetupsTab
+                filteredSetups={filteredSetups}
+                selectedSetupIds={selectedSetupIds}
+                setSelectedSetupIds={setSelectedSetupIds}
+                handleBulkDeleteSetups={handleBulkDeleteSetups}
+                handleDeleteSetup={handleDeleteSetup}
+                visibleLimits={visibleLimits}
+                setVisibleLimits={setVisibleLimits}
+              />
             )
           )}
 
@@ -810,119 +523,15 @@ export const AdminPortalPage = () => {
             loadingTab === "collections" ? (
               <TabSkeletonLoader />
             ) : (
-              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                    All Collections ({filteredCollections.length})
-                  </h3>
-                  {selectedCollectionIds.length > 0 && (
-                    <div className="flex items-center gap-3 animate-fadeIn">
-                      <span className="text-xs font-bold text-slate-700">
-                        {selectedCollectionIds.length} collection{selectedCollectionIds.length > 1 ? "s" : ""} selected
-                      </span>
-                      <button
-                        onClick={handleBulkDeleteCollections}
-                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                      >
-                        <Trash2 size={13} /> Delete Selected ({selectedCollectionIds.length})
-                      </button>
-                      <button
-                        onClick={() => setSelectedCollectionIds([])}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {filteredCollections.length === 0 ? (
-                  <div className="p-12 text-center text-xs text-slate-400">No collections found matching your query.</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                        <tr>
-                          <th className="p-3.5 w-10 text-center">
-                            <input
-                              type="checkbox"
-                              checked={
-                                filteredCollections.length > 0 &&
-                                selectedCollectionIds.length === filteredCollections.length
-                              }
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedCollectionIds(filteredCollections.map((c) => c.id));
-                                } else {
-                                  setSelectedCollectionIds([]);
-                                }
-                              }}
-                              className="rounded cursor-pointer accent-blue-600"
-                            />
-                          </th>
-                          <th className="p-3.5">Collection Name</th>
-                          <th className="p-3.5">Owner</th>
-                          <th className="p-3.5">Items</th>
-                          <th className="p-3.5">Created</th>
-                          <th className="p-3.5 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                        {filteredCollections.slice(0, visibleLimits.collections).map((c) => (
-                          <tr
-                            key={c.id}
-                            className={`hover:bg-slate-50/60 transition-colors ${
-                              selectedCollectionIds.includes(c.id) ? "bg-blue-50/40" : ""
-                            }`}
-                          >
-                            <td className="p-3.5 w-10 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedCollectionIds.includes(c.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedCollectionIds((prev) => [...prev, c.id]);
-                                  } else {
-                                    setSelectedCollectionIds((prev) => prev.filter((id) => id !== c.id));
-                                  }
-                                }}
-                                className="rounded cursor-pointer accent-blue-600"
-                              />
-                            </td>
-                            <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
-                              <FolderOpen size={16} className="text-blue-600" />
-                              <span>{c.name}</span>
-                            </td>
-                            <td className="p-3.5 font-semibold text-slate-700">@{c.owner}</td>
-                            <td className="p-3.5 font-bold text-slate-900">{c.item_count} items</td>
-                            <td className="p-3.5 text-slate-500">
-                              {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
-                            </td>
-                            <td className="p-3.5 text-right">
-                              <button
-                                onClick={() => handleDeleteCollection(c)}
-                                className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                                title="Delete Collection"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {filteredCollections.length > visibleLimits.collections && (
-                      <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
-                        <button
-                          onClick={() => setVisibleLimits((prev) => ({ ...prev, collections: prev.collections + 25 }))}
-                          className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                        >
-                          Load More Collections ({filteredCollections.length - visibleLimits.collections} remaining)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <AdminCollectionsTab
+                filteredCollections={filteredCollections}
+                selectedCollectionIds={selectedCollectionIds}
+                setSelectedCollectionIds={setSelectedCollectionIds}
+                handleBulkDeleteCollections={handleBulkDeleteCollections}
+                handleDeleteCollection={handleDeleteCollection}
+                visibleLimits={visibleLimits}
+                setVisibleLimits={setVisibleLimits}
+              />
             )
           )}
 
@@ -931,153 +540,21 @@ export const AdminPortalPage = () => {
             loadingTab === "feedback" ? (
               <TabSkeletonLoader />
             ) : (
-              <div className="flex flex-col gap-4">
-                {/* Header & Category Filter Bar */}
-                <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-4 rounded-3xl border shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-                  <div>
-                    <h3 className="text-base font-bold" style={{ color: "#0F172A" }}>
-                      User Feedback ({filteredFeedback.length})
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Filter suggestions, bug reports, and design feedback</p>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-500">Category:</span>
-                    <select
-                      value={feedbackCategoryFilter}
-                      onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
-                      className="px-3.5 py-2 rounded-2xl border text-xs font-bold bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
-                      style={{ borderColor: "#CBD5E1" }}
-                    >
-                      <option value="all">All Categories ({feedbackList.length})</option>
-                      <option value="feature_suggestion">💡 Feature Suggestions</option>
-
-                      <option value="ui_improvement">🎨 UI & Design Improvements</option>
-                      <option value="bug_report">🐞 Bug Reports</option>
-                      <option value="other">💬 General Feedback</option>
-                    </select>
-                  </div>
-                </div>
-
-
-                {filteredFeedback.length === 0 ? (
-                  <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>
-                    <p className="text-xs text-slate-400">No user feedback found matching your query.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredFeedback.slice(0, visibleLimits.feedback).map((fb) => (
-                      <div
-                        key={fb.id}
-                        className="p-5 rounded-3xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-md transition-all"
-                        style={{ borderColor: "#E2E8F0" }}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                {fb.username[0].toUpperCase()}
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold text-slate-900">@{fb.username}</p>
-                                <p className="text-[10px] font-mono text-slate-500">{fb.user_email}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {fb.status === "replied" && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <CheckCircle2 size={11} /> Replied
-                                </span>
-                              )}
-                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                {fb.category.replace("_", " ")}
-                              </span>
-                            </div>
-                          </div>
-
-                          <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-2xl border mb-3" style={{ borderColor: "#F1F5F9" }}>
-                            "{fb.message}"
-                          </p>
-
-                          {/* Inline Reply Text Box */}
-                          {replyingToId === fb.id && (
-                            <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 flex flex-col gap-2 animate-fadeIn mb-3">
-                              <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
-                                <span>Reply via Email</span>
-                                <span className="text-[10px] text-slate-400 font-normal">From productteam@setupspot.tech</span>
-                              </label>
-                              <textarea
-                                rows={3}
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                placeholder={`Type your response to @${fb.username}...`}
-                                className="w-full text-xs p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                style={{ borderColor: "#CBD5E1" }}
-                              />
-                              <p className="text-[10px] text-slate-500 italic">
-                                * Disclaimer template will be automatically appended to the email footer.
-                              </p>
-                              <div className="flex items-center justify-end gap-2 mt-1">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setReplyingToId(null);
-                                    setReplyText("");
-                                  }}
-                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSendReply(fb.id)}
-                                  disabled={!replyText.trim() || sendingReply}
-                                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                                  style={{ backgroundColor: "#0066ff" }}
-                                >
-                                  {sendingReply ? (
-                                    <>
-                                      <Loader2 size={13} className="animate-spin" />
-                                      <span>Sending...</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Send size={13} />
-                                      <span>Send Email</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-3 border-t" style={{ borderColor: "#F1F5F9" }}>
-                          <span>Submitted {new Date(fb.created_at).toLocaleString()}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (replyingToId === fb.id) {
-                                setReplyingToId(null);
-                              } else {
-                                setReplyingToId(fb.id);
-                                setReplyText("");
-                              }
-                            }}
-                            className="inline-flex items-center gap-1.5 text-blue-600 font-bold hover:underline cursor-pointer text-xs"
-                          >
-                            <Mail size={13} />
-                            <span>{replyingToId === fb.id ? "Close Reply" : "Reply to User"}</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <AdminFeedbackTab
+                filteredFeedback={filteredFeedback}
+                feedbackList={feedbackList}
+                feedbackCategoryFilter={feedbackCategoryFilter}
+                setFeedbackCategoryFilter={setFeedbackCategoryFilter}
+                visibleLimits={visibleLimits}
+                replyingToId={replyingToId}
+                setReplyingToId={setReplyingToId}
+                replyText={replyText}
+                setReplyText={setReplyText}
+                sendingReply={sendingReply}
+                handleSendReply={handleSendReply}
+              />
             )
           )}
-
         </>
       )}
 
