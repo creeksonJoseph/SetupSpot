@@ -7,6 +7,8 @@ export const useAdmin = () => {
   const { showToast } = useToast();
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [setupsList, setSetupsList] = useState([]);
+  const [collectionsList, setCollectionsList] = useState([]);
   const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,6 +40,28 @@ export const useAdmin = () => {
     }
   }, [authFetch]);
 
+  const fetchAdminSetups = useCallback(async () => {
+    try {
+      const res = await authFetch("/admin/setups");
+      if (!res.ok) throw new Error("Failed to load setups list");
+      const data = await res.json();
+      setSetupsList(data);
+    } catch (err) {
+      console.error("Admin setups error:", err);
+    }
+  }, [authFetch]);
+
+  const fetchAdminCollections = useCallback(async () => {
+    try {
+      const res = await authFetch("/admin/collections");
+      if (!res.ok) throw new Error("Failed to load collections list");
+      const data = await res.json();
+      setCollectionsList(data);
+    } catch (err) {
+      console.error("Admin collections error:", err);
+    }
+  }, [authFetch]);
+
   const fetchFeedback = useCallback(async () => {
     try {
       const res = await authFetch("/feedback");
@@ -60,6 +84,63 @@ export const useAdmin = () => {
         return true;
       } catch (err) {
         showToast(err.message || "Failed to delete comment", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+  const adminDeleteUser = useCallback(
+    async (userId) => {
+      try {
+        const res = await authFetch(`/admin/users/${userId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Failed to delete user");
+        }
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        showToast("User deleted cleanly as admin", "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to delete user", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+  const adminDeleteSetup = useCallback(
+    async (setupId) => {
+      try {
+        const res = await authFetch(`/admin/setups/${setupId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Failed to delete setup");
+        setSetupsList((prev) => prev.filter((s) => s.id !== setupId));
+        showToast("Setup deleted cleanly as admin", "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to delete setup", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+  const adminDeleteCollection = useCallback(
+    async (collectionId) => {
+      try {
+        const res = await authFetch(`/admin/collections/${collectionId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Failed to delete collection");
+        setCollectionsList((prev) => prev.filter((c) => c.id !== collectionId));
+        showToast("Collection deleted cleanly as admin", "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to delete collection", "error");
         return false;
       }
     },
@@ -95,14 +176,22 @@ export const useAdmin = () => {
   return {
     stats,
     users,
+    setupsList,
+    collectionsList,
     feedbackList,
     loading,
     error,
     fetchDashboard,
     fetchUsers,
+    fetchAdminSetups,
+    fetchAdminCollections,
     fetchFeedback,
     adminDeleteComment,
+    adminDeleteUser,
+    adminDeleteSetup,
+    adminDeleteCollection,
     replyToFeedback,
   };
 };
+
 

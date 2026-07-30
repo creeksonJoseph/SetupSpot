@@ -63,12 +63,75 @@ def list_users_with_stats(db: Session) -> list:
     return result
 
 
-def toggle_user_admin_role(db: Session, target_user_id: int) -> User:
-    """Toggle admin role for a user."""
+def list_all_setups(db: Session) -> list:
+    """List all setups for admin portal."""
+    setups = db.query(Setup).order_by(Setup.id.desc()).all()
+    out = []
+    for s in setups:
+        out.append({
+            "id": s.id,
+            "name": s.name,
+            "image_url": s.image_url,
+            "author": s.user.username if s.user else "Unknown",
+            "author_id": s.user_id,
+            "item_count": len(s.items) if s.items else 0,
+            "created_at": s.created_at,
+        })
+    return out
+
+
+def list_all_collections(db: Session) -> list:
+    """List all collections for admin portal."""
+    collections = db.query(Collection).order_by(Collection.id.desc()).all()
+    out = []
+    for c in collections:
+        out.append({
+            "id": c.id,
+            "name": c.name,
+            "owner": c.user.username if c.user else "Unknown",
+            "owner_id": c.user_id,
+            "item_count": len(c.items) if c.items else 0,
+            "created_at": c.created_at,
+        })
+    return out
+
+
+def delete_user(db: Session, target_user_id: int) -> bool:
+    """Delete a user and cascade cleanup associated records."""
     user = db.query(User).filter(User.id == target_user_id).first()
     if not user:
-        raise ValueError("User not found")
-    user.is_admin = not user.is_admin
+        return False
+    # Explicit cascade cleanup to prevent FK constraint issues
+    from models.favorite import Favorite
+    from models.like import Like
+    from models.item import Item
+    db.query(Favorite).filter(Favorite.user_id == target_user_id).delete(synchronize_session=False)
+    db.query(Like).filter(Like.user_id == target_user_id).delete(synchronize_session=False)
+    db.query(Comment).filter(Comment.user_id == target_user_id).delete(synchronize_session=False)
+    db.query(Item).filter(Item.user_id == target_user_id).delete(synchronize_session=False)
+    db.query(Collection).filter(Collection.user_id == target_user_id).delete(synchronize_session=False)
+    db.query(Setup).filter(Setup.user_id == target_user_id).delete(synchronize_session=False)
+    db.delete(user)
     db.commit()
-    db.refresh(user)
-    return user
+    return True
+
+
+def delete_setup(db: Session, setup_id: int) -> bool:
+    """Delete a setup as admin."""
+    setup = db.query(Setup).filter(Setup.id == setup_id).first()
+    if not setup:
+        return False
+    db.delete(setup)
+    db.commit()
+    return True
+
+
+def delete_collection(db: Session, collection_id: int) -> bool:
+    """Delete a collection as admin."""
+    collection = db.query(Collection).filter(Collection.id == collection_id).first()
+    if not collection:
+        return False
+    db.delete(collection)
+    db.commit()
+    return True
+

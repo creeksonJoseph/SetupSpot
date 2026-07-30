@@ -106,8 +106,9 @@ def send_reply_email(user_email: str, username: str, reply_message: str) -> None
                             {reply_message}
                         </div>
                         <p style="font-size: 12px; color: #64748B; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; line-height: 1.5;">
-                            <em>Please note: You cannot reply directly to this automated email. If you need to speak to a live support agent, please use the contact details provided in our Contact section on <a href="https://setupspot.tech/">SetupSpot.tech</em>
+                            <em>Please note: You cannot reply directly to this automated email. If you need to speak to a live support agent, please use the contact details provided in our Contact section on <a href="https://setupspot.tech/" style="color: #0066ff; font-weight: bold; text-decoration: none;">SetupSpot.tech</a>.</em>
                         </p>
+
                     </div>
                 """,
             })

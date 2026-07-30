@@ -15,6 +15,10 @@ import {
   UserCheck,
   Send,
   CheckCircle2,
+  Search,
+  Trash2,
+  Layers,
+  FolderOpen,
 } from "lucide-react";
 
 
@@ -23,19 +27,41 @@ export const AdminPortalPage = () => {
   const {
     stats,
     users,
+    setupsList,
+    collectionsList,
     feedbackList,
     loading,
     error,
     fetchDashboard,
     fetchUsers,
+    fetchAdminSetups,
+    fetchAdminCollections,
     fetchFeedback,
+    adminDeleteUser,
+    adminDeleteSetup,
+    adminDeleteCollection,
     replyToFeedback,
   } = useAdmin();
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [searchQuery, setSearchQuery] = useState("");
   const [replyingToId, setReplyingToId] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
+
+  const isAdmin = Boolean(
+    auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
+  );
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchDashboard();
+      fetchUsers();
+      fetchAdminSetups();
+      fetchAdminCollections();
+      fetchFeedback();
+    }
+  }, [isAdmin, fetchDashboard, fetchUsers, fetchAdminSetups, fetchAdminCollections, fetchFeedback]);
 
   const handleSendReply = async (feedbackId) => {
     if (!replyText.trim() || sendingReply) return;
@@ -48,18 +74,49 @@ export const AdminPortalPage = () => {
     }
   };
 
+  const handleDeleteUser = async (user) => {
+    if (user.email.toLowerCase() === "charanajoseph@gmail.com") {
+      alert("Cannot delete the primary admin account!");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to permanently delete user @${user.username} (${user.email}) and all their setups, collections, and data?`)) {
+      await adminDeleteUser(user.id);
+    }
+  };
 
-  const isAdmin = Boolean(
-    auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
+  const handleDeleteSetup = async (setup) => {
+    if (window.confirm(`Are you sure you want to delete setup "${setup.name}" by @${setup.author}?`)) {
+      await adminDeleteSetup(setup.id);
+    }
+  };
+
+  const handleDeleteCollection = async (collection) => {
+    if (window.confirm(`Are you sure you want to delete collection "${collection.name}" by @${collection.owner}?`)) {
+      await adminDeleteCollection(collection.id);
+    }
+  };
+
+  const q = searchQuery.toLowerCase().trim();
+
+  const filteredUsers = users.filter(
+    (u) => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
   );
 
-  useEffect(() => {
-    if (isAdmin) {
-      fetchDashboard();
-      fetchUsers();
-      fetchFeedback();
-    }
-  }, [isAdmin, fetchDashboard, fetchUsers, fetchFeedback]);
+  const filteredSetups = setupsList.filter(
+    (s) => s.name.toLowerCase().includes(q) || s.author.toLowerCase().includes(q)
+  );
+
+  const filteredCollections = collectionsList.filter(
+    (c) => c.name.toLowerCase().includes(q) || c.owner.toLowerCase().includes(q)
+  );
+
+  const filteredFeedback = feedbackList.filter(
+    (f) =>
+      f.username.toLowerCase().includes(q) ||
+      f.user_email.toLowerCase().includes(q) ||
+      f.message.toLowerCase().includes(q) ||
+      f.category.toLowerCase().includes(q)
+  );
 
   if (!auth) {
     return <Navigate to="/login" replace />;
@@ -77,7 +134,7 @@ export const AdminPortalPage = () => {
   return (
     <main className="flex-1 px-4 py-8 sm:px-6 md:px-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2.5">
             <div
@@ -95,46 +152,86 @@ export const AdminPortalPage = () => {
             </h1>
           </div>
           <p className="text-xs font-medium mt-1" style={{ color: "#475569" }}>
-            Backend-aggregated system metrics, user governance, and feature requests.
+            Backend-aggregated system governance, entity moderation, and feedback management.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-2xl self-start sm:self-auto border" style={{ borderColor: "#E2E8F0" }}>
-          <button
-            onClick={() => setActiveTab("overview")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            style={{
-              backgroundColor: activeTab === "overview" ? "#ffffff" : "transparent",
-              color: activeTab === "overview" ? "#0066ff" : "#64748B",
-              boxShadow: activeTab === "overview" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-            }}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("users")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            style={{
-              backgroundColor: activeTab === "users" ? "#ffffff" : "transparent",
-              color: activeTab === "users" ? "#0066ff" : "#64748B",
-              boxShadow: activeTab === "users" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-            }}
-          >
-            Users ({users.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("feedback")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            style={{
-              backgroundColor: activeTab === "feedback" ? "#ffffff" : "transparent",
-              color: activeTab === "feedback" ? "#0066ff" : "#64748B",
-              boxShadow: activeTab === "feedback" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-            }}
-          >
-            User Feedback ({feedbackList.length})
-          </button>
+        {/* Universal Search Bar */}
+        <div className="relative w-full md:w-72">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search users, setups, collections..."
+            className="w-full pl-10 pr-4 py-2 text-xs font-medium bg-white rounded-2xl border shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            style={{ borderColor: "#CBD5E1" }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-8 no-scrollbar">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          style={{
+            backgroundColor: activeTab === "overview" ? "#0066ff" : "transparent",
+            color: activeTab === "overview" ? "#ffffff" : "#64748B",
+          }}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("users")}
+          className="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          style={{
+            backgroundColor: activeTab === "users" ? "#0066ff" : "transparent",
+            color: activeTab === "users" ? "#ffffff" : "#64748B",
+          }}
+        >
+          Users ({filteredUsers.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("setups")}
+          className="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          style={{
+            backgroundColor: activeTab === "setups" ? "#0066ff" : "transparent",
+            color: activeTab === "setups" ? "#ffffff" : "#64748B",
+          }}
+        >
+          Setups ({filteredSetups.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("collections")}
+          className="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          style={{
+            backgroundColor: activeTab === "collections" ? "#0066ff" : "transparent",
+            color: activeTab === "collections" ? "#ffffff" : "#64748B",
+          }}
+        >
+          Collections ({filteredCollections.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("feedback")}
+          className="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          style={{
+            backgroundColor: activeTab === "feedback" ? "#0066ff" : "transparent",
+            color: activeTab === "feedback" ? "#ffffff" : "#64748B",
+          }}
+        >
+          User Feedback ({filteredFeedback.length})
+        </button>
+      </div>
+
 
       {loading ? (
         <div className="flex items-center justify-center py-24">
@@ -259,7 +356,7 @@ export const AdminPortalPage = () => {
             <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
               <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
                 <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                  Registered Users ({users.length})
+                  Registered Users ({filteredUsers.length})
                 </h3>
               </div>
               <div className="overflow-x-auto">
@@ -271,10 +368,11 @@ export const AdminPortalPage = () => {
                       <th className="p-3.5">Setups</th>
                       <th className="p-3.5">Role</th>
                       <th className="p-3.5">Joined</th>
+                      <th className="p-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                    {users.map((u) => (
+                    {filteredUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
@@ -298,6 +396,19 @@ export const AdminPortalPage = () => {
                         <td className="p-3.5 text-slate-500">
                           {u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}
                         </td>
+                        <td className="p-3.5 text-right">
+                          {u.email.toLowerCase() !== "charanajoseph@gmail.com" ? (
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Delete User"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">Primary Admin</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -306,21 +417,129 @@ export const AdminPortalPage = () => {
             </div>
           )}
 
-          {/* TAB 3: USER FEEDBACK */}
+          {/* TAB 3: SETUPS */}
+          {activeTab === "setups" && (
+            <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
+                <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                  All Setups ({filteredSetups.length})
+                </h3>
+              </div>
+              {filteredSetups.length === 0 ? (
+                <div className="p-12 text-center text-xs text-slate-400">No setups found matching your query.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+                      <tr>
+                        <th className="p-3.5">Setup</th>
+                        <th className="p-3.5">Author</th>
+                        <th className="p-3.5">Items</th>
+                        <th className="p-3.5">Created</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+                      {filteredSetups.map((s) => (
+                        <tr key={s.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="p-3.5 font-bold text-slate-900 flex items-center gap-3">
+                            <img
+                              src={s.image_url}
+                              alt={s.name}
+                              className="w-10 h-10 rounded-xl object-cover border"
+                              style={{ borderColor: "#E2E8F0" }}
+                            />
+                            <span>{s.name}</span>
+                          </td>
+                          <td className="p-3.5 font-semibold text-slate-700">@{s.author}</td>
+                          <td className="p-3.5 font-bold text-slate-900">{s.item_count} items</td>
+                          <td className="p-3.5 text-slate-500">
+                            {s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => handleDeleteSetup(s)}
+                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Delete Setup"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: COLLECTIONS */}
+          {activeTab === "collections" && (
+            <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
+                <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                  All Collections ({filteredCollections.length})
+                </h3>
+              </div>
+              {filteredCollections.length === 0 ? (
+                <div className="p-12 text-center text-xs text-slate-400">No collections found matching your query.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+                      <tr>
+                        <th className="p-3.5">Collection Name</th>
+                        <th className="p-3.5">Owner</th>
+                        <th className="p-3.5">Items</th>
+                        <th className="p-3.5">Created</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+                      {filteredCollections.map((c) => (
+                        <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
+                            <FolderOpen size={16} className="text-blue-600" />
+                            <span>{c.name}</span>
+                          </td>
+                          <td className="p-3.5 font-semibold text-slate-700">@{c.owner}</td>
+                          <td className="p-3.5 font-bold text-slate-900">{c.item_count} items</td>
+                          <td className="p-3.5 text-slate-500">
+                            {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => handleDeleteCollection(c)}
+                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Delete Collection"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 5: USER FEEDBACK */}
           {activeTab === "feedback" && (
             <div className="flex flex-col gap-4">
               <h3 className="text-base font-bold px-1" style={{ color: "#0F172A" }}>
-                User Feedback ({feedbackList.length})
+                User Feedback ({filteredFeedback.length})
               </h3>
 
-              {feedbackList.length === 0 ? (
+              {filteredFeedback.length === 0 ? (
                 <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>
-                  <p className="text-xs text-slate-400">No user feedback submitted yet.</p>
+                  <p className="text-xs text-slate-400">No user feedback found matching your query.</p>
                 </div>
               ) : (
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {feedbackList.map((fb) => (
+                  {filteredFeedback.map((fb) => (
                     <div
                       key={fb.id}
                       className="p-5 rounded-3xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-md transition-all"
@@ -427,10 +646,10 @@ export const AdminPortalPage = () => {
                     </div>
                   ))}
                 </div>
-
               )}
             </div>
           )}
+
         </>
       )}
     </main>

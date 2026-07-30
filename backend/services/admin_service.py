@@ -36,3 +36,45 @@ def admin_delete_comment(db: Session, comment_id: int, current_user: User):
     db.delete(comment)
     db.commit()
     return {"message": "Comment deleted by admin"}
+
+
+def admin_delete_user(db: Session, target_user_id: int, current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.id == target_user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own admin user account")
+    success = admin_repo.delete_user(db, target_user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted by admin"}
+
+
+def list_setups(db: Session, current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return admin_repo.list_all_setups(db)
+
+
+def admin_delete_setup(db: Session, setup_id: int, current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    success = admin_repo.delete_setup(db, setup_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Setup not found")
+    return {"message": "Setup deleted by admin"}
+
+
+def list_collections(db: Session, current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return admin_repo.list_all_collections(db)
+
+
+def admin_delete_collection(db: Session, collection_id: int, current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    success = admin_repo.delete_collection(db, collection_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    return {"message": "Collection deleted by admin"}
+
