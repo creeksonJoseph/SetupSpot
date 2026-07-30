@@ -46,7 +46,8 @@ def get_public_profile(db: Session, username: str) -> PublicUserOut | None:
     from services.collection_service import format_collection_dto
     from transactions.collection_repo import get_by_user
 
-    raw_collections = get_by_user(db, user_id)
+    raw_collections = get_by_user(db, user.id)
+
     public_collections = []
     for col in raw_collections:
         dto = format_collection_dto(col)
