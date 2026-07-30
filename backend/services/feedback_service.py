@@ -2,7 +2,9 @@
 import logging
 from sqlalchemy.orm import Session
 from models.user import User
+from models.feedback import Feedback
 from transactions import feedback_repo
+
 
 ADMIN_EMAIL = "charanajoseph@gmail.com"
 logger = logging.getLogger("setupspot.feedback")
@@ -26,6 +28,19 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
     print(f"==================================================\n")
 
 
+def format_feedback_out(item: Feedback, user: User) -> dict:
+    return {
+        "id": item.id,
+        "user_id": item.user_id,
+        "username": user.username,
+        "user_email": user.email,
+        "message": item.message,
+        "category": item.category,
+        "status": item.status,
+        "created_at": item.created_at,
+    }
+
+
 def submit_feedback(db: Session, current_user: User, message: str, category: str = "feature_suggestion"):
     item = feedback_repo.create_feedback(
         db, user_id=current_user.id, message=message, category=category
@@ -36,7 +51,7 @@ def submit_feedback(db: Session, current_user: User, message: str, category: str
         message=message,
         category=category,
     )
-    return item
+    return format_feedback_out(item, current_user)
 
 
 def list_feedback_for_admin(db: Session, current_user: User):
@@ -45,3 +60,4 @@ def list_feedback_for_admin(db: Session, current_user: User):
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin access required")
     return feedback_repo.list_all_feedback(db)
+
