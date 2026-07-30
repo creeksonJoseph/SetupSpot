@@ -16,6 +16,7 @@ import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
 import SettingsPage from './Pages/SettingsPage'
 import UserProfilePage from './Pages/UserProfilePage'
+import NotFoundPage from './Pages/NotFoundPage'
 
 import MobileUploadPage from './Pages/MobileUploadPage'
 
@@ -75,7 +76,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Catch-all inside layout — sidebar stays visible */}
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
+
+          {/* Top-level catch-all — completely unmatched paths */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
       </BrowserRouter>
