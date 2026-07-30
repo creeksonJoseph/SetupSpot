@@ -159,15 +159,14 @@ const PostDetailPage = () => {
           {/* Focused-item banner + persistent toggle button */}
           {initialFocusedItem && (
             <div
-              className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs"
+              className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs"
               style={{
                 backgroundColor: "rgba(0,102,255,0.06)",
                 borderColor: "rgba(0,102,255,0.2)",
-                color: "#0066ff",
               }}
             >
-              <span className="truncate font-bold">
-                {isFocusMode ? "Focused saved item" : "All items shown"}
+              <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
+                {isFocusMode ? "Focused item" : "All items"}
               </span>
               {hasOtherItems && (
                 <button
@@ -176,23 +175,23 @@ const PostDetailPage = () => {
                   style={{ backgroundColor: "#0066ff" }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
-                  title={isFocusMode ? "Show all items & pins in setup" : "Hide other items & show focused item only"}
                 >
                   {isFocusMode ? (
                     <>
                       <Eye size={13} />
-                      <span>Show all items ({allItems.length})</span>
+                      <span>Show all ({allItems.length})</span>
                     </>
                   ) : (
                     <>
                       <EyeOff size={13} />
-                      <span>Show focused only</span>
+                      <span>Focus only</span>
                     </>
                   )}
                 </button>
               )}
             </div>
           )}
+
 
           <SetupItemList
             items={displayedItems}

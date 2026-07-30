@@ -40,6 +40,8 @@ class CollectionOut(BaseModel):
     item_count: int = 0
     cover_images: List[str] = []
     items: List[CollectionItemOut] = []
+    already_added: Optional[bool] = False
+
 
     class Config:
         from_attributes = True

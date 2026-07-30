@@ -80,10 +80,11 @@ export function useAddToCollection({ isOpen }) {
       if (res.ok) {
         const data = await res.json();
         if (data.already_added) {
-          showToast('Item already added to this collection', 'info');
+          showToast('Item already added to the collection', 'info');
         } else {
           showToast('Item added to collection!', 'success');
         }
+
       }
       onClose();
     } catch (err) {
