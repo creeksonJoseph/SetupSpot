@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Send, Loader2, Trash2, MoreVertical, ShieldAlert } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "../hooks/useAdmin";
@@ -90,27 +91,33 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
 
           return (
             <div key={c.id} className="flex gap-2.5 relative group">
-              {c.author_avatar ? (
-                <img
-                  src={c.author_avatar}
-                  alt={c.author}
-                  className="w-7 h-7 rounded-full object-cover border shrink-0 mt-0.5"
-                  style={{ borderColor: "#E2E8F0" }}
-                />
-              ) : (
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5"
-                  style={{ backgroundColor: "#0066ff" }}
-                >
-                  {initial}
-                </div>
-              )}
+              <Link to={`/user/${c.author}`} className="shrink-0 mt-0.5 group/avatar">
+                {c.author_avatar ? (
+                  <img
+                    src={c.author_avatar}
+                    alt={c.author}
+                    className="w-7 h-7 rounded-full object-cover border transition-opacity group-hover/avatar:opacity-75"
+                    style={{ borderColor: "#E2E8F0" }}
+                  />
+                ) : (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white transition-opacity group-hover/avatar:opacity-75"
+                    style={{ backgroundColor: "#0066ff" }}
+                  >
+                    {initial}
+                  </div>
+                )}
+              </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-bold" style={{ color: "#0F172A" }}>
+                    <Link
+                      to={`/user/${c.author}`}
+                      className="text-xs font-bold hover:underline"
+                      style={{ color: "#0F172A" }}
+                    >
                       @{c.author}
-                    </span>
+                    </Link>
                     <span className="text-xs" style={{ color: "#727687" }}>
                       {formatDate(c.created_at)}
                     </span>

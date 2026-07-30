@@ -102,10 +102,12 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
 
 
         {/* Bio */}
-        <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "#475569" }}>
-          {user?.bio ||
-            "Digital creator and tech enthusiast exploring the intersection of minimalist design and high-performance workspaces. Crafting clean aesthetics for modern productivity."}
-        </p>
+        {user?.bio ? (
+          <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "#475569" }}>
+            {user.bio}
+          </p>
+        ) : null}
+
 
         {/* Stats */}
         <div className="flex items-center justify-start gap-8 mt-6">

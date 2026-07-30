@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark } from "lucide-react";
+import { Link } from "react-router-dom";
 import ShareMenu from "./ShareMenu";
 
 const PostSocialBar = ({
@@ -49,26 +50,29 @@ const PostSocialBar = ({
         style={{ borderColor: "#E2E8F0", backgroundColor: "#ffffff" }}
       >
         {/* Author */}
-        <div className="flex items-center gap-2.5">
+        <Link
+          to={`/user/${author}`}
+          className="flex items-center gap-2.5 group"
+        >
           {authorAvatar ? (
             <img
               src={authorAvatar}
               alt={author}
-              className="w-9 h-9 rounded-full object-cover border"
+              className="w-9 h-9 rounded-full object-cover border transition-opacity group-hover:opacity-80"
               style={{ borderColor: "#E2E8F0" }}
             />
           ) : (
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 transition-opacity group-hover:opacity-80"
               style={{ backgroundColor: "#0066ff" }}
             >
               {avatarInitial}
             </div>
           )}
-          <span className="text-sm font-semibold" style={{ color: "#0F172A" }}>
+          <span className="text-sm font-semibold group-hover:underline" style={{ color: "#0F172A" }}>
             @{author}
           </span>
-        </div>
+        </Link>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
