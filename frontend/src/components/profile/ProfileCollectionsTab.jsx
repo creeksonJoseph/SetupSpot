@@ -50,7 +50,7 @@ export const ProfileCollectionsTab = ({ collections = [] }) => {
       {collections.map((col) => (
         <Link
           key={col.id}
-          to={`/collections?id=${col.id}`}
+          to={`/collection/${col.id}`}
           className="group relative rounded-2xl border bg-white overflow-hidden shadow-2xs hover:shadow-xl transition-all duration-300 cursor-pointer"
           style={{ borderColor: "#E2E8F0" }}
         >
