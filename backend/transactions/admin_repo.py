@@ -63,9 +63,17 @@ def list_users_with_stats(db: Session) -> list:
     return result
 
 
+from sqlalchemy.orm import Session, joinedload, selectinload
+
+
 def list_all_setups(db: Session) -> list:
-    """List all setups for admin portal."""
-    setups = db.query(Setup).order_by(Setup.id.desc()).all()
+    """List all setups for admin portal ultra-fast with joinedload."""
+    setups = (
+        db.query(Setup)
+        .options(joinedload(Setup.user), selectinload(Setup.items))
+        .order_by(Setup.id.desc())
+        .all()
+    )
     out = []
     for s in setups:
         out.append({
@@ -81,8 +89,13 @@ def list_all_setups(db: Session) -> list:
 
 
 def list_all_collections(db: Session) -> list:
-    """List all collections for admin portal."""
-    collections = db.query(Collection).order_by(Collection.id.desc()).all()
+    """List all collections for admin portal ultra-fast with joinedload."""
+    collections = (
+        db.query(Collection)
+        .options(joinedload(Collection.user), selectinload(Collection.items))
+        .order_by(Collection.id.desc())
+        .all()
+    )
     out = []
     for c in collections:
         out.append({
@@ -94,6 +107,7 @@ def list_all_collections(db: Session) -> list:
             "created_at": c.created_at,
         })
     return out
+
 
 
 def delete_user(db: Session, target_user_id: int) -> bool:

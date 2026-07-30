@@ -11,6 +11,7 @@ export const useAdmin = () => {
   const [collectionsList, setCollectionsList] = useState([]);
   const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingTab, setLoadingTab] = useState(null);
   const [error, setError] = useState(null);
 
   const fetchDashboard = useCallback(async () => {
@@ -30,6 +31,7 @@ export const useAdmin = () => {
   }, [authFetch]);
 
   const fetchUsers = useCallback(async () => {
+    setLoadingTab("users");
     try {
       const res = await authFetch("/admin/users");
       if (!res.ok) throw new Error("Failed to load users list");
@@ -37,10 +39,13 @@ export const useAdmin = () => {
       setUsers(data);
     } catch (err) {
       console.error("Admin users error:", err);
+    } finally {
+      setLoadingTab(null);
     }
   }, [authFetch]);
 
   const fetchAdminSetups = useCallback(async () => {
+    setLoadingTab("setups");
     try {
       const res = await authFetch("/admin/setups");
       if (!res.ok) throw new Error("Failed to load setups list");
@@ -48,10 +53,13 @@ export const useAdmin = () => {
       setSetupsList(data);
     } catch (err) {
       console.error("Admin setups error:", err);
+    } finally {
+      setLoadingTab(null);
     }
   }, [authFetch]);
 
   const fetchAdminCollections = useCallback(async () => {
+    setLoadingTab("collections");
     try {
       const res = await authFetch("/admin/collections");
       if (!res.ok) throw new Error("Failed to load collections list");
@@ -59,10 +67,13 @@ export const useAdmin = () => {
       setCollectionsList(data);
     } catch (err) {
       console.error("Admin collections error:", err);
+    } finally {
+      setLoadingTab(null);
     }
   }, [authFetch]);
 
   const fetchFeedback = useCallback(async () => {
+    setLoadingTab("feedback");
     try {
       const res = await authFetch("/feedback");
       if (!res.ok) throw new Error("Failed to load feedback list");
@@ -70,8 +81,11 @@ export const useAdmin = () => {
       setFeedbackList(data);
     } catch (err) {
       console.error("Admin feedback error:", err);
+    } finally {
+      setLoadingTab(null);
     }
   }, [authFetch]);
+
 
   const adminDeleteComment = useCallback(
     async (commentId) => {
@@ -241,7 +255,9 @@ export const useAdmin = () => {
     collectionsList,
     feedbackList,
     loading,
+    loadingTab,
     error,
+
     fetchDashboard,
     fetchUsers,
     fetchAdminSetups,

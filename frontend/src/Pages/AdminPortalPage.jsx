@@ -24,8 +24,29 @@ import {
 
 import { DeletePostModal } from "../components/account/DeletePostModal";
 
+const TabSkeletonLoader = () => (
+  <div className="p-6 bg-white rounded-3xl border shadow-2xs space-y-4 animate-pulse" style={{ borderColor: "#E2E8F0" }}>
+    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="h-4 w-40 bg-slate-200 rounded-md" />
+      <div className="h-4 w-20 bg-slate-100 rounded-md" />
+    </div>
+    <div className="space-y-3">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="h-11 w-full bg-slate-50 border border-slate-100 rounded-2xl flex items-center px-4 justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-full bg-slate-200" />
+            <div className="h-3.5 w-32 bg-slate-200 rounded-md" />
+          </div>
+          <div className="h-3.5 w-24 bg-slate-200 rounded-md" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 
 export const AdminPortalPage = () => {
+
   const { auth } = useAuth();
   const {
     stats,
@@ -34,6 +55,7 @@ export const AdminPortalPage = () => {
     collectionsList,
     feedbackList,
     loading,
+    loadingTab,
     error,
     fetchDashboard,
     fetchUsers,
@@ -55,6 +77,23 @@ export const AdminPortalPage = () => {
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
 
+  // Lazy tab loaded flags
+  const [loadedTabs, setLoadedTabs] = useState({
+    overview: false,
+    users: false,
+    setups: false,
+    collections: false,
+    feedback: false,
+  });
+
+  // Progressive rendering chunk limit
+  const [visibleLimits, setVisibleLimits] = useState({
+    users: 25,
+    setups: 25,
+    collections: 25,
+    feedback: 25,
+  });
+
   // Multi-select state
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [selectedSetupIds, setSelectedSetupIds] = useState([]);
@@ -75,15 +114,40 @@ export const AdminPortalPage = () => {
     auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
   );
 
+  // Fetch initial dashboard stats
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && !loadedTabs.overview) {
       fetchDashboard();
-      fetchUsers();
-      fetchAdminSetups();
-      fetchAdminCollections();
-      fetchFeedback();
+      setLoadedTabs((prev) => ({ ...prev, overview: true }));
     }
-  }, [isAdmin, fetchDashboard, fetchUsers, fetchAdminSetups, fetchAdminCollections, fetchFeedback]);
+  }, [isAdmin, fetchDashboard, loadedTabs.overview]);
+
+  // Lazy load tab data when switching tabs
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (activeTab === "users" && !loadedTabs.users) {
+      fetchUsers();
+      setLoadedTabs((prev) => ({ ...prev, users: true }));
+    } else if (activeTab === "setups" && !loadedTabs.setups) {
+      fetchAdminSetups();
+      setLoadedTabs((prev) => ({ ...prev, setups: true }));
+    } else if (activeTab === "collections" && !loadedTabs.collections) {
+      fetchAdminCollections();
+      setLoadedTabs((prev) => ({ ...prev, collections: true }));
+    } else if (activeTab === "feedback" && !loadedTabs.feedback) {
+      fetchFeedback();
+      setLoadedTabs((prev) => ({ ...prev, feedback: true }));
+    }
+  }, [
+    activeTab,
+    isAdmin,
+    loadedTabs,
+    fetchUsers,
+    fetchAdminSetups,
+    fetchAdminCollections,
+    fetchFeedback,
+  ]);
+
 
   const handleSendReply = async (feedbackId) => {
     if (!replyText.trim() || sendingReply) return;
@@ -439,74 +503,79 @@ export const AdminPortalPage = () => {
 
 
           {/* TAB 2: USERS */}
+
           {activeTab === "users" && (
-            <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                  Registered Users ({filteredUsers.length})
-                </h3>
-                {selectedUserIds.length > 0 && (
-                  <div className="flex items-center gap-3 animate-fadeIn">
-                    <span className="text-xs font-bold text-slate-700">
-                      {selectedUserIds.length} user{selectedUserIds.length > 1 ? "s" : ""} selected
-                    </span>
-                    <button
-                      onClick={handleBulkDeleteUsers}
-                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                    >
-                      <Trash2 size={13} /> Delete Selected ({selectedUserIds.length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedUserIds([])}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                    <tr>
-                      <th className="p-3.5 w-10 text-center">
-                        <input
-                          type="checkbox"
-                          checked={
-                            filteredUsers.length > 0 &&
-                            selectedUserIds.length ===
-                              filteredUsers.filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com").length
-                          }
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedUserIds(
-                                filteredUsers
-                                  .filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com")
-                                  .map((u) => u.id)
-                              );
-                            } else {
-                              setSelectedUserIds([]);
-                            }
-                          }}
-                          className="rounded cursor-pointer accent-blue-600"
-                        />
-                      </th>
-                      <th className="p-3.5">User</th>
-                      <th className="p-3.5">Email</th>
-                      <th className="p-3.5">Setups</th>
-                      <th className="p-3.5">Role</th>
-                      <th className="p-3.5">Joined</th>
-                      <th className="p-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                    {filteredUsers.map((u) => (
-                      <tr
-                        key={u.id}
-                        className={`hover:bg-slate-50/60 transition-colors ${
-                          selectedUserIds.includes(u.id) ? "bg-blue-50/40" : ""
-                        }`}
+            loadingTab === "users" ? (
+              <TabSkeletonLoader />
+            ) : (
+              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
+                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                    Registered Users ({filteredUsers.length})
+                  </h3>
+                  {selectedUserIds.length > 0 && (
+                    <div className="flex items-center gap-3 animate-fadeIn">
+                      <span className="text-xs font-bold text-slate-700">
+                        {selectedUserIds.length} user{selectedUserIds.length > 1 ? "s" : ""} selected
+                      </span>
+                      <button
+                        onClick={handleBulkDeleteUsers}
+                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                       >
+                        <Trash2 size={13} /> Delete Selected ({selectedUserIds.length})
+                      </button>
+                      <button
+                        onClick={() => setSelectedUserIds([])}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+                      <tr>
+                        <th className="p-3.5 w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              filteredUsers.length > 0 &&
+                              selectedUserIds.length ===
+                                filteredUsers.filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com").length
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedUserIds(
+                                  filteredUsers
+                                    .filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com")
+                                    .map((u) => u.id)
+                                );
+                              } else {
+                                setSelectedUserIds([]);
+                              }
+                            }}
+                            className="rounded cursor-pointer accent-blue-600"
+                          />
+                        </th>
+                        <th className="p-3.5">User</th>
+                        <th className="p-3.5">Email</th>
+                        <th className="p-3.5">Setups</th>
+                        <th className="p-3.5">Role</th>
+                        <th className="p-3.5">Joined</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+                      {filteredUsers.slice(0, visibleLimits.users).map((u) => (
+                        <tr
+                          key={u.id}
+                          className={`hover:bg-slate-50/60 transition-colors ${
+                            selectedUserIds.includes(u.id) ? "bg-blue-50/40" : ""
+                          }`}
+                        >
+
                         <td className="p-3.5 w-10 text-center">
                           {u.email.toLowerCase() !== "charanajoseph@gmail.com" && (
                             <input
@@ -562,356 +631,400 @@ export const AdminPortalPage = () => {
                     ))}
                   </tbody>
                 </table>
+
+                  {filteredUsers.length > visibleLimits.users && (
+                    <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
+                      <button
+                        onClick={() => setVisibleLimits((prev) => ({ ...prev, users: prev.users + 25 }))}
+                        className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      >
+                        Load More Users ({filteredUsers.length - visibleLimits.users} remaining)
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* TAB 3: SETUPS */}
           {activeTab === "setups" && (
-            <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                  All Setups ({filteredSetups.length})
-                </h3>
-                {selectedSetupIds.length > 0 && (
-                  <div className="flex items-center gap-3 animate-fadeIn">
-                    <span className="text-xs font-bold text-slate-700">
-                      {selectedSetupIds.length} setup{selectedSetupIds.length > 1 ? "s" : ""} selected
-                    </span>
-                    <button
-                      onClick={handleBulkDeleteSetups}
-                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                    >
-                      <Trash2 size={13} /> Delete Selected ({selectedSetupIds.length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedSetupIds([])}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
-              {filteredSetups.length === 0 ? (
-                <div className="p-12 text-center text-xs text-slate-400">No setups found matching your query.</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                      <tr>
-                        <th className="p-3.5 w-10 text-center">
-                          <input
-                            type="checkbox"
-                            checked={
-                              filteredSetups.length > 0 &&
-                              selectedSetupIds.length === filteredSetups.length
-                            }
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedSetupIds(filteredSetups.map((s) => s.id));
-                              } else {
-                                setSelectedSetupIds([]);
-                              }
-                            }}
-                            className="rounded cursor-pointer accent-blue-600"
-                          />
-                        </th>
-                        <th className="p-3.5">Setup</th>
-                        <th className="p-3.5">Author</th>
-                        <th className="p-3.5">Items</th>
-                        <th className="p-3.5">Created</th>
-                        <th className="p-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                      {filteredSetups.map((s) => (
-                        <tr
-                          key={s.id}
-                          className={`hover:bg-slate-50/60 transition-colors ${
-                            selectedSetupIds.includes(s.id) ? "bg-blue-50/40" : ""
-                          }`}
-                        >
-                          <td className="p-3.5 w-10 text-center">
+            loadingTab === "setups" ? (
+              <TabSkeletonLoader />
+            ) : (
+              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
+                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                    All Setups ({filteredSetups.length})
+                  </h3>
+                  {selectedSetupIds.length > 0 && (
+                    <div className="flex items-center gap-3 animate-fadeIn">
+                      <span className="text-xs font-bold text-slate-700">
+                        {selectedSetupIds.length} setup{selectedSetupIds.length > 1 ? "s" : ""} selected
+                      </span>
+                      <button
+                        onClick={handleBulkDeleteSetups}
+                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Trash2 size={13} /> Delete Selected ({selectedSetupIds.length})
+                      </button>
+                      <button
+                        onClick={() => setSelectedSetupIds([])}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {filteredSetups.length === 0 ? (
+                  <div className="p-12 text-center text-xs text-slate-400">No setups found matching your query.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+                        <tr>
+                          <th className="p-3.5 w-10 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedSetupIds.includes(s.id)}
+                              checked={
+                                filteredSetups.length > 0 &&
+                                selectedSetupIds.length === filteredSetups.length
+                              }
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedSetupIds((prev) => [...prev, s.id]);
+                                  setSelectedSetupIds(filteredSetups.map((s) => s.id));
                                 } else {
-                                  setSelectedSetupIds((prev) => prev.filter((id) => id !== s.id));
+                                  setSelectedSetupIds([]);
                                 }
                               }}
                               className="rounded cursor-pointer accent-blue-600"
                             />
-                          </td>
-                          <td className="p-3.5 font-bold text-slate-900 flex items-center gap-3">
-                            <img
-                              src={s.image_url}
-                              alt={s.name}
-                              className="w-10 h-10 rounded-xl object-cover border"
-                              style={{ borderColor: "#E2E8F0" }}
-                            />
-                            <span>{s.name}</span>
-                          </td>
-                          <td className="p-3.5 font-semibold text-slate-700">@{s.author}</td>
-                          <td className="p-3.5 font-bold text-slate-900">{s.item_count} items</td>
-                          <td className="p-3.5 text-slate-500">
-                            {s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => handleDeleteSetup(s)}
-                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete Setup"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </td>
+                          </th>
+                          <th className="p-3.5">Setup</th>
+                          <th className="p-3.5">Author</th>
+                          <th className="p-3.5">Items</th>
+                          <th className="p-3.5">Created</th>
+                          <th className="p-3.5 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+                        {filteredSetups.slice(0, visibleLimits.setups).map((s) => (
+                          <tr
+                            key={s.id}
+                            className={`hover:bg-slate-50/60 transition-colors ${
+                              selectedSetupIds.includes(s.id) ? "bg-blue-50/40" : ""
+                            }`}
+                          >
+                            <td className="p-3.5 w-10 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedSetupIds.includes(s.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedSetupIds((prev) => [...prev, s.id]);
+                                  } else {
+                                    setSelectedSetupIds((prev) => prev.filter((id) => id !== s.id));
+                                  }
+                                }}
+                                className="rounded cursor-pointer accent-blue-600"
+                              />
+                            </td>
+                            <td className="p-3.5 font-bold text-slate-900 flex items-center gap-3">
+                              <img
+                                src={s.image_url}
+                                alt={s.name}
+                                className="w-10 h-10 rounded-xl object-cover border"
+                                style={{ borderColor: "#E2E8F0" }}
+                              />
+                              <span>{s.name}</span>
+                            </td>
+                            <td className="p-3.5 font-semibold text-slate-700">@{s.author}</td>
+                            <td className="p-3.5 font-bold text-slate-900">{s.item_count} items</td>
+                            <td className="p-3.5 text-slate-500">
+                              {s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <button
+                                onClick={() => handleDeleteSetup(s)}
+                                className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Delete Setup"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {filteredSetups.length > visibleLimits.setups && (
+                      <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
+                        <button
+                          onClick={() => setVisibleLimits((prev) => ({ ...prev, setups: prev.setups + 25 }))}
+                          className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                        >
+                          Load More Setups ({filteredSetups.length - visibleLimits.setups} remaining)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
           )}
 
           {/* TAB 4: COLLECTIONS */}
           {activeTab === "collections" && (
-            <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
-                <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
-                  All Collections ({filteredCollections.length})
-                </h3>
-                {selectedCollectionIds.length > 0 && (
-                  <div className="flex items-center gap-3 animate-fadeIn">
-                    <span className="text-xs font-bold text-slate-700">
-                      {selectedCollectionIds.length} collection{selectedCollectionIds.length > 1 ? "s" : ""} selected
-                    </span>
-                    <button
-                      onClick={handleBulkDeleteCollections}
-                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                    >
-                      <Trash2 size={13} /> Delete Selected ({selectedCollectionIds.length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedCollectionIds([])}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
-              {filteredCollections.length === 0 ? (
-                <div className="p-12 text-center text-xs text-slate-400">No collections found matching your query.</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
-                      <tr>
-                        <th className="p-3.5 w-10 text-center">
-                          <input
-                            type="checkbox"
-                            checked={
-                              filteredCollections.length > 0 &&
-                              selectedCollectionIds.length === filteredCollections.length
-                            }
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedCollectionIds(filteredCollections.map((c) => c.id));
-                              } else {
-                                setSelectedCollectionIds([]);
-                              }
-                            }}
-                            className="rounded cursor-pointer accent-blue-600"
-                          />
-                        </th>
-                        <th className="p-3.5">Collection Name</th>
-                        <th className="p-3.5">Owner</th>
-                        <th className="p-3.5">Items</th>
-                        <th className="p-3.5">Created</th>
-                        <th className="p-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
-                      {filteredCollections.map((c) => (
-                        <tr
-                          key={c.id}
-                          className={`hover:bg-slate-50/60 transition-colors ${
-                            selectedCollectionIds.includes(c.id) ? "bg-blue-50/40" : ""
-                          }`}
-                        >
-                          <td className="p-3.5 w-10 text-center">
+            loadingTab === "collections" ? (
+              <TabSkeletonLoader />
+            ) : (
+              <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+                <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
+                  <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                    All Collections ({filteredCollections.length})
+                  </h3>
+                  {selectedCollectionIds.length > 0 && (
+                    <div className="flex items-center gap-3 animate-fadeIn">
+                      <span className="text-xs font-bold text-slate-700">
+                        {selectedCollectionIds.length} collection{selectedCollectionIds.length > 1 ? "s" : ""} selected
+                      </span>
+                      <button
+                        onClick={handleBulkDeleteCollections}
+                        className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Trash2 size={13} /> Delete Selected ({selectedCollectionIds.length})
+                      </button>
+                      <button
+                        onClick={() => setSelectedCollectionIds([])}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {filteredCollections.length === 0 ? (
+                  <div className="p-12 text-center text-xs text-slate-400">No collections found matching your query.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+                        <tr>
+                          <th className="p-3.5 w-10 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedCollectionIds.includes(c.id)}
+                              checked={
+                                filteredCollections.length > 0 &&
+                                selectedCollectionIds.length === filteredCollections.length
+                              }
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedCollectionIds((prev) => [...prev, c.id]);
+                                  setSelectedCollectionIds(filteredCollections.map((c) => c.id));
                                 } else {
-                                  setSelectedCollectionIds((prev) => prev.filter((id) => id !== c.id));
+                                  setSelectedCollectionIds([]);
                                 }
                               }}
                               className="rounded cursor-pointer accent-blue-600"
                             />
-                          </td>
-                          <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
-                            <FolderOpen size={16} className="text-blue-600" />
-                            <span>{c.name}</span>
-                          </td>
-                          <td className="p-3.5 font-semibold text-slate-700">@{c.owner}</td>
-                          <td className="p-3.5 font-bold text-slate-900">{c.item_count} items</td>
-                          <td className="p-3.5 text-slate-500">
-                            {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => handleDeleteCollection(c)}
-                              className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete Collection"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </td>
+                          </th>
+                          <th className="p-3.5">Collection Name</th>
+                          <th className="p-3.5">Owner</th>
+                          <th className="p-3.5">Items</th>
+                          <th className="p-3.5">Created</th>
+                          <th className="p-3.5 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+                        {filteredCollections.slice(0, visibleLimits.collections).map((c) => (
+                          <tr
+                            key={c.id}
+                            className={`hover:bg-slate-50/60 transition-colors ${
+                              selectedCollectionIds.includes(c.id) ? "bg-blue-50/40" : ""
+                            }`}
+                          >
+                            <td className="p-3.5 w-10 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedCollectionIds.includes(c.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedCollectionIds((prev) => [...prev, c.id]);
+                                  } else {
+                                    setSelectedCollectionIds((prev) => prev.filter((id) => id !== c.id));
+                                  }
+                                }}
+                                className="rounded cursor-pointer accent-blue-600"
+                              />
+                            </td>
+                            <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
+                              <FolderOpen size={16} className="text-blue-600" />
+                              <span>{c.name}</span>
+                            </td>
+                            <td className="p-3.5 font-semibold text-slate-700">@{c.owner}</td>
+                            <td className="p-3.5 font-bold text-slate-900">{c.item_count} items</td>
+                            <td className="p-3.5 text-slate-500">
+                              {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <button
+                                onClick={() => handleDeleteCollection(c)}
+                                className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Delete Collection"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {filteredCollections.length > visibleLimits.collections && (
+                      <div className="p-3 text-center border-t bg-slate-50/50" style={{ borderColor: "#F1F5F9" }}>
+                        <button
+                          onClick={() => setVisibleLimits((prev) => ({ ...prev, collections: prev.collections + 25 }))}
+                          className="px-4 py-1.5 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                        >
+                          Load More Collections ({filteredCollections.length - visibleLimits.collections} remaining)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
           )}
-
 
           {/* TAB 5: USER FEEDBACK */}
           {activeTab === "feedback" && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-base font-bold px-1" style={{ color: "#0F172A" }}>
-                User Feedback ({filteredFeedback.length})
-              </h3>
+            loadingTab === "feedback" ? (
+              <TabSkeletonLoader />
+            ) : (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-base font-bold px-1" style={{ color: "#0F172A" }}>
+                  User Feedback ({filteredFeedback.length})
+                </h3>
 
-              {filteredFeedback.length === 0 ? (
-                <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>
-                  <p className="text-xs text-slate-400">No user feedback found matching your query.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredFeedback.map((fb) => (
-                    <div
-                      key={fb.id}
-                      className="p-5 rounded-3xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-md transition-all"
-                      style={{ borderColor: "#E2E8F0" }}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                              {fb.username[0].toUpperCase()}
+                {filteredFeedback.length === 0 ? (
+                  <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>
+                    <p className="text-xs text-slate-400">No user feedback found matching your query.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredFeedback.slice(0, visibleLimits.feedback).map((fb) => (
+                      <div
+                        key={fb.id}
+                        className="p-5 rounded-3xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-md transition-all"
+                        style={{ borderColor: "#E2E8F0" }}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                {fb.username[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-slate-900">@{fb.username}</p>
+                                <p className="text-[10px] font-mono text-slate-500">{fb.user_email}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-900">@{fb.username}</p>
-                              <p className="text-[10px] font-mono text-slate-500">{fb.user_email}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            {fb.status === "replied" && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <CheckCircle2 size={11} /> Replied
+                            <div className="flex items-center gap-1.5">
+                              {fb.status === "replied" && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <CheckCircle2 size={11} /> Replied
+                                </span>
+                              )}
+                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                {fb.category.replace("_", " ")}
                               </span>
-                            )}
-                            <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                              {fb.category.replace("_", " ")}
-                            </span>
+                            </div>
                           </div>
+
+                          <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-2xl border mb-3" style={{ borderColor: "#F1F5F9" }}>
+                            "{fb.message}"
+                          </p>
+
+                          {/* Inline Reply Text Box */}
+                          {replyingToId === fb.id && (
+                            <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 flex flex-col gap-2 animate-fadeIn mb-3">
+                              <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                                <span>Reply via Email</span>
+                                <span className="text-[10px] text-slate-400 font-normal">From productteam@setupspot.tech</span>
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder={`Type your response to @${fb.username}...`}
+                                className="w-full text-xs p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                style={{ borderColor: "#CBD5E1" }}
+                              />
+                              <p className="text-[10px] text-slate-500 italic">
+                                * Disclaimer template will be automatically appended to the email footer.
+                              </p>
+                              <div className="flex items-center justify-end gap-2 mt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReplyingToId(null);
+                                    setReplyText("");
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendReply(fb.id)}
+                                  disabled={!replyText.trim() || sendingReply}
+                                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                                  style={{ backgroundColor: "#0066ff" }}
+                                >
+                                  {sendingReply ? (
+                                    <>
+                                      <Loader2 size={13} className="animate-spin" />
+                                      <span>Sending...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Send size={13} />
+                                      <span>Send Email</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-2xl border mb-3" style={{ borderColor: "#F1F5F9" }}>
-                          "{fb.message}"
-                        </p>
-
-                        {/* Inline Reply Text Box */}
-                        {replyingToId === fb.id && (
-                          <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 flex flex-col gap-2 animate-fadeIn mb-3">
-                            <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
-                              <span>Reply via Email</span>
-                              <span className="text-[10px] text-slate-400 font-normal">From productteam@setupspot.tech</span>
-                            </label>
-                            <textarea
-                              rows={3}
-                              value={replyText}
-                              onChange={(e) => setReplyText(e.target.value)}
-                              placeholder={`Type your response to @${fb.username}...`}
-                              className="w-full text-xs p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                              style={{ borderColor: "#CBD5E1" }}
-                            />
-                            <p className="text-[10px] text-slate-500 italic">
-                              * Disclaimer template will be automatically appended to the email footer.
-                            </p>
-                            <div className="flex items-center justify-end gap-2 mt-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setReplyingToId(null);
-                                  setReplyText("");
-                                }}
-                                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleSendReply(fb.id)}
-                                disabled={!replyText.trim() || sendingReply}
-                                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                                style={{ backgroundColor: "#0066ff" }}
-                              >
-                                {sendingReply ? (
-                                  <>
-                                    <Loader2 size={13} className="animate-spin" />
-                                    <span>Sending...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send size={13} />
-                                    <span>Send Email</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-3 border-t" style={{ borderColor: "#F1F5F9" }}>
+                          <span>Submitted {new Date(fb.created_at).toLocaleString()}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (replyingToId === fb.id) {
+                                setReplyingToId(null);
+                              } else {
+                                setReplyingToId(fb.id);
+                                setReplyText("");
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 text-blue-600 font-bold hover:underline cursor-pointer text-xs"
+                          >
+                            <Mail size={13} />
+                            <span>{replyingToId === fb.id ? "Close Reply" : "Reply to User"}</span>
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-3 border-t" style={{ borderColor: "#F1F5F9" }}>
-                        <span>Submitted {new Date(fb.created_at).toLocaleString()}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (replyingToId === fb.id) {
-                              setReplyingToId(null);
-                            } else {
-                              setReplyingToId(fb.id);
-                              setReplyText("");
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 text-blue-600 font-bold hover:underline cursor-pointer text-xs"
-                        >
-                          <Mail size={13} />
-                          <span>{replyingToId === fb.id ? "Close Reply" : "Reply to User"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
           )}
 
         </>
       )}
+
 
       {/* Confirmation Modal with Progressive Deleting Animation */}
       <DeletePostModal
