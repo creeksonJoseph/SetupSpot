@@ -134,6 +134,10 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 - **Rule**: Pages (`frontend/src/Pages/`) MUST NOT contain long, inline JSX blocks for sub-views, forms, or tabs.
 - **Solution**: Abstract sub-sections, tabs, and cards into dedicated presentation components placed in feature-specific directories under `frontend/src/components/<feature>/` (e.g. `components/settings/ProfileTab.jsx`, `components/settings/SecurityTab.jsx`, `components/account/UserProfileHeader.jsx`).
 
+### 8. Mandated Skeleton UI Loaders (No Generic Loading Spinners)
+- **Rule**: Every single page (`frontend/src/Pages/`) and async component MUST have a dedicated, content-matching **Skeleton UI loader** (e.g., `SetupGridSkeleton`, `CollectionGridSkeleton`, `AdminDashboardSkeleton`, `PostDetailSkeleton`, `UserProfileSkeleton`).
+- **Goal**: Generic loading spinners (`<Loader2 />`, `animate-spin`) are strictly prohibited for full-page or section loading. Skeleton loaders must be displayed instantly while data is loading to ensure a premium, zero-CLS (Cumulative Layout Shift), perceived-instant user experience.
+
 ---
 
 ## 5. Guidelines for Future LLMs & Developers
@@ -145,5 +149,7 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 5. **Always Verify Visual Layouts**: Ensure dropdowns, popovers, and modals render without clipping inside layout containers.
 6. **Avoid Unnecessary Spacing & Excessive Padding**: Keep margins, gaps, and vertical paddings compact (`p-4` to `p-5`, `space-y-3` to `space-y-4`, `gap-4` to `gap-5`). Never over-space components or force users to scroll unnecessarily to view standard forms and cards.
 7. **Abstract Complex Views into Modular Components**: Avoid writing long inline code in page files. Extract tabs, forms, headers, and list views into dedicated components in `frontend/src/components/<feature>/`.
+8. **Mandatory Skeleton UI for All Pages**: EVERY new page created MUST have a corresponding Skeleton UI component created in `frontend/src/components/CardSkeleton.jsx` (or a dedicated skeleton file) to be displayed during data fetching instead of generic loading spinners.
+
 
 

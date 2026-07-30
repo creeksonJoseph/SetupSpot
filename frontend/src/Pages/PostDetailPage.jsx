@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { PostDetailSkeleton } from "../components/CardSkeleton";
+
 import SetupImageCanvas from "../components/SetupImageCanvas";
 import SetupItemList from "../components/SetupItemList";
 import SimilarSetups from "../components/SimilarSetups";
@@ -46,15 +48,9 @@ const PostDetailPage = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen -m-8" style={{ backgroundColor: "#f7f9fb" }}>
-        <Loader2 size={40} className="animate-spin" style={{ color: "#0066ff" }} />
-        <p className="ml-4 text-lg" style={{ color: "#475569" }}>
-          Loading Setup...
-        </p>
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
+
 
   if (error || !setup) {
     return (

@@ -22,7 +22,10 @@ import {
 } from "lucide-react";
 
 
+import { AdminDashboardSkeleton } from "../components/CardSkeleton";
 import { DeletePostModal } from "../components/account/DeletePostModal";
+
+
 
 const TabSkeletonLoader = () => (
   <div className="p-6 bg-white rounded-3xl border shadow-2xs space-y-4 animate-pulse" style={{ borderColor: "#E2E8F0" }}>
@@ -395,10 +398,9 @@ export const AdminPortalPage = () => {
 
 
       {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 size={32} className="animate-spin" style={{ color: "#0066ff" }} />
-        </div>
+        <AdminDashboardSkeleton />
       ) : error ? (
+
         <p className="text-center text-sm font-semibold text-red-600 py-12">{error}</p>
       ) : (
         <>

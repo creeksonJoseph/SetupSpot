@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { usePublicProfile } from "../hooks/usePublicProfile";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { ProfileCollectionsTab } from "../components/profile/ProfileCollectionsTab";
-import { ArrowLeft, Loader2, Grid3X3, Layers } from "lucide-react";
+import { ArrowLeft, Grid3X3, Layers } from "lucide-react";
+import { UserProfileSkeleton } from "../components/CardSkeleton";
 
 const TABS = ["Posts", "Collections"];
 
@@ -14,15 +15,9 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState("Posts");
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]" style={{ backgroundColor: "#f7f9fb" }}>
-        <div className="flex items-center gap-3" style={{ color: "#475569" }}>
-          <Loader2 size={32} className="animate-spin" style={{ color: "#0066ff" }} />
-          <span className="text-base font-semibold">Loading profile...</span>
-        </div>
-      </div>
-    );
+    return <UserProfileSkeleton />;
   }
+
 
   if (error || !profile) {
     return (
