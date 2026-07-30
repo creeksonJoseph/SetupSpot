@@ -11,7 +11,10 @@ logger = logging.getLogger("setupspot.feedback")
 
 
 def send_feedback_email(user_email: str, username: str, message: str, category: str):
-    """Simulate or dispatch SMTP email to charanajoseph@gmail.com."""
+    """Dispatch real Resend email notification to charanajoseph@gmail.com."""
+    import resend
+    from core.config import settings
+
     logger.info(
         f"[FEEDBACK EMAIL DISPATCH TO {ADMIN_EMAIL}]\n"
         f"From: {username} ({user_email})\n"
@@ -19,13 +22,34 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
         f"Message:\n{message}\n"
         f"------------------------------------------------"
     )
-    # Print clean formatted notification in server logs
-    print(f"\n==================================================")
-    print(f"📧 NEW FEATURE SUGGESTION FOR ADMIN ({ADMIN_EMAIL})")
-    print(f"From: {username} <{user_email}>")
-    print(f"Category: {category}")
-    print(f"Message: {message}")
-    print(f"==================================================\n")
+
+    if settings.RESEND_API_KEY:
+        try:
+            resend.api_key = settings.RESEND_API_KEY
+            resend.Emails.send({
+                "from": "noreply@setupspot.tech",
+                "to": ADMIN_EMAIL,
+                "subject": f"💡 New SetupSpot Feedback from @{username}",
+                "html": f"""
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #0F172A; max-width: 600px; border: 1px solid #E2E8F0; border-radius: 16px;">
+                        <h2 style="color: #0066ff; margin-bottom: 4px;">New User Feedback</h2>
+                        <p style="font-size: 13px; color: #64748B; margin-top: 0;">Sent directly from SetupSpot</p>
+                        <hr style="border: none; border-top: 1px solid #F1F5F9; margin: 16px 0;" />
+                        <p style="font-size: 14px;"><strong>From:</strong> @{username} (<code>{user_email}</code>)</p>
+                        <p style="font-size: 14px;"><strong>Category:</strong> <span style="background-color: #EFF6FF; color: #1E40AF; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 12px;">{category.replace('_', ' ').title()}</span></p>
+                        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; margin-top: 12px; color: #334155;">
+                            "{message}"
+                        </div>
+                        <p style="margin-top: 20px; font-size: 13px; color: #64748B;">
+                            Reply to user: <a href="mailto:{user_email}" style="color: #0066ff; font-weight: bold; text-decoration: none;">{user_email}</a>
+                        </p>
+                    </div>
+                """,
+            })
+            logger.info(f"[FEEDBACK EMAIL SENT VIA RESEND TO {ADMIN_EMAIL}]")
+        except Exception as err:
+            logger.error(f"[FEEDBACK EMAIL FAILED TO SEND VIA RESEND] error={err}")
+
 
 
 def format_feedback_out(item: Feedback, user: User) -> dict:
