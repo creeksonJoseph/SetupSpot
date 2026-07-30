@@ -113,7 +113,7 @@ export const AdminPortalPage = () => {
               boxShadow: activeTab === "feedback" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
             }}
           >
-            Feature Requests ({feedbackList.length})
+            User Feedback ({feedbackList.length})
           </button>
         </div>
       </div>
@@ -178,7 +178,7 @@ export const AdminPortalPage = () => {
 
             <div className="p-4 rounded-2xl border bg-white shadow-2xs col-span-2 sm:col-span-1" style={{ borderColor: "#E2E8F0" }}>
               <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider">Suggestions</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider">User Feedback</span>
                 <Lightbulb size={18} style={{ color: "#0066ff" }} />
               </div>
 
@@ -205,23 +205,19 @@ export const AdminPortalPage = () => {
                     <span className="text-slate-500 font-medium">Admin Notification Target</span>
                     <span className="font-mono font-semibold" style={{ color: "#0066ff" }}>charanajoseph@gmail.com</span>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
+                  <div className="flex items-center justify-between py-2" style={{ borderColor: "#F1F5F9" }}>
                     <span className="text-slate-500 font-medium">Pre-computed Stats Latency</span>
                     <span className="font-semibold text-slate-700">&lt; 15ms</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2" style={{ borderColor: "#F1F5F9" }}>
-                    <span className="text-slate-500 font-medium">Global Comment Moderation</span>
-                    <span className="font-bold text-blue-600">Active (3-dots on comments)</span>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 rounded-3xl border bg-white" style={{ borderColor: "#E2E8F0" }}>
                 <h3 className="text-base font-bold mb-4" style={{ color: "#0F172A" }}>
-                  Recent Feature Suggestions
+                  User Feedback
                 </h3>
                 {feedbackList.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-6 text-center">No feature suggestions submitted yet.</p>
+                  <p className="text-xs text-slate-400 py-6 text-center">No user feedback submitted yet.</p>
                 ) : (
                   <div className="flex flex-col gap-3">
                     {feedbackList.slice(0, 3).map((fb) => (
@@ -238,6 +234,7 @@ export const AdminPortalPage = () => {
               </div>
             </div>
           )}
+
 
           {/* TAB 2: USERS */}
           {activeTab === "users" && (
@@ -291,18 +288,19 @@ export const AdminPortalPage = () => {
             </div>
           )}
 
-          {/* TAB 3: FEATURE REQUESTS & FEEDBACK */}
+          {/* TAB 3: USER FEEDBACK */}
           {activeTab === "feedback" && (
             <div className="flex flex-col gap-4">
               <h3 className="text-base font-bold px-1" style={{ color: "#0F172A" }}>
-                Feature Suggestions & User Feedback ({feedbackList.length})
+                User Feedback ({feedbackList.length})
               </h3>
 
               {feedbackList.length === 0 ? (
                 <div className="p-12 text-center bg-white rounded-3xl border" style={{ borderColor: "#E2E8F0" }}>
-                  <p className="text-xs text-slate-400">No suggestions submitted yet.</p>
+                  <p className="text-xs text-slate-400">No user feedback submitted yet.</p>
                 </div>
               ) : (
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {feedbackList.map((fb) => (
                     <div
