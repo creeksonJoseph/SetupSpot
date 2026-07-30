@@ -2,14 +2,23 @@ import React from "react";
 import { Folder } from "lucide-react";
 
 /**
- * CollectionMosaicCover — Adaptive Pinterest-style cover collage.
- * Dynamically adjusts grid layout based on available image count (0, 1, 2, 3, or 4+)
- * so there are ZERO blank/empty spaces on any collection cover.
+ * CollectionMosaicCover — Blurred-backdrop cover design.
+ *
+ * Instead of cramming images into tiny mosaic cells (which causes pixelation
+ * on large landscape setup photos), we use the primary image as a full-bleed
+ * blurred backdrop, then overlay clean, larger thumbnail(s) on top.
+ *
+ * Layouts:
+ *  0 images → empty folder placeholder
+ *  1 image  → clean full-bleed, no blur needed
+ *  2 images → blurred bg + 2 overlaid cards side by side
+ *  3 images → blurred bg + 1 large card left + 2 stacked right
+ *  4+       → blurred bg + 2×2 grid of overlaid cards (larger cells)
  */
 export const CollectionMosaicCover = ({ coverImages = [], name = "Collection" }) => {
   const images = coverImages.slice(0, 4);
 
-  // Case 0: Empty Collection
+  // ── 0: Empty Collection ──────────────────────────────────────────────────
   if (images.length === 0) {
     return (
       <div
@@ -32,7 +41,7 @@ export const CollectionMosaicCover = ({ coverImages = [], name = "Collection" })
     );
   }
 
-  // Case 1: 1 Image — Full-bleed single cover photo
+  // ── 1: Single full-bleed — clean, no overlay needed ─────────────────────
   if (images.length === 1) {
     return (
       <img
@@ -44,75 +53,93 @@ export const CollectionMosaicCover = ({ coverImages = [], name = "Collection" })
     );
   }
 
-  // Case 2: 2 Images — 2 equal vertical split columns
+  // ── Shared backdrop: blurred primary image at full scale ─────────────────
+  // Overlaid thumbnails sit on top — they're big enough to look sharp
+  const Backdrop = () => (
+    <img
+      src={images[0]}
+      alt=""
+      aria-hidden="true"
+      className="absolute inset-0 w-full h-full object-cover scale-110"
+      style={{ filter: "blur(12px) brightness(0.55)", transform: "scale(1.15)" }}
+      loading="lazy"
+    />
+  );
+
+  // ── 2: Two images side by side ───────────────────────────────────────────
   if (images.length === 2) {
     return (
-      <div className="w-full h-full grid grid-cols-2 gap-0.5 overflow-hidden bg-slate-900">
-        <img
-          src={images[0]}
-          alt={`${name} preview 1`}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
-        <img
-          src={images[1]}
-          alt={`${name} preview 2`}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
+      <div className="relative w-full h-full overflow-hidden">
+        <Backdrop />
+        <div className="absolute inset-0 flex items-center justify-center gap-2 p-3">
+          {images.map((img, i) => (
+            <div
+              key={i}
+              className="flex-1 h-full rounded-lg overflow-hidden shadow-lg"
+              style={{ maxHeight: "80%" }}
+            >
+              <img
+                src={img}
+                alt={`${name} ${i + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Case 3: 3 Images — 1 large image on the left + 2 stacked images on the right
+  // ── 3: Large left + 2 stacked right ─────────────────────────────────────
   if (images.length === 3) {
     return (
-      <div className="w-full h-full grid grid-cols-2 gap-0.5 overflow-hidden bg-slate-900">
-        {/* Left half: 1 main large image */}
-        <div className="w-full h-full overflow-hidden">
-          <img
-            src={images[0]}
-            alt={`${name} main preview`}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-        {/* Right half: 2 stacked smaller images */}
-        <div className="w-full h-full flex flex-col gap-0.5 overflow-hidden">
-          <div className="w-full h-1/2 overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden">
+        <Backdrop />
+        <div className="absolute inset-0 flex items-center justify-center gap-2 p-3">
+          {/* Left: large */}
+          <div className="flex-[1.4] h-full rounded-lg overflow-hidden shadow-lg" style={{ maxHeight: "84%" }}>
             <img
-              src={images[1]}
-              alt={`${name} preview 2`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              src={images[0]}
+              alt={`${name} 1`}
+              className="w-full h-full object-cover"
               loading="lazy"
             />
           </div>
-          <div className="w-full h-1/2 overflow-hidden">
-            <img
-              src={images[2]}
-              alt={`${name} preview 3`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
+          {/* Right: 2 stacked */}
+          <div className="flex-1 flex flex-col gap-2 h-full" style={{ maxHeight: "84%" }}>
+            {images.slice(1).map((img, i) => (
+              <div key={i} className="flex-1 rounded-lg overflow-hidden shadow-lg">
+                <img
+                  src={img}
+                  alt={`${name} ${i + 2}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // Case 4+: 4 Images — 4-quadrant grid collage
+  // ── 4+: 2×2 grid of overlaid thumbnails ─────────────────────────────────
   return (
-    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-0.5 overflow-hidden bg-slate-900">
-      {images.map((img, idx) => (
-        <div key={idx} className="relative overflow-hidden w-full h-full">
-          <img
-            src={img}
-            alt={`${name} preview ${idx + 1}`}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-      ))}
+    <div className="relative w-full h-full overflow-hidden">
+      <Backdrop />
+      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-1.5 p-3">
+        {images.map((img, i) => (
+          <div key={i} className="rounded-md overflow-hidden shadow-lg">
+            <img
+              src={img}
+              alt={`${name} ${i + 1}`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
