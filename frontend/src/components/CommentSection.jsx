@@ -3,6 +3,7 @@ import { Send, Loader2, Trash2, MoreVertical, ShieldAlert } from "lucide-react";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "../hooks/useAdmin";
+import { DeletePostModal } from "./account/DeletePostModal";
 
 const CommentSection = ({ setupId, onCommentCountChange }) => {
   const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment } =
@@ -11,7 +12,9 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   const { adminDeleteComment } = useAdmin();
   const [draft, setDraft] = useState("");
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, commentId: null, isAdmin: false });
   const listEndRef = useRef(null);
+
 
   const isAdmin = Boolean(
     auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
@@ -50,13 +53,17 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
 
-  const handleAdminDelete = async (commentId) => {
-    const ok = await adminDeleteComment(commentId);
-    if (ok) {
-      fetchComments();
+  const handleConfirmDeleteComment = async () => {
+    if (!deleteModal.commentId) return;
+    if (deleteModal.isAdmin) {
+      const ok = await adminDeleteComment(deleteModal.commentId);
+      if (ok) fetchComments();
+    } else {
+      await deleteComment(deleteModal.commentId);
     }
     setActiveMenuId(null);
   };
+
 
   return (
     <div
@@ -131,7 +138,10 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
-                              onClick={() => handleAdminDelete(c.id)}
+                              onClick={() => {
+                                setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: true });
+                                setActiveMenuId(null);
+                              }}
                               className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
                             >
                               <ShieldAlert size={13} />
@@ -144,7 +154,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
                       /* Regular owner deletion */
                       isOwn && (
                         <button
-                          onClick={() => deleteComment(c.id)}
+                          onClick={() => setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: false })}
                           className="transition-colors cursor-pointer"
                           title="Delete comment"
                         >
@@ -152,6 +162,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
                         </button>
                       )
                     )}
+
                   </div>
                 </div>
                 <p className="text-sm mt-0.5 break-words" style={{ color: "#475569" }}>
@@ -203,8 +214,18 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
           )}
         </button>
       </div>
+
+      <DeletePostModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        confirmText="Delete Comment"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+      />
     </div>
   );
 };
 
 export default CommentSection;
+

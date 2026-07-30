@@ -147,6 +147,67 @@ export const useAdmin = () => {
     [authFetch, showToast]
   );
 
+  const adminBulkDeleteUsers = useCallback(
+    async (userIds) => {
+      try {
+        const res = await authFetch("/admin/users/bulk-delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: userIds }),
+        });
+        if (!res.ok) throw new Error("Failed to bulk delete users");
+        setUsers((prev) => prev.filter((u) => !userIds.includes(u.id)));
+        showToast(`Bulk deleted ${userIds.length} users`, "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to bulk delete users", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+  const adminBulkDeleteSetups = useCallback(
+    async (setupIds) => {
+      try {
+        const res = await authFetch("/admin/setups/bulk-delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: setupIds }),
+        });
+        if (!res.ok) throw new Error("Failed to bulk delete setups");
+        setSetupsList((prev) => prev.filter((s) => !setupIds.includes(s.id)));
+        showToast(`Bulk deleted ${setupIds.length} setups`, "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to bulk delete setups", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+  const adminBulkDeleteCollections = useCallback(
+    async (collectionIds) => {
+      try {
+        const res = await authFetch("/admin/collections/bulk-delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: collectionIds }),
+        });
+        if (!res.ok) throw new Error("Failed to bulk delete collections");
+        setCollectionsList((prev) => prev.filter((c) => !collectionIds.includes(c.id)));
+        showToast(`Bulk deleted ${collectionIds.length} collections`, "success");
+        return true;
+      } catch (err) {
+        showToast(err.message || "Failed to bulk delete collections", "error");
+        return false;
+      }
+    },
+    [authFetch, showToast]
+  );
+
+
   const replyToFeedback = useCallback(
     async (feedbackId, replyMessage) => {
       try {
@@ -190,8 +251,12 @@ export const useAdmin = () => {
     adminDeleteUser,
     adminDeleteSetup,
     adminDeleteCollection,
+    adminBulkDeleteUsers,
+    adminBulkDeleteSetups,
+    adminBulkDeleteCollections,
     replyToFeedback,
   };
 };
+
 
 

@@ -78,3 +78,27 @@ def admin_delete_collection(db: Session, collection_id: int, current_user: User)
         raise HTTPException(status_code=404, detail="Collection not found")
     return {"message": "Collection deleted by admin"}
 
+
+def admin_bulk_delete_users(db: Session, user_ids: list[int], current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    # Protect self from deletion
+    clean_ids = [uid for uid in user_ids if uid != current_user.id]
+    count = admin_repo.bulk_delete_users(db, clean_ids)
+    return {"message": f"Successfully deleted {count} users"}
+
+
+def admin_bulk_delete_setups(db: Session, setup_ids: list[int], current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    count = admin_repo.bulk_delete_setups(db, setup_ids)
+    return {"message": f"Successfully deleted {count} setups"}
+
+
+def admin_bulk_delete_collections(db: Session, collection_ids: list[int], current_user: User):
+    if not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    count = admin_repo.bulk_delete_collections(db, collection_ids)
+    return {"message": f"Successfully deleted {count} collections"}
+
+

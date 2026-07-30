@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 
 
+import { DeletePostModal } from "../components/account/DeletePostModal";
+
+
 export const AdminPortalPage = () => {
   const { auth } = useAuth();
   const {
@@ -40,6 +43,9 @@ export const AdminPortalPage = () => {
     adminDeleteUser,
     adminDeleteSetup,
     adminDeleteCollection,
+    adminBulkDeleteUsers,
+    adminBulkDeleteSetups,
+    adminBulkDeleteCollections,
     replyToFeedback,
   } = useAdmin();
 
@@ -48,6 +54,22 @@ export const AdminPortalPage = () => {
   const [replyingToId, setReplyingToId] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
+
+  // Multi-select state
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [selectedSetupIds, setSelectedSetupIds] = useState([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState([]);
+
+  // Confirmation Modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    title: "",
+    description: "",
+    confirmText: "Delete",
+    setupTitle: "",
+    setupImage: "",
+    onConfirm: async () => {},
+  });
 
   const isAdmin = Boolean(
     auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
@@ -74,27 +96,92 @@ export const AdminPortalPage = () => {
     }
   };
 
-  const handleDeleteUser = async (user) => {
+  const handleDeleteUser = (user) => {
     if (user.email.toLowerCase() === "charanajoseph@gmail.com") {
       alert("Cannot delete the primary admin account!");
       return;
     }
-    if (window.confirm(`Are you sure you want to permanently delete user @${user.username} (${user.email}) and all their setups, collections, and data?`)) {
-      await adminDeleteUser(user.id);
-    }
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete User Account?",
+      description: `Are you sure you want to permanently delete @${user.username} (${user.email}) and all associated setups, collections, and data?`,
+      confirmText: "Delete User",
+      onConfirm: async () => {
+        await adminDeleteUser(user.id);
+      },
+    });
   };
 
-  const handleDeleteSetup = async (setup) => {
-    if (window.confirm(`Are you sure you want to delete setup "${setup.name}" by @${setup.author}?`)) {
-      await adminDeleteSetup(setup.id);
-    }
+  const handleDeleteSetup = (setup) => {
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete Setup?",
+      description: `Are you sure you want to delete setup "${setup.name}" by @${setup.author}?`,
+      confirmText: "Delete Setup",
+      setupTitle: setup.name,
+      setupImage: setup.image_url,
+      onConfirm: async () => {
+        await adminDeleteSetup(setup.id);
+      },
+    });
   };
 
-  const handleDeleteCollection = async (collection) => {
-    if (window.confirm(`Are you sure you want to delete collection "${collection.name}" by @${collection.owner}?`)) {
-      await adminDeleteCollection(collection.id);
-    }
+  const handleDeleteCollection = (collection) => {
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete Collection?",
+      description: `Are you sure you want to delete collection "${collection.name}" by @${collection.owner}?`,
+      confirmText: "Delete Collection",
+      onConfirm: async () => {
+        await adminDeleteCollection(collection.id);
+      },
+    });
   };
+
+  // Bulk Deletion Handlers
+  const handleBulkDeleteUsers = () => {
+    if (selectedUserIds.length === 0) return;
+    setDeleteModal({
+      isOpen: true,
+      title: "Bulk Delete Users?",
+      description: `Are you sure you want to permanently delete ${selectedUserIds.length} selected user accounts and all associated data?`,
+      confirmText: `Delete ${selectedUserIds.length} Users`,
+      onConfirm: async () => {
+        const ok = await adminBulkDeleteUsers(selectedUserIds);
+        if (ok) setSelectedUserIds([]);
+      },
+    });
+  };
+
+  const handleBulkDeleteSetups = () => {
+    if (selectedSetupIds.length === 0) return;
+    setDeleteModal({
+      isOpen: true,
+      title: "Bulk Delete Setups?",
+      description: `Are you sure you want to permanently delete ${selectedSetupIds.length} selected setups?`,
+      confirmText: `Delete ${selectedSetupIds.length} Setups`,
+      onConfirm: async () => {
+        const ok = await adminBulkDeleteSetups(selectedSetupIds);
+        if (ok) setSelectedSetupIds([]);
+      },
+    });
+  };
+
+  const handleBulkDeleteCollections = () => {
+    if (selectedCollectionIds.length === 0) return;
+    setDeleteModal({
+      isOpen: true,
+      title: "Bulk Delete Collections?",
+      description: `Are you sure you want to permanently delete ${selectedCollectionIds.length} selected collections?`,
+      confirmText: `Delete ${selectedCollectionIds.length} Collections`,
+      onConfirm: async () => {
+        const ok = await adminBulkDeleteCollections(selectedCollectionIds);
+        if (ok) setSelectedCollectionIds([]);
+      },
+    });
+  };
+
+
 
   const q = searchQuery.toLowerCase().trim();
 
@@ -354,15 +441,56 @@ export const AdminPortalPage = () => {
           {/* TAB 2: USERS */}
           {activeTab === "users" && (
             <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
+              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
                 <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
                   Registered Users ({filteredUsers.length})
                 </h3>
+                {selectedUserIds.length > 0 && (
+                  <div className="flex items-center gap-3 animate-fadeIn">
+                    <span className="text-xs font-bold text-slate-700">
+                      {selectedUserIds.length} user{selectedUserIds.length > 1 ? "s" : ""} selected
+                    </span>
+                    <button
+                      onClick={handleBulkDeleteUsers}
+                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                    >
+                      <Trash2 size={13} /> Delete Selected ({selectedUserIds.length})
+                    </button>
+                    <button
+                      onClick={() => setSelectedUserIds([])}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
                     <tr>
+                      <th className="p-3.5 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={
+                            filteredUsers.length > 0 &&
+                            selectedUserIds.length ===
+                              filteredUsers.filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com").length
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedUserIds(
+                                filteredUsers
+                                  .filter((u) => u.email.toLowerCase() !== "charanajoseph@gmail.com")
+                                  .map((u) => u.id)
+                              );
+                            } else {
+                              setSelectedUserIds([]);
+                            }
+                          }}
+                          className="rounded cursor-pointer accent-blue-600"
+                        />
+                      </th>
                       <th className="p-3.5">User</th>
                       <th className="p-3.5">Email</th>
                       <th className="p-3.5">Setups</th>
@@ -373,7 +501,28 @@ export const AdminPortalPage = () => {
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
                     {filteredUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
+                      <tr
+                        key={u.id}
+                        className={`hover:bg-slate-50/60 transition-colors ${
+                          selectedUserIds.includes(u.id) ? "bg-blue-50/40" : ""
+                        }`}
+                      >
+                        <td className="p-3.5 w-10 text-center">
+                          {u.email.toLowerCase() !== "charanajoseph@gmail.com" && (
+                            <input
+                              type="checkbox"
+                              checked={selectedUserIds.includes(u.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedUserIds((prev) => [...prev, u.id]);
+                                } else {
+                                  setSelectedUserIds((prev) => prev.filter((id) => id !== u.id));
+                                }
+                              }}
+                              className="rounded cursor-pointer accent-blue-600"
+                            />
+                          )}
+                        </td>
                         <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
                             {u.username[0].toUpperCase()}
@@ -420,10 +569,29 @@ export const AdminPortalPage = () => {
           {/* TAB 3: SETUPS */}
           {activeTab === "setups" && (
             <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
+              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
                 <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
                   All Setups ({filteredSetups.length})
                 </h3>
+                {selectedSetupIds.length > 0 && (
+                  <div className="flex items-center gap-3 animate-fadeIn">
+                    <span className="text-xs font-bold text-slate-700">
+                      {selectedSetupIds.length} setup{selectedSetupIds.length > 1 ? "s" : ""} selected
+                    </span>
+                    <button
+                      onClick={handleBulkDeleteSetups}
+                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                    >
+                      <Trash2 size={13} /> Delete Selected ({selectedSetupIds.length})
+                    </button>
+                    <button
+                      onClick={() => setSelectedSetupIds([])}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
               {filteredSetups.length === 0 ? (
                 <div className="p-12 text-center text-xs text-slate-400">No setups found matching your query.</div>
@@ -432,6 +600,23 @@ export const AdminPortalPage = () => {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
                       <tr>
+                        <th className="p-3.5 w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              filteredSetups.length > 0 &&
+                              selectedSetupIds.length === filteredSetups.length
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedSetupIds(filteredSetups.map((s) => s.id));
+                              } else {
+                                setSelectedSetupIds([]);
+                              }
+                            }}
+                            className="rounded cursor-pointer accent-blue-600"
+                          />
+                        </th>
                         <th className="p-3.5">Setup</th>
                         <th className="p-3.5">Author</th>
                         <th className="p-3.5">Items</th>
@@ -441,7 +626,26 @@ export const AdminPortalPage = () => {
                     </thead>
                     <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
                       {filteredSetups.map((s) => (
-                        <tr key={s.id} className="hover:bg-slate-50/60 transition-colors">
+                        <tr
+                          key={s.id}
+                          className={`hover:bg-slate-50/60 transition-colors ${
+                            selectedSetupIds.includes(s.id) ? "bg-blue-50/40" : ""
+                          }`}
+                        >
+                          <td className="p-3.5 w-10 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedSetupIds.includes(s.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedSetupIds((prev) => [...prev, s.id]);
+                                } else {
+                                  setSelectedSetupIds((prev) => prev.filter((id) => id !== s.id));
+                                }
+                              }}
+                              className="rounded cursor-pointer accent-blue-600"
+                            />
+                          </td>
                           <td className="p-3.5 font-bold text-slate-900 flex items-center gap-3">
                             <img
                               src={s.image_url}
@@ -477,10 +681,29 @@ export const AdminPortalPage = () => {
           {/* TAB 4: COLLECTIONS */}
           {activeTab === "collections" && (
             <div className="rounded-3xl border bg-white overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
-              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
+              <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between gap-4" style={{ borderColor: "#E2E8F0" }}>
                 <h3 className="text-sm font-bold" style={{ color: "#0F172A" }}>
                   All Collections ({filteredCollections.length})
                 </h3>
+                {selectedCollectionIds.length > 0 && (
+                  <div className="flex items-center gap-3 animate-fadeIn">
+                    <span className="text-xs font-bold text-slate-700">
+                      {selectedCollectionIds.length} collection{selectedCollectionIds.length > 1 ? "s" : ""} selected
+                    </span>
+                    <button
+                      onClick={handleBulkDeleteCollections}
+                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                    >
+                      <Trash2 size={13} /> Delete Selected ({selectedCollectionIds.length})
+                    </button>
+                    <button
+                      onClick={() => setSelectedCollectionIds([])}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
               {filteredCollections.length === 0 ? (
                 <div className="p-12 text-center text-xs text-slate-400">No collections found matching your query.</div>
@@ -489,6 +712,23 @@ export const AdminPortalPage = () => {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
                       <tr>
+                        <th className="p-3.5 w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              filteredCollections.length > 0 &&
+                              selectedCollectionIds.length === filteredCollections.length
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCollectionIds(filteredCollections.map((c) => c.id));
+                              } else {
+                                setSelectedCollectionIds([]);
+                              }
+                            }}
+                            className="rounded cursor-pointer accent-blue-600"
+                          />
+                        </th>
                         <th className="p-3.5">Collection Name</th>
                         <th className="p-3.5">Owner</th>
                         <th className="p-3.5">Items</th>
@@ -498,7 +738,26 @@ export const AdminPortalPage = () => {
                     </thead>
                     <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
                       {filteredCollections.map((c) => (
-                        <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
+                        <tr
+                          key={c.id}
+                          className={`hover:bg-slate-50/60 transition-colors ${
+                            selectedCollectionIds.includes(c.id) ? "bg-blue-50/40" : ""
+                          }`}
+                        >
+                          <td className="p-3.5 w-10 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedCollectionIds.includes(c.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCollectionIds((prev) => [...prev, c.id]);
+                                } else {
+                                  setSelectedCollectionIds((prev) => prev.filter((id) => id !== c.id));
+                                }
+                              }}
+                              className="rounded cursor-pointer accent-blue-600"
+                            />
+                          </td>
                           <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2">
                             <FolderOpen size={16} className="text-blue-600" />
                             <span>{c.name}</span>
@@ -525,6 +784,7 @@ export const AdminPortalPage = () => {
               )}
             </div>
           )}
+
 
           {/* TAB 5: USER FEEDBACK */}
           {activeTab === "feedback" && (
@@ -652,8 +912,21 @@ export const AdminPortalPage = () => {
 
         </>
       )}
+
+      {/* Confirmation Modal with Progressive Deleting Animation */}
+      <DeletePostModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={deleteModal.onConfirm}
+        title={deleteModal.title}
+        confirmText={deleteModal.confirmText}
+        description={deleteModal.description}
+        setupTitle={deleteModal.setupTitle}
+        setupImage={deleteModal.setupImage}
+      />
     </main>
   );
 };
+
 
 export default AdminPortalPage;

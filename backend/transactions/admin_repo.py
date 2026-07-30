@@ -97,23 +97,44 @@ def list_all_collections(db: Session) -> list:
 
 
 def delete_user(db: Session, target_user_id: int) -> bool:
-    """Delete a user and cascade cleanup associated records."""
+    """Delete a user and 100% cascade cleanup all associated records."""
     user = db.query(User).filter(User.id == target_user_id).first()
     if not user:
         return False
-    # Explicit cascade cleanup to prevent FK constraint issues
+
     from models.favorite import Favorite
     from models.like import Like
     from models.item import Item
+    from models.feedback import Feedback
+
+    # 1. Delete feedback submissions
+    db.query(Feedback).filter(Feedback.user_id == target_user_id).delete(synchronize_session=False)
+
+    # 2. Delete user's favorites & likes on any setup
     db.query(Favorite).filter(Favorite.user_id == target_user_id).delete(synchronize_session=False)
     db.query(Like).filter(Like.user_id == target_user_id).delete(synchronize_session=False)
+
+    # 3. Delete user's comments on any setup
     db.query(Comment).filter(Comment.user_id == target_user_id).delete(synchronize_session=False)
+
+    # 4. Delete user's setups (triggers cascade delete-orphan on setup items, comments, likes, favorites)
+    user_setups = db.query(Setup).filter(Setup.user_id == target_user_id).all()
+    for s in user_setups:
+        db.delete(s)
+
+    # 5. Delete user's collections (triggers cascade delete on collection items)
+    user_collections = db.query(Collection).filter(Collection.user_id == target_user_id).all()
+    for c in user_collections:
+        db.delete(c)
+
+    # 6. Delete standalone user items
     db.query(Item).filter(Item.user_id == target_user_id).delete(synchronize_session=False)
-    db.query(Collection).filter(Collection.user_id == target_user_id).delete(synchronize_session=False)
-    db.query(Setup).filter(Setup.user_id == target_user_id).delete(synchronize_session=False)
+
+    # 7. Delete user account record
     db.delete(user)
     db.commit()
     return True
+
 
 
 def delete_setup(db: Session, setup_id: int) -> bool:
@@ -134,4 +155,32 @@ def delete_collection(db: Session, collection_id: int) -> bool:
     db.delete(collection)
     db.commit()
     return True
+
+
+def bulk_delete_users(db: Session, user_ids: list[int]) -> int:
+    """Bulk delete users by ID list."""
+    count = 0
+    for uid in user_ids:
+        if delete_user(db, uid):
+            count += 1
+    return count
+
+
+def bulk_delete_setups(db: Session, setup_ids: list[int]) -> int:
+    """Bulk delete setups by ID list."""
+    count = 0
+    for sid in setup_ids:
+        if delete_setup(db, sid):
+            count += 1
+    return count
+
+
+def bulk_delete_collections(db: Session, collection_ids: list[int]) -> int:
+    """Bulk delete collections by ID list."""
+    count = 0
+    for cid in collection_ids:
+        if delete_collection(db, cid):
+            count += 1
+    return count
+
 

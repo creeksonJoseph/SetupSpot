@@ -50,3 +50,8 @@ class FeedbackOut(BaseModel):
 class FeedbackReplyRequest(BaseModel):
     reply_message: str
 
+
+class BulkDeleteRequest(BaseModel):
+    ids: list[int]
+
+

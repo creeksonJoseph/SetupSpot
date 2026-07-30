@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user
-from api.schemas.admin import AdminDashboardStats, AdminUserOut
+from api.schemas.admin import AdminDashboardStats, AdminUserOut, BulkDeleteRequest
 from core.database import get_db
+
 from models.user import User
 from services import admin_service
 
@@ -77,6 +78,9 @@ def list_collections(
     return admin_service.list_collections(db, current_user)
 
 
+from api.schemas.admin import AdminDashboardStats, AdminUserOut, BulkDeleteRequest
+
+
 @router.delete("/collections/{collection_id}", status_code=200)
 def admin_delete_collection(
     collection_id: int,
@@ -85,4 +89,35 @@ def admin_delete_collection(
 ):
     """Admin collection deletion."""
     return admin_service.admin_delete_collection(db, collection_id=collection_id, current_user=current_user)
+
+
+@router.post("/users/bulk-delete", status_code=200)
+def admin_bulk_delete_users(
+    body: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin bulk user deletion."""
+    return admin_service.admin_bulk_delete_users(db, user_ids=body.ids, current_user=current_user)
+
+
+@router.post("/setups/bulk-delete", status_code=200)
+def admin_bulk_delete_setups(
+    body: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin bulk setup deletion."""
+    return admin_service.admin_bulk_delete_setups(db, setup_ids=body.ids, current_user=current_user)
+
+
+@router.post("/collections/bulk-delete", status_code=200)
+def admin_bulk_delete_collections(
+    body: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin bulk collection deletion."""
+    return admin_service.admin_bulk_delete_collections(db, collection_ids=body.ids, current_user=current_user)
+
 
