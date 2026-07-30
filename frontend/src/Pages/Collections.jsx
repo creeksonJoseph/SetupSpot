@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, MoreVertical, Trash2, Edit3, Share2, ArrowLeft, ShoppingBag, Folder, Sparkles } from "lucide-react";
 import { useCollections } from "../hooks/useCollections";
 import { CollectionMosaicCover } from "../components/collections/CollectionMosaicCover";
-import { ItemSpotlightModal } from "../components/collections/ItemSpotlightModal";
+import { SimilarCollections } from "../components/collections/SimilarCollections";
 import { useToast } from "../context/ToastContext";
 
 const Collections = () => {
@@ -19,12 +19,12 @@ const Collections = () => {
   } = useCollections();
 
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFolderTitle, setNewFolderTitle] = useState("");
   const [editingCollection, setEditingCollection] = useState(null);
   const [editFolderTitle, setEditFolderTitle] = useState("");
-  const [spotlightItem, setSpotlightItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -70,12 +70,6 @@ const Collections = () => {
 
   return (
     <div className="px-4 py-6 sm:px-6 md:px-8">
-      {/* Item Spotlight Modal */}
-      <ItemSpotlightModal
-        item={spotlightItem}
-        onClose={() => setSpotlightItem(null)}
-      />
-
       {/* Create New Collection Modal */}
       {showCreateModal && (
         <div
@@ -410,83 +404,97 @@ const Collections = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {selectedCollection.items.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setSpotlightItem(item)}
-                  className="group rounded-2xl border bg-white overflow-hidden shadow-2xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-                  style={{ borderColor: "#E2E8F0" }}
-                >
-                  {/* Setup Photo Preview */}
-                  <div className="aspect-[4/3] relative w-full overflow-hidden bg-slate-900">
-                    {item.setup_image_url ? (
-                      <img
-                        src={item.setup_image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-400 text-xs">
-                        No setup photo
+            <>
+              {/* Masonry columns — preserves natural image aspect ratio, no forced cropping */}
+              <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
+                {selectedCollection.items.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => navigate(`/setup/${item.setup_id}?itemId=${item.id}`)}
+                    className="group relative mb-4 rounded-2xl border bg-white overflow-hidden shadow-2xs hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid"
+                    style={{ borderColor: "#E2E8F0" }}
+                  >
+                    {/* Setup Photo — full natural height, no aspect-ratio crop */}
+                    <div className="relative w-full overflow-hidden bg-slate-900">
+                      {item.setup_image_url ? (
+                        <img
+                          src={item.setup_image_url}
+                          alt={item.name}
+                          className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full aspect-[4/3] flex items-center justify-center bg-slate-800 text-slate-400 text-xs">
+                          No setup photo
+                        </div>
+                      )}
+
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
+
+                      {/* Price Tag Overlay */}
+                      <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-md text-xs font-black shadow-md" style={{ color: "#0F172A" }}>
+                        ${item.price}
                       </div>
-                    )}
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20 pointer-events-none" />
-
-                    {/* Price Tag Overlay */}
-                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-md text-xs font-black shadow-md" style={{ color: "#0F172A" }}>
-                      ${item.price}
-                    </div>
-
-                    {/* Remove Item Button — top left */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeItem(selectedCollection.id, item.id);
-                      }}
-                      className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md hover:bg-red-700 cursor-pointer"
-                      title="Remove from collection"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-
-                    {/* Origin Setup Banner */}
-                    {item.setup_title && (
-                      <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white/90 text-[11px] font-medium truncate drop-shadow">
-                        From setup: <span className="font-bold text-white">{item.setup_title}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Bottom Details */}
-                  <div className="p-3.5 flex items-center justify-between gap-2 border-t" style={{ borderColor: "#F1F5F9" }}>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-sm truncate" style={{ color: "#0F172A" }}>
-                        {item.name}
-                      </h4>
-                    </div>
-
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold flex items-center gap-1 transition-all hover:bg-blue-50 shrink-0 cursor-pointer"
-                        style={{ borderColor: "rgba(0,102,255,0.3)", color: "#0066ff", backgroundColor: "rgba(0,102,255,0.04)" }}
+                      {/* Remove Item Button — top left */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeItem(selectedCollection.id, item.id);
+                        }}
+                        className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md hover:bg-red-700 cursor-pointer"
+                        title="Remove from collection"
                       >
-                        <ShoppingBag size={12} />
-                        Buy
-                      </a>
-                    )}
+                        <Trash2 size={13} />
+                      </button>
+
+                      {/* Origin Setup Banner */}
+                      {item.setup_title && (
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white/90 text-[11px] font-medium truncate drop-shadow">
+                          From setup: <span className="font-bold text-white">{item.setup_title}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Bottom Details */}
+                    <div className="p-3.5 flex items-center justify-between gap-2 border-t" style={{ borderColor: "#F1F5F9" }}>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-sm truncate" style={{ color: "#0F172A" }}>
+                          {item.name}
+                        </h4>
+                        {item.setup_total_items > 1 && (
+                          <p className="text-[11px] mt-0.5" style={{ color: "#94A3B8" }}>
+                            {item.setup_total_items} items in setup
+                          </p>
+                        )}
+                      </div>
+
+                      {item.link && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold flex items-center gap-1 transition-all hover:bg-blue-50 shrink-0 cursor-pointer"
+                          style={{ borderColor: "rgba(0,102,255,0.3)", color: "#0066ff", backgroundColor: "rgba(0,102,255,0.04)" }}
+                        >
+                          <ShoppingBag size={12} />
+                          Buy
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {/* Similar Collections — lazy-loaded, backend pre-computed */}
+              <SimilarCollections
+                collectionId={selectedCollection.id}
+                onSelectCollection={setSelectedCollection}
+              />
+            </>
           )
         )}
       </div>

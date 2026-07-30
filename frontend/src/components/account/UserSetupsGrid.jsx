@@ -87,7 +87,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
               className="break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl"
             >
               <div className="relative overflow-hidden rounded-2xl">
-                <Link to={`/post/${setup.id}`} className="block relative overflow-hidden">
+                <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden">
                   <img
                     className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                     alt={setup.title}
@@ -142,7 +142,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                 </div>
 
                 {/* Gradient overlay with setup title */}
-                <Link to={`/post/${setup.id}`} className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <Link to={`/setup/${setup.id}`} className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                   <p className="text-white font-semibold text-base leading-tight drop-shadow">
                     {setup.title}
                   </p>

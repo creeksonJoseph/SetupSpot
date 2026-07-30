@@ -15,6 +15,7 @@ import PostDetailPage from './Pages/PostDetailPage'
 import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
 import SettingsPage from './Pages/SettingsPage'
+import UserProfilePage from './Pages/UserProfilePage'
 
 import MobileUploadPage from './Pages/MobileUploadPage'
 
@@ -37,7 +38,9 @@ function App() {
 
             {/* Public routes — no auth required */}
             <Route path="explore" element={<ExplorePage />} />
-            <Route path="post/:id" element={<PostDetailPage />} />
+            <Route path="setup/:id" element={<PostDetailPage />} />
+            <Route path="user/:id" element={<UserProfilePage />} />
+            <Route path="collections" element={<Collections />} />
 
             {/* Protected routes — auth required */}
             <Route
@@ -45,14 +48,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <FavouritesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="collections"
-              element={
-                <ProtectedRoute>
-                  <Collections />
                 </ProtectedRoute>
               }
             />

@@ -71,7 +71,7 @@ export function useFavorites() {
     e.preventDefault();
     e.stopPropagation();
 
-    const shareUrl = `${window.location.origin}/post/${setup.id}`;
+    const shareUrl = `${window.location.origin}/setup/${setup.id}`;
     const shareData = {
       title: setup.title,
       text: `Check out this setup: ${setup.title} by ${setup.author}`,

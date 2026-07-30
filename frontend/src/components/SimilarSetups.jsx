@@ -40,7 +40,7 @@ const SimilarSetups = ({ currentSetupId }) => {
               {recommendedSetups.map((setup) => (
                 <div key={setup.id} className="break-inside-avoid relative group">
                   <Link
-                    to={`/post/${setup.id}`}
+                    to={`/setup/${setup.id}`}
                     className="block relative overflow-hidden rounded-lg border transition-transform duration-200 hover:scale-[1.03]"
                     style={{ borderColor: "#E2E8F0" }}
                   >

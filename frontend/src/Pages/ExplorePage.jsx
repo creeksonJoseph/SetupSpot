@@ -28,7 +28,7 @@ const SetupCard = ({ setup, toggleFavorite }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const shareUrl = `${window.location.origin}/post/${setup.id}`;
+    const shareUrl = `${window.location.origin}/setup/${setup.id}`;
     const shareData = {
       title: setup.title,
       text: `Check out this setup: ${setup.title} by ${setup.author}`,
@@ -47,7 +47,7 @@ const SetupCard = ({ setup, toggleFavorite }) => {
   return (
     <>
       <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
-        <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
+        <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
           <img
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
             alt={setup.title}

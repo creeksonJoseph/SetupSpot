@@ -72,6 +72,16 @@ def remove_item_from_collection(
     )
 
 
+@router.get("/{collection_id}/similar", response_model=list[CollectionOut])
+def get_similar_collections(
+    collection_id: int,
+    limit: int = 6,
+    db: Session = Depends(get_db),
+):
+    """Return similar collections pre-computed by setup-item overlap on the backend."""
+    return collection_service.get_similar_collections(db, collection_id=collection_id, limit=limit)
+
+
 @router.delete("/{collection_id}", status_code=200)
 def delete_collection(
     collection_id: int,

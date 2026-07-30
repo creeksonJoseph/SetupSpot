@@ -4,7 +4,7 @@ import { useToast } from '../context/ToastContext';
 export const ShareMenu = ({ setup, onClose }) => {
   if (!setup) return null;
 
-  const shareUrl = `${window.location.origin}/post/${setup.id}`;
+  const shareUrl = `${window.location.origin}/setup/${setup.id}`;
   const shareText = `Check out this setup: ${setup.title} by ${setup.author}`;
   const { showToast } = useToast();
 

@@ -10,7 +10,7 @@ const FavoriteCard = ({ setup, isRemoving, onRemove, onShare }) => {
         isRemoving ? 'scale-90 opacity-0' : 'scale-100 opacity-100'
       }`}
     >
-      <Link to={`/post/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
+      <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
         <img
           className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
           alt={setup.title}

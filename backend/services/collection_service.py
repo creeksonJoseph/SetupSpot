@@ -19,6 +19,8 @@ def format_collection_dto(collection: Collection) -> dict:
         setup_img = item.setup.image_url if item.setup else None
         setup_title = item.setup.name if item.setup else None
         author_username = item.setup.user.username if (item.setup and item.setup.user) else None
+        # Pre-compute total items in setup so frontend knows whether to show "View all" button
+        setup_total_items = len(item.setup.items) if item.setup else 0
 
         if setup_img and setup_img not in cover_images and len(cover_images) < 4:
             cover_images.append(setup_img)
@@ -33,12 +35,14 @@ def format_collection_dto(collection: Collection) -> dict:
             "setup_title": setup_title,
             "setup_image_url": setup_img,
             "author_username": author_username,
+            "setup_total_items": setup_total_items,
         })
 
     return {
         "id": collection.id,
         "name": collection.name,
         "user_id": collection.user_id,
+        "author_username": collection.user.username if collection.user else None,
         "item_count": len(collection.items),
         "cover_images": cover_images,
         "items": items_out,
@@ -118,4 +122,50 @@ def delete(db: Session, collection_id: int, user_id: int) -> None:
     if collection.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your collection")
     collection_repo.delete(db, collection)
+
+
+def get_similar_collections(db: Session, collection_id: int, limit: int = 6) -> list[dict]:
+    """Return up to `limit` other collections that share setup items with the given collection.
+
+    Similarity is computed entirely on the backend:
+    1. Collect the set of setup_ids from the target collection's items.
+    2. Query all other collections whose items share at least one of those setup_ids.
+    3. Rank by overlap count (most shared setups first).
+    4. Return pre-formatted DTOs — frontend just renders.
+    """
+    target = collection_repo.get_by_id(db, collection_id)
+    if not target:
+        return []
+
+    # Build set of setup_ids in target collection
+    target_setup_ids: set[int] = {
+        item.setup_id for item in target.items if item.setup_id is not None
+    }
+    if not target_setup_ids:
+        return []
+
+    # Fetch all other collections (excluding this one and same user's collections for diversity)
+    all_others = (
+        db.query(Collection)
+        .filter(Collection.id != collection_id)
+        .all()
+    )
+
+    # Score each candidate by overlap
+    scored: list[tuple[int, Collection]] = []
+    for col in all_others:
+        # Eager-load via get_by_id so we have items
+        col_full = collection_repo.get_by_id(db, col.id)
+        if not col_full or not col_full.items:
+            continue
+        col_setup_ids = {item.setup_id for item in col_full.items if item.setup_id is not None}
+        overlap = len(target_setup_ids & col_setup_ids)
+        if overlap > 0:
+            scored.append((overlap, col_full))
+
+    # Sort by overlap descending, take top `limit`
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top = [col for _, col in scored[:limit]]
+
+    return [format_collection_dto(col) for col in top]
 
