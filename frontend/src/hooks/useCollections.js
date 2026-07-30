@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthFetch } from './useAuthFetch';
 import { useToast } from '../context/ToastContext';
 
-export function useCollections() {
+export function useCollections(selectedId = null) {
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,8 +19,24 @@ export function useCollections() {
       const data = await response.json();
       setCollections(data);
 
-      // Keep selectedCollection in sync if open
-      if (selectedCollection) {
+      // Hydrate selectedCollection from URL query param if present
+      if (selectedId) {
+        const found = data.find((c) => c.id === parseInt(selectedId, 10));
+        if (found) {
+          setSelectedCollection(found);
+        } else {
+          // Attempt direct fetch if single collection id requested
+          try {
+            const singleRes = await authFetch(`/collections/${selectedId}`);
+            if (singleRes.ok) {
+              const singleData = await singleRes.json();
+              setSelectedCollection(singleData);
+            }
+          } catch {
+            setSelectedCollection(null);
+          }
+        }
+      } else if (selectedCollection) {
         const updated = data.find((c) => c.id === selectedCollection.id);
         setSelectedCollection(updated || null);
       }
@@ -30,11 +46,12 @@ export function useCollections() {
     } finally {
       setLoading(false);
     }
-  }, [authFetch, selectedCollection]);
+  }, [authFetch, selectedId, selectedCollection]);
 
   useEffect(() => {
     fetchCollections();
-  }, []);
+  }, [selectedId]);
+
 
   const createCollection = useCallback(async (name) => {
     if (!name.trim()) return;

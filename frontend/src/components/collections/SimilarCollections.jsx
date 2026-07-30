@@ -1,40 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useAuthFetch } from "../../hooks/useAuthFetch";
+import React from "react";
+import { useSimilarCollections } from "../../hooks/useSimilarCollections";
 import { CollectionMosaicCover } from "./CollectionMosaicCover";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
 
 /**
- * SimilarCollections — fetches and renders backend-computed similar collections.
- * Backend does all similarity scoring via setup-item overlap.
- * This component just renders the pre-computed DTOs.
+ * SimilarCollections — pure UI component.
+ * Consumes useSimilarCollections hook for backend-computed similar collections state.
  */
 export const SimilarCollections = ({ collectionId, onSelectCollection }) => {
-  const authFetch = useAuthFetch();
-  const [similar, setSimilar] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchSimilar = useCallback(async () => {
-    if (!collectionId) return;
-    setLoading(true);
-    try {
-      const res = await authFetch(`/collections/${collectionId}/similar`);
-      if (!res.ok) throw new Error("Failed to fetch similar collections");
-      const data = await res.json();
-      setSimilar(data);
-    } catch (err) {
-      console.error("SimilarCollections error:", err);
-      setSimilar([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [collectionId, authFetch]);
-
-  useEffect(() => {
-    fetchSimilar();
-  }, [fetchSimilar]);
+  const { similar, loading } = useSimilarCollections(collectionId);
 
   if (loading) {
+
     return (
       <div className="mt-12 pt-8 border-t" style={{ borderColor: "#E2E8F0" }}>
         <div className="h-4 w-48 rounded-lg bg-slate-100 animate-pulse mb-6" />
@@ -52,7 +28,6 @@ export const SimilarCollections = ({ collectionId, onSelectCollection }) => {
   return (
     <div className="mt-12 pt-8 border-t" style={{ borderColor: "#E2E8F0" }}>
       <div className="flex items-center gap-2 mb-6">
-        <Sparkles size={18} style={{ color: "#0066ff" }} />
         <h2 className="text-base font-black" style={{ color: "#0F172A" }}>
           Similar Collections
         </h2>

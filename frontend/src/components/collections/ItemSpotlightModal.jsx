@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { X, ShoppingBag, ExternalLink, Sparkles } from "lucide-react";
+import { X, ShoppingBag, ExternalLink } from "lucide-react";
 
 export const ItemSpotlightModal = ({ item, onClose }) => {
   if (!item) return null;
@@ -43,7 +43,6 @@ export const ItemSpotlightModal = ({ item, onClose }) => {
           {/* Centered Pulse Spotlight Badge */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md shadow-xl text-xs font-bold animate-bounce" style={{ color: "#0F172A" }}>
-              <Sparkles size={14} className="text-blue-600" />
               <span>{item.name}</span>
             </div>
           </div>

@@ -85,11 +85,11 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 
 #### A. Presentational Components & Pages (`frontend/src/Pages/`, `frontend/src/components/`)
 - **Role**: Render UI markup, manage layout, apply Tailwind CSS styles, and trigger handler callbacks.
-- **Rule**: Pages and components MUST NOT perform raw `fetch()` calls or manage complex multi-step state machines directly. They should consume custom hooks.
+- **Rule**: NO `.jsx` file (neither Page nor Component) may contain inline `fetch()`, `authFetch()`, or `useEffect` API request handlers. All data fetching and business logic MUST be delegated to custom hooks in `frontend/src/hooks/`.
 
 #### B. Custom Hooks (`frontend/src/hooks/`)
 - **Role**: Single source of truth for component logic. Handles data fetching (`useAuthFetch`), state management (`useState`), side-effects (`useEffect`), optimistic UI updates, local storage hydration, and WebSocket connections.
-- **Rule**: Each major feature or page has a corresponding hook (e.g., `useFavorites.js`, `useCreateSetup.js`, `usePhoneUploadSocket.js`, `usePostDetail.js`).
+- **Rule**: Every page, sub-section, or component requiring asynchronous data has a corresponding hook (e.g., `useFavorites.js`, `useSimilarCollections.js`, `useCreateSetup.js`, `usePhoneUploadSocket.js`, `usePostDetail.js`).
 
 #### C. Context Providers (`frontend/src/context/`)
 - **Role**: Global app state that spans across routes (`AuthContext` for user session, `ToastContext` for global toast notifications).
@@ -138,7 +138,7 @@ SetupSpot follows a strict separation of concerns on both the backend and fronte
 
 ## 5. Guidelines for Future LLMs & Developers
 
-1. **Do Not Put Data Fetching in Pages**: Always create or update a hook in `frontend/src/hooks/` for state management and API interactions.
+1. **Do Not Put Data Fetching or API Calls in JSX Files**: NEVER perform raw `fetch()`, `authFetch()`, or `useEffect` API calls directly inside ANY `.jsx` file — whether it is a Page (`frontend/src/Pages/`) or a Component (`frontend/src/components/`). ALWAYS create or consume a dedicated custom hook in `frontend/src/hooks/` for state management and API interactions.
 2. **Maintain Backend Layering**: Never query database models directly inside router files (`backend/api/routers/`). Router → Service → Repository.
 3. **Preserve Compatibility**: When updating services or endpoints, preserve existing return contracts and optional parameter fallbacks.
 4. **No Blocking Operations**: Ensure all database and socket handling on the backend remains async/non-blocking.
