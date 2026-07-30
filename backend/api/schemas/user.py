@@ -15,8 +15,10 @@ class UserOut(BaseModel):
     email: str
     bio: str | None = None
     avatar_url: str | None = None
+    is_admin: bool = False
     post_count: int = 0
     setups: list[UserSetupOut] = []
+
 
 
 class UpdateProfileRequest(BaseModel):

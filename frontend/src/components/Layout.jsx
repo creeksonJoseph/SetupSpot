@@ -42,7 +42,7 @@ export default function Layout() {
                         <div key={key} className="relative group flex items-center">
                             <Link
                                 to={path}
-                                className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-102"
+                                className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-102 cursor-pointer"
                                 style={{
                                     backgroundColor: activeTab === key ? "rgba(0,102,255,0.08)" : "transparent",
                                     color: activeTab === key ? "#0066ff" : "#727687",
@@ -62,7 +62,29 @@ export default function Layout() {
                             </div>
                         </div>
                     ))}
+
+                    {/* Admin Portal Button — ONLY shown for Admin */}
+                    {Boolean(auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")) && (
+                        <div className="relative group flex items-center mt-2 pt-4 border-t border-slate-100">
+                            <Link
+                                to="/admin"
+                                className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-102 cursor-pointer"
+                                style={{
+                                    backgroundColor: activeTab === 'admin' ? "rgba(0,102,255,0.12)" : "rgba(0,102,255,0.05)",
+                                    color: "#0066ff",
+                                }}
+                            >
+                                <span className="material-symbols-outlined block group-hover:scale-110">
+                                    shield_person
+                                </span>
+                            </Link>
+                            <div className="absolute left-full ml-3.5 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-lg border border-slate-800 whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-50">
+                                Admin Portal
+                            </div>
+                        </div>
+                    )}
                 </div>
+
 
                 {/* Account Icon (retains original 360 rotation + username pill) */}
                 <div className="flex flex-col gap-4">

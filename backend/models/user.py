@@ -1,5 +1,6 @@
 """User ORM model — column definitions only."""
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from datetime import datetime
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -16,6 +17,9 @@ class User(Base):
     _password_hash = Column("_password_hash", String(256), nullable=False)
     reset_token = Column(String(256), nullable=True)
     reset_token_expires = Column(DateTime(timezone=True), nullable=True)
+    is_admin = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
 
 
     setups = relationship("Setup", back_populates="user", cascade="all, delete-orphan")

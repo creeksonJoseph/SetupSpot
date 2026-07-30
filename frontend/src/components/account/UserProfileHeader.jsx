@@ -1,13 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import { SuggestFeatureModal } from "../feedback/SuggestFeatureModal";
 
 export const UserProfileHeader = ({ user, handleLogout }) => {
   const setupCount = user?.post_count ?? user?.setups?.length ?? 0;
   const avatarUrl = user?.avatar_url || user?.avatar || user?.profile_picture;
-
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   return (
     <section className="flex flex-col sm:flex-row items-start gap-8 mb-12">
+      <SuggestFeatureModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+
       {/* Avatar Container */}
       <div className="relative shrink-0">
         <div
@@ -47,23 +54,35 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
           </div>
 
           <div className="flex items-center justify-start sm:justify-end gap-3 flex-wrap">
+            {/* Suggest Features Button */}
+            <button
+              onClick={() => setShowFeedbackModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-sm hover:shadow-md cursor-pointer"
+              style={{ backgroundColor: "#0066ff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+            >
+              <Sparkles size={15} />
+              <span>Suggest features to add</span>
+            </button>
+
             {/* Settings Button — Direct link to Settings Page */}
             <Link
               to="/settings"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200 shadow-sm hover:bg-slate-50"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 shadow-2xs hover:bg-slate-50 cursor-pointer"
               style={{
                 borderColor: "#E2E8F0",
                 backgroundColor: "#ffffff",
                 color: "#0F172A",
               }}
             >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
+              <span className="material-symbols-outlined text-[18px]">settings</span>
               Settings
             </Link>
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer"
               style={{
                 borderColor: "rgba(186,26,26,0.2)",
                 color: "#ba1a1a",
@@ -72,12 +91,12 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(186,26,26,0.06)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
-              <span className="material-symbols-outlined text-[20px]">logout</span>
+              <span className="material-symbols-outlined text-[18px]">logout</span>
               Sign Out
             </button>
           </div>
-
         </div>
+
 
 
         {/* Bio */}

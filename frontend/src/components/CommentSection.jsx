@@ -1,14 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Send, Loader2, Trash2 } from "lucide-react";
+import { Send, Loader2, Trash2, MoreVertical, ShieldAlert } from "lucide-react";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
+import { useAdmin } from "../hooks/useAdmin";
 
 const CommentSection = ({ setupId, onCommentCountChange }) => {
   const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment } =
     useComments(setupId);
   const { auth } = useAuth();
+  const { adminDeleteComment } = useAdmin();
   const [draft, setDraft] = useState("");
+  const [activeMenuId, setActiveMenuId] = useState(null);
   const listEndRef = useRef(null);
+
+  const isAdmin = Boolean(
+    auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
+  );
 
   // Fetch on first mount
   useEffect(() => {
@@ -43,6 +50,14 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
 
+  const handleAdminDelete = async (commentId) => {
+    const ok = await adminDeleteComment(commentId);
+    if (ok) {
+      fetchComments();
+    }
+    setActiveMenuId(null);
+  };
+
   return (
     <div
       className="flex flex-col border-t"
@@ -67,7 +82,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
           const isOwn = auth?.username === c.author;
 
           return (
-            <div key={c.id} className="flex gap-2.5">
+            <div key={c.id} className="flex gap-2.5 relative group">
               {c.author_avatar ? (
                 <img
                   src={c.author_avatar}
@@ -84,22 +99,60 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-bold" style={{ color: "#0F172A" }}>
-                    @{c.author}
-                  </span>
-                  <span className="text-xs" style={{ color: "#727687" }}>
-                    {formatDate(c.created_at)}
-                  </span>
-                  {isOwn && (
-                    <button
-                      onClick={() => deleteComment(c.id)}
-                      className="ml-auto transition-colors"
-                      title="Delete comment"
-                    >
-                      <Trash2 size={12} style={{ color: "#cbd5e1" }} />
-                    </button>
-                  )}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-bold" style={{ color: "#0F172A" }}>
+                      @{c.author}
+                    </span>
+                    <span className="text-xs" style={{ color: "#727687" }}>
+                      {formatDate(c.created_at)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 relative">
+                    {/* Admin 3-Dots Menu */}
+                    {isAdmin ? (
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === c.id ? null : c.id);
+                          }}
+                          className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Admin comment controls"
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+
+                        {activeMenuId === c.id && (
+                          <div
+                            className="absolute right-0 top-6 z-30 w-36 bg-white border rounded-xl shadow-lg py-1 animate-fadeIn"
+                            style={{ borderColor: "#E2E8F0" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleAdminDelete(c.id)}
+                              className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                            >
+                              <ShieldAlert size={13} />
+                              <span>Delete Comment</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Regular owner deletion */
+                      isOwn && (
+                        <button
+                          onClick={() => deleteComment(c.id)}
+                          className="transition-colors cursor-pointer"
+                          title="Delete comment"
+                        >
+                          <Trash2 size={12} style={{ color: "#cbd5e1" }} />
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm mt-0.5 break-words" style={{ color: "#475569" }}>
                   {c.body}
@@ -110,6 +163,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
         })}
         <div ref={listEndRef} />
       </div>
+
 
       {/* Input */}
       <div

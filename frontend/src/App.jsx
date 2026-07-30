@@ -16,7 +16,9 @@ import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
 import SettingsPage from './Pages/SettingsPage'
 import UserProfilePage from './Pages/UserProfilePage'
+import AdminPortalPage from './Pages/AdminPortalPage'
 import NotFoundPage from './Pages/NotFoundPage'
+
 
 import MobileUploadPage from './Pages/MobileUploadPage'
 
@@ -76,6 +78,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute>
+                  <AdminPortalPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Catch-all inside layout — sidebar stays visible */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>

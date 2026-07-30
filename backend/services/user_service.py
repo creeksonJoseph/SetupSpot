@@ -10,15 +10,21 @@ def get_user_profile(user: User) -> UserOut:
         UserSetupOut(id=s.id, title=s.name, image=s.image_url)
         for s in (user.setups or [])
     ]
+    is_admin = bool(
+        getattr(user, "is_admin", False)
+        or (user.email and user.email.lower() == "charanajoseph@gmail.com")
+    )
     return UserOut(
         id=user.id,
         username=user.username,
         email=user.email,
         bio=user.bio,
         avatar_url=user.avatar_url,
+        is_admin=is_admin,
         post_count=len(user_setups),
         setups=user_setups,
     )
+
 
 
 def get_public_profile(db: Session, user_id: int) -> PublicUserOut | None:
