@@ -1,5 +1,6 @@
 """Item ORM model — column definitions only."""
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey
+from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer, String, Float, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -15,9 +16,11 @@ class Item(Base):
     price = Column(Float, nullable=False)
     link = Column(String(255))
     description = Column(Text)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     setup_id = Column(Integer, ForeignKey("setups.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
 
     setup = relationship("Setup", back_populates="items")
     user = relationship("User", back_populates="items")

@@ -1,5 +1,6 @@
 """Setup ORM model — column definitions only."""
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
 
@@ -14,8 +15,10 @@ class Setup(Base):
     image_url = Column(String(1024))
     annotations = Column(Text)
     embedding = Column(Vector(384), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
 
     user = relationship("User", back_populates="setups")
     items = relationship("Item", back_populates="setup", cascade="all, delete-orphan")

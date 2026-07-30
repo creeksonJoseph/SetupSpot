@@ -33,6 +33,7 @@ def get_dashboard_stats(db: Session) -> dict:
         or 0
     )
 
+
     return {
         "total_users": total_users,
         "total_setups": total_setups,
@@ -42,6 +43,7 @@ def get_dashboard_stats(db: Session) -> dict:
         "recent_users_count_7d": recent_users_count_7d,
         "recent_setups_count_7d": recent_setups_count_7d,
     }
+
 
 
 def list_users_with_stats(db: Session) -> list:

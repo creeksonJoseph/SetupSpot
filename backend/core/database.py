@@ -46,10 +46,16 @@ def ensure_db_schema():
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;"))
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;"))
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE setups ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE collections ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE favorites ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE likes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
             # Promote charanajoseph@gmail.com to admin in database
             conn.execute(text("UPDATE users SET is_admin = TRUE WHERE LOWER(email) = 'charanajoseph@gmail.com';"))
             conn.commit()
             print("Successfully verified DB schema & promoted charanajoseph@gmail.com to admin.")
+
     except Exception as err:
         print(f"Database schema verification notice: {err}")
 

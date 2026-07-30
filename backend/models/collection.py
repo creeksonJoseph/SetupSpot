@@ -1,5 +1,6 @@
 """Collection ORM model and its association table — definitions only."""
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -19,8 +20,10 @@ class Collection(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
 
     user = relationship("User", back_populates="collections")
     items = relationship("Item", secondary=CollectionsItems, back_populates="collections")
