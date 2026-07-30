@@ -17,15 +17,15 @@ def list_for_user(db: Session, user_id: int) -> list[Favorite]:
 def add(db: Session, user_id: int, setup_id: int) -> Favorite:
     existing = favorite_repo.get_by_user_and_setup(db, user_id, setup_id)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already favorited")
+        return existing
     return favorite_repo.create(db, user_id=user_id, setup_id=setup_id)
 
 
 def remove(db: Session, user_id: int, setup_id: int) -> None:
     favorite = favorite_repo.get_by_user_and_setup(db, user_id, setup_id)
-    if not favorite:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found")
-    favorite_repo.delete(db, favorite)
+    if favorite:
+        favorite_repo.delete(db, favorite)
+
 
 
 def list_favorited_setups(db: Session, user_id: int) -> list[dict]:
