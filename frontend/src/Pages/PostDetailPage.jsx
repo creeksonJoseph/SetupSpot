@@ -139,12 +139,14 @@ const PostDetailPage = () => {
               authorAvatar={setup.author_avatar}
               isLiked={setup.is_liked}
               likeCount={setup.like_count}
+              isFavorited={setup.is_favorited}
               commentCount={commentCount}
               commentsOpen={commentsOpen}
               onToggleLike={toggleLike}
               onToggleComments={() => setCommentsOpen((o) => !o)}
               onToggleFavorite={toggleFavorite}
             />
+
 
             {/* Comment section — lazy mount */}
             {commentsOpen && (

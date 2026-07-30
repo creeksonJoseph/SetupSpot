@@ -186,9 +186,11 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
     cached_detail = redis_client.get_cached_setup_detail(setup.id)
     if cached_detail is not None and isinstance(cached_detail, dict):
         is_liked = False
+        is_favorited = False
         if requesting_user_id is not None:
             is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
-        return {**cached_detail, "is_liked": is_liked}
+            is_favorited = any(f.user_id == requesting_user_id for f in setup.favorites)
+        return {**cached_detail, "is_liked": is_liked, "is_favorited": is_favorited}
 
     try:
         annotations = json.loads(setup.annotations) if setup.annotations else []
@@ -214,8 +216,10 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
     like_count = len(setup.likes)
     comment_count = len(setup.comments)
     is_liked = False
+    is_favorited = False
     if requesting_user_id is not None:
         is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
+        is_favorited = any(f.user_id == requesting_user_id for f in setup.favorites)
 
     payload = {
         "id": setup.id,
@@ -226,6 +230,7 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
         "author_avatar": setup.user.avatar_url,
         "like_count": like_count,
         "is_liked": False,
+        "is_favorited": False,
         "comment_count": comment_count,
         "items": annotated_items,
     }
@@ -234,4 +239,6 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) 
     redis_client.set_cached_setup_detail(setup.id, payload, ttl=900)
 
     payload["is_liked"] = is_liked
+    payload["is_favorited"] = is_favorited
     return payload
+

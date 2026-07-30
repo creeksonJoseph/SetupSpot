@@ -94,6 +94,18 @@ export function useSetups() {
       if (!response.ok) {
         throw new Error('Failed to toggle favorite');
       }
+
+      if (method === 'POST') {
+        const data = await response.json();
+        if (data?.already_favorited) {
+          showToast('Setup already saved to favourites', 'info');
+        } else {
+          showToast('Setup saved to favourites!', 'success');
+        }
+      } else {
+        showToast('Removed setup from favourites', 'info');
+      }
+
     } catch (err) {
       console.error('Error toggling favorite:', err);
       // Revert state update on error

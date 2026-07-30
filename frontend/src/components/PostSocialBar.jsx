@@ -7,12 +7,14 @@ const PostSocialBar = ({
   authorAvatar,
   isLiked,
   likeCount,
+  isFavorited,
   commentCount,
   commentsOpen,
   onToggleLike,
   onToggleComments,
   onToggleFavorite,
 }) => {
+
   const [moreOpen, setMoreOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const moreRef = useRef(null);
@@ -156,13 +158,26 @@ const PostSocialBar = ({
                 <button
                   onClick={handleFavorite}
                   className="flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors border-t cursor-pointer"
-                  style={{ color: "#0F172A", borderColor: "#E2E8F0" }}
+                  style={{
+                    color: isFavorited ? "#0066ff" : "#0F172A",
+                    borderColor: "#E2E8F0",
+                    backgroundColor: isFavorited ? "rgba(0,102,255,0.05)" : "transparent",
+                  }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fb")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = isFavorited ? "rgba(0,102,255,0.05)" : "transparent")}
                 >
-                  <Bookmark size={16} style={{ color: "#727687" }} />
-                  <span>Save to Favourites</span>
+                  <Bookmark
+                    size={16}
+                    style={{
+                      color: isFavorited ? "#0066ff" : "#727687",
+                      fill: isFavorited ? "#0066ff" : "none",
+                    }}
+                  />
+                  <span className="font-semibold">
+                    {isFavorited ? "Remove from Favourites" : "Save to Favourites"}
+                  </span>
                 </button>
+
               </div>
             )}
           </div>

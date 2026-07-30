@@ -34,9 +34,11 @@ export function usePostDetail(id) {
         author_avatar: data.author_avatar || null,
         like_count: data.like_count ?? 0,
         is_liked: data.is_liked ?? false,
+        is_favorited: data.is_favorited ?? false,
         comment_count: data.comment_count ?? 0,
         items: data.items || [],
       };
+
 
       setSetup(transformedData);
     } catch (err) {
@@ -110,12 +112,6 @@ export function usePostDetail(id) {
     const isFavorited = setup.is_favorited ?? false;
     setSetup((prev) => prev ? { ...prev, is_favorited: !isFavorited } : null);
 
-    if (isFavorited) {
-      showToast('Removed setup from favourites', 'info');
-    } else {
-      showToast('Setup saved to favourites!', 'success');
-    }
-
     try {
       const method = isFavorited ? 'DELETE' : 'POST';
       const res = await authFetch('/favorites', {
@@ -124,12 +120,24 @@ export function usePostDetail(id) {
         body: JSON.stringify({ setup_id: setup.id }),
       });
       if (!res.ok) throw new Error('Failed to toggle favorite');
+
+      if (method === 'POST') {
+        const data = await res.json();
+        if (data?.already_favorited) {
+          showToast('Setup already saved to favourites', 'info');
+        } else {
+          showToast('Setup saved to favourites!', 'success');
+        }
+      } else {
+        showToast('Removed setup from favourites', 'info');
+      }
     } catch (err) {
       console.error(err);
       setSetup((prev) => prev ? { ...prev, is_favorited: isFavorited } : null);
       showToast('Could not save to favourites, try again.', 'error');
     }
   }, [setup, authFetch, showToast]);
+
 
 
   return {

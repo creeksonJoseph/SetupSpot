@@ -10,9 +10,11 @@ class FavoriteOut(BaseModel):
     id: int
     user_id: int
     setup_id: int
+    already_favorited: bool = False
 
     class Config:
         from_attributes = True
+
 
 
 class FavoriteSetupOut(BaseModel):

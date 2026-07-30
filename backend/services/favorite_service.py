@@ -14,11 +14,23 @@ def list_for_user(db: Session, user_id: int) -> list[Favorite]:
     return favorite_repo.get_by_user(db, user_id)
 
 
-def add(db: Session, user_id: int, setup_id: int) -> Favorite:
+def add(db: Session, user_id: int, setup_id: int) -> dict:
     existing = favorite_repo.get_by_user_and_setup(db, user_id, setup_id)
     if existing:
-        return existing
-    return favorite_repo.create(db, user_id=user_id, setup_id=setup_id)
+        return {
+            "id": existing.id,
+            "user_id": existing.user_id,
+            "setup_id": existing.setup_id,
+            "already_favorited": True,
+        }
+    created = favorite_repo.create(db, user_id=user_id, setup_id=setup_id)
+    return {
+        "id": created.id,
+        "user_id": created.user_id,
+        "setup_id": created.setup_id,
+        "already_favorited": False,
+    }
+
 
 
 def remove(db: Session, user_id: int, setup_id: int) -> None:
