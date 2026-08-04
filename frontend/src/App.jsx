@@ -21,6 +21,7 @@ import AdminPortalPage from './Pages/AdminPortalPage'
 import NotFoundPage from './Pages/NotFoundPage'
 
 
+import LandingPage from './Pages/LandingPage'
 import MobileUploadPage from './Pages/MobileUploadPage'
 
 function App() {
@@ -29,19 +30,17 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
         <Routes>
-          {/* Public auth routes */}
+          {/* Public Landing & Auth routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/mobile-upload" element={<MobileUploadPage />} />
 
-          {/* Layout wrapper — nav sidebar is visible for all children */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/explore" replace />} />
-
-            {/* Public routes — no auth required */}
-            <Route path="explore" element={<ExplorePage />} />
+          {/* Layout wrapper — nav sidebar is visible for app workspace routes */}
+          <Route element={<Layout />}>
+            <Route path="/explore" element={<ExplorePage />} />
             <Route path="setup/:id" element={<PostDetailPage />} />
             <Route path="user/:username" element={<UserProfilePage />} />
             <Route path="collection/:id" element={<PublicCollectionPage />} />
