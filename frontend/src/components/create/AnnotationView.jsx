@@ -29,7 +29,7 @@ export const AnnotationView = ({
   handleSaveData,
   loading,
 }) => (
-  <div className="w-full flex-1 flex flex-col md:grid md:grid-cols-[1fr_340px_280px] gap-4 pb-16 md:pb-0">
+  <div className="w-full flex-1 flex flex-col md:grid md:grid-cols-[1fr_340px_320px] gap-4 pb-16 md:pb-0">
     {/* ── Column 1: Setup Title & Interactive Image Canvas ── */}
     <div
       className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
@@ -158,13 +158,13 @@ export const AnnotationView = ({
         )}
       </div>
       <p className="text-[11px] text-[#727687] text-center mt-2 font-medium">
-        Tap or click anywhere on the photo to add gear pins
+        Tap or click anywhere on the photo to add pins
       </p>
     </div>
 
-    {/* ── Column 2: Item Details Input Form & Save Action ── */}
+    {/* ── Column 2: Item Details Input Form ── */}
     <div
-      className={`p-4 rounded-none shadow-sm border flex flex-col h-auto md:h-full overflow-hidden justify-between ${cardBg}`}
+      className={`p-4 rounded-none shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
     >
       <div className="flex-1 overflow-y-auto min-h-0">
         {!selectedAnnotation ? (
@@ -184,9 +184,75 @@ export const AnnotationView = ({
           />
         )}
       </div>
+    </div>
 
+    {/* ── Column 3: Tagged Items List & Constant Footer ── */}
+    <div
+      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden justify-between ${cardBg}`}
+    >
+      {/* Card Header */}
       <div
-        className="pt-3 mt-3 border-t shrink-0 space-y-2.5"
+        className="flex justify-between items-center pb-3 border-b shrink-0"
+        style={{ borderColor: "#E2E8F0" }}
+      >
+        <h3 className={`text-xs sm:text-sm font-black ${textPrimary}`}>
+          Tagged Items ({annotations.length})
+        </h3>
+        <Tag size={16} className="text-[#0066ff]" />
+      </div>
+
+      {/* Scrollable list of items */}
+      <div className="flex-1 min-h-0 overflow-y-auto py-2 my-1 space-y-2 pr-1">
+        {annotations.length === 0 ? (
+          <p className={`text-xs text-center py-6 ${textSecondary}`}>
+            Tap anywhere on your setup photo to tag items.
+          </p>
+        ) : (
+          annotations.map((ann, index) => (
+            <div
+              key={ann.id}
+              onClick={() => setSelectedAnnotationId(ann.id)}
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
+                ann.id === selectedAnnotationId
+                  ? "bg-blue-50/80 border-[#0066ff]/40 shadow-xs"
+                  : "border-slate-100 hover:bg-slate-50"
+              }`}
+            >
+              <span
+                className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black shrink-0"
+                style={{
+                  backgroundColor:
+                    ann.id === selectedAnnotationId ? "#0066ff" : "#94A3B8",
+                }}
+              >
+                {index + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-bold truncate ${textPrimary}`}>
+                  {ann.name || "Untitled Item"}
+                </p>
+                <p className="text-[11px] font-semibold text-[#0066ff] mt-0.5">
+                  {ann.price || "Set Price"}
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveAnnotation(ann.id);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="Remove item"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Constant Sticky Footer */}
+      <div
+        className="pt-3 mt-2 border-t shrink-0 space-y-2.5"
         style={{ borderColor: "#E2E8F0" }}
       >
         {apiMessage.text && (
@@ -210,44 +276,43 @@ export const AnnotationView = ({
           </div>
         )}
 
-        <div className="flex justify-between items-center px-1">
-          <span className={`text-xs font-bold ${textPrimary}`}>
-            Total Gear Cost:
-          </span>
-          <span
-            className={`text-lg font-black ${annotations.length > 0 ? "text-[#0066ff]" : textSecondary}`}
-          >
-            {totalCost}
-          </span>
-        </div>
+        <div className="flex items-center justify-between gap-4 pt-1">
+          <div className="flex flex-col">
+            <span className={`text-[11px] font-bold ${textPrimary}`}>
+              Total Gear Cost
+            </span>
+            <span
+              className={`text-base sm:text-lg font-black ${annotations.length > 0 ? "text-[#0066ff]" : textSecondary}`}
+            >
+              {totalCost}
+            </span>
+          </div>
 
-        {/* Post Setup Action Button */}
-        <button
-          onClick={handleSaveData}
-          disabled={annotations.length === 0 || !setupName.trim() || loading}
-          className="w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          style={{ backgroundColor: "#0066ff" }}
-          onMouseEnter={(e) => {
-            if (!e.currentTarget.disabled)
-              e.currentTarget.style.backgroundColor = "#0050cb";
-          }}
-          onMouseLeave={(e) => {
-            if (!e.currentTarget.disabled)
-              e.currentTarget.style.backgroundColor = "#0066ff";
-          }}
-        >
-          {loading ? (
-            <>
-              <Loader2 size={18} className="animate-spin" />
-              <span>Saving Setup...</span>
-            </>
-          ) : (
-            <>
-              <Save size={18} />
+          {/* Post Setup Action Button */}
+          <button
+            onClick={handleSaveData}
+            disabled={annotations.length === 0 || !setupName.trim() || loading}
+            className="px-6 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm text-white transition-all flex items-center justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            style={{ backgroundColor: "#0066ff" }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled)
+                e.currentTarget.style.backgroundColor = "#0050cb";
+            }}
+            onMouseLeave={(e) => {
+              if (!e.currentTarget.disabled)
+                e.currentTarget.style.backgroundColor = "#0066ff";
+            }}
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                <span>Saving...</span>
+              </div>
+            ) : (
               <span>Post Setup</span>
-            </>
-          )}
-        </button>
+            )}
+          </button>
+        </div>
 
         {/* Validation hint if form incomplete */}
         {(annotations.length === 0 || !setupName.trim()) && (
@@ -262,71 +327,6 @@ export const AnnotationView = ({
             </span>
           </div>
         )}
-      </div>
-    </div>
-
-    {/* ── Column 3: Tagged Items List ── */}
-    <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
-    >
-      <div
-        className="flex justify-between items-center pb-3 border-b shrink-0"
-        style={{ borderColor: "#E2E8F0" }}
-      >
-        <h3 className={`text-xs sm:text-sm font-black ${textPrimary}`}>
-          Tagged Items ({annotations.length})
-        </h3>
-        <Tag size={16} className="text-[#0066ff]" />
-      </div>
-
-      <div className="flex-1 min-h-0 flex flex-col mt-2">
-        <div className="max-h-60 md:max-h-none overflow-y-auto space-y-2 pr-1">
-          {annotations.length === 0 ? (
-            <p className={`text-xs text-center py-6 ${textSecondary}`}>
-              Tap anywhere on your setup photo to tag items.
-            </p>
-          ) : (
-            annotations.map((ann, index) => (
-              <div
-                key={ann.id}
-                onClick={() => setSelectedAnnotationId(ann.id)}
-                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
-                  ann.id === selectedAnnotationId
-                    ? "bg-blue-50/80 border-[#0066ff]/40 shadow-xs"
-                    : "border-slate-100 hover:bg-slate-50"
-                }`}
-              >
-                <span
-                  className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black shrink-0"
-                  style={{
-                    backgroundColor:
-                      ann.id === selectedAnnotationId ? "#0066ff" : "#94A3B8",
-                  }}
-                >
-                  {index + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold truncate ${textPrimary}`}>
-                    {ann.name || "Untitled Item"}
-                  </p>
-                  <p className="text-[11px] font-semibold text-[#0066ff] mt-0.5">
-                    {ann.price || "Set Price"}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveAnnotation(ann.id);
-                  }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                  title="Remove item"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
       </div>
     </div>
   </div>
