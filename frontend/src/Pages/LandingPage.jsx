@@ -144,101 +144,108 @@ export default function LandingPage() {
       </nav>
 
       <main className="pt-24 pb-xl">
-        {/* Hero Section */}
-        <section className="max-w-container-max mx-auto px-md md:px-gutter pt-xl pb-xl flex flex-col items-center text-center reveal-on-scroll">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0F172A] max-w-4xl mb-6 tracking-tight leading-tight">
-            Where your dream setup comes to life.
-          </h1>
-          <p className="text-lg md:text-xl text-[#475569] max-w-2xl mb-10 leading-relaxed font-normal">
-            Join the community of 50,000+ enthusiasts sharing their workspaces, tagging gear, and building the ultimate setup collections.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-24">
-            <Link
-              to={isLoggedIn ? "/create" : "/signup"}
-              className="bg-[#0066ff] text-[#ffffff] text-xs font-semibold uppercase tracking-wider px-8 py-3 rounded-full hover:bg-[#0050cb] transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md w-full sm:w-auto text-center"
-            >
-              {isLoggedIn ? "Share Your Setup" : "Sign Up"}
-            </Link>
-            <a
-              href="#how-it-works"
-              className="group flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#0066ff] hover:text-[#0050cb] transition-colors w-full sm:w-auto justify-center"
-            >
-              See how it works
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform duration-200">
-                arrow_forward
-              </span>
-            </a>
-          </div>
+        {/* Hero Section — split layout */}
+        <section className="max-w-container-max mx-auto px-md md:px-gutter pt-xl pb-xl reveal-on-scroll">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[70vh]">
+            {/* Left: text */}
+            <div className="flex flex-col justify-center text-left order-2 lg:order-1">
+              <div className="inline-flex items-center gap-2 mb-6 self-start">
+                <span className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full">
+                  50,000+ enthusiasts
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0F172A] mb-6 tracking-tight leading-[1.05]">
+                Where your dream setup comes to life.
+              </h1>
+              <p className="text-lg md:text-xl text-[#475569] max-w-xl mb-10 leading-relaxed font-normal">
+                Join the community sharing their workspaces, tagging gear, and building the ultimate setup collections.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <Link
+                  to={isLoggedIn ? "/create" : "/signup"}
+                  className="bg-[#0066ff] text-[#ffffff] text-xs font-semibold uppercase tracking-wider px-8 py-3 rounded-full hover:bg-[#0050cb] transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md w-full sm:w-auto text-center"
+                >
+                  {isLoggedIn ? "Share Your Setup" : "Sign Up"}
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="group flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#0066ff] hover:text-[#0050cb] transition-colors w-full sm:w-auto"
+                >
+                  See how it works
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform duration-200">
+                    arrow_forward
+                  </span>
+                </a>
+              </div>
+            </div>
 
-          <div className="relative w-full max-w-5xl mx-auto reveal-on-scroll">
-            {/* Back Left Photo */}
-            <div className="absolute -left-12 -top-12 w-64 h-64 md:w-80 md:h-80 -rotate-3 z-0 rounded-xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-lg hidden sm:block transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:rotate-0 cursor-pointer">
-              <img
-                className="w-full h-full object-cover"
-                alt="Minimal mechanical keyboard and mouse setup"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvjpvRa-GcKTPr8o3Iicg7M9gWWRBPzbDRiqzPO-2qZ7HNPMmczq13WgclMgFTMXWzhgZC8nTh0vfqZJ0EMHIAGnnGacDDKFveeRyiVYEWrL0vuElS5mnrpq64RXjREzzkFAjtyTtdWV6fNAt87vtVfZQI2Dmm499V1K7kJ4KzoojZOcnPePUmf8CkWCRLg4DqrtK_kk7Aj0GIHPfYVdGk-ZyJBkTpBb_oPYpU6ax-05zOQwF-KgFb"
-              />
-            </div>
-            {/* Back Right Photo */}
-            <div className="absolute -right-12 -top-8 w-64 h-64 md:w-80 md:h-80 rotate-3 z-0 rounded-xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-lg hidden sm:block transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:rotate-0 cursor-pointer">
-              <img
-                className="w-full h-full object-cover"
-                alt="Organized desk drawer with cables and tools"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDufrS0RoEuZF0jCGlsAessHy3EB7_l9ICqkIqbnOt1VDECs4dQMUdSM1UEBptXrY4GH2-vfQ3Y-byIHZwbmgxTrlTe5rNEjmUfbDfzV78KvC0Eno31ZJ5syKeR1bp3W2Y_oPcZ6g_PsDe2TsJeO2kVeGlX5EZy-vdIGjjMLvGiC3dvpK0CyYobKSbVKMuhRD70kDnyeuq2v4UXhVZInQF5MdhjF1IU0AzIArJXK0s6FCto3W70ty_5"
-              />
-            </div>
-            {/* Main Center Photo */}
-            <div className="relative z-10 w-full aspect-video rounded-xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] cursor-pointer">
-              <img
-                className="w-full h-full object-cover"
-                alt="Modern minimalist desk setup"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaCfiZ2dXtjHxOMvNCBtRS5s7NiehfKUfrxZ6yK9kqLKXD_uusEvViZx_8ho5pqn5_XrJk3PoUChoEeykxrHpHFhIbb79SLCCcIeWVOXBbU1iSjAhie6t4W4w-dLCwxSYlexmSN4SjJl2ug9pxA7rVMer-FhzR3EZXTCTIot4y6k0NIa3soyLMdBU-3KqcaA7CYA3B-DzXRsQtPkuI_h324NCRLSUrEQGFU46nO-ejzhVVwOpyOFda"
-              />
-              {/* Animated Tags Overlay */}
-              <div className="absolute inset-0 pointer-events-none">
-                {/* Tag 1: Mechanical Keyboard */}
-                <div
-                  className="absolute bottom-[20%] left-[45%] flex flex-col items-center animate-fade-in-up"
-                  style={{ animationDelay: '0.35s' }}
-                >
-                  <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
-                    Mechanical Keyboard
+            {/* Right: image with tags */}
+            <div className="relative order-1 lg:order-2 reveal-on-scroll">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] cursor-pointer">
+                <img
+                  className="w-full h-full object-cover"
+                  alt="Modern minimalist desk setup"
+                  src="https://images.pexels.com/photos/5366225/pexels-photo-5366225.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+                />
+                {/* Animated Tags Overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Tag 1: Mechanical Keyboard */}
+                  <div
+                    className="absolute bottom-[18%] left-[42%] flex flex-col items-center animate-fade-in-up"
+                    style={{ animationDelay: '0.35s' }}
+                  >
+                    <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                      Mechanical Keyboard
+                    </div>
+                    <div className="w-px h-6 bg-white/80 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
                   </div>
-                  <div className="w-px h-6 bg-white/80 shadow-xs"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                  {/* Tag 2: Monitor Light Bar */}
+                  <div
+                    className="absolute top-[22%] left-[48%] flex flex-col items-center animate-fade-in-up"
+                    style={{ animationDelay: '0.7s' }}
+                  >
+                    <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                      Monitor Light Bar
+                    </div>
+                    <div className="w-px h-8 bg-white/80 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                  </div>
+                  {/* Tag 3: Widescreen Monitor */}
+                  <div
+                    className="absolute top-[38%] right-[28%] flex flex-col items-center animate-fade-in-up"
+                    style={{ animationDelay: '1.0s' }}
+                  >
+                    <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                      Widescreen Monitor
+                    </div>
+                    <div className="w-px h-10 bg-white/80 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                  </div>
+                  {/* Tag 4: Cable Tray */}
+                  <div
+                    className="absolute bottom-[8%] right-[38%] flex flex-col items-center animate-fade-in-up"
+                    style={{ animationDelay: '1.35s' }}
+                  >
+                    <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                      Cable Tray
+                    </div>
+                    <div className="w-px h-12 bg-white/80 shadow-xs"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                  </div>
                 </div>
-                {/* Tag 2: Monitor Light Bar */}
-                <div
-                  className="absolute top-[25%] left-[50%] flex flex-col items-center animate-fade-in-up"
-                  style={{ animationDelay: '0.7s' }}
-                >
-                  <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
-                    Monitor Light Bar
-                  </div>
-                  <div className="w-px h-8 bg-white/80 shadow-xs"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+              </div>
+
+              {/* Floating accent card */}
+              <div className="absolute -bottom-6 -left-6 hidden md:flex items-center gap-3 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] px-5 py-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-[#0066ff] border-2 border-white flex items-center justify-center text-white text-xs font-bold">A</div>
+                  <div className="w-8 h-8 rounded-full bg-[#0F172A] border-2 border-white flex items-center justify-center text-white text-xs font-bold">M</div>
+                  <div className="w-8 h-8 rounded-full bg-[#e11d48] border-2 border-white flex items-center justify-center text-white text-xs font-bold">K</div>
                 </div>
-                {/* Tag 3: Widescreen Monitor */}
-                <div
-                  className="absolute top-[40%] right-[30%] flex flex-col items-center animate-fade-in-up"
-                  style={{ animationDelay: '1.0s' }}
-                >
-                  <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
-                    Widescreen Monitor
-                  </div>
-                  <div className="w-px h-10 bg-white/80 shadow-xs"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
-                </div>
-                {/* Tag 4: Cable Tray */}
-                <div
-                  className="absolute bottom-[10%] right-[40%] flex flex-col items-center animate-fade-in-up"
-                  style={{ animationDelay: '1.35s' }}
-                >
-                  <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
-                    Cable Tray
-                  </div>
-                  <div className="w-px h-12 bg-white/80 shadow-xs"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                <div>
+                  <p className="text-xs font-bold text-[#0F172A] leading-tight">12,400 setups</p>
+                  <p className="text-[11px] text-[#727687] leading-tight">shared this month</p>
                 </div>
               </div>
             </div>
