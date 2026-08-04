@@ -22,8 +22,8 @@ export default function FeaturedShowcaseSection({ heroBackLeft, heroBackRight, h
           />
         </div>
 
-        {/* Main Focal Center Desk Photo */}
-        <div className="relative z-10 w-full aspect-video rounded-3xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.18)] cursor-pointer">
+        {/* Main Focal Center Desk Photo — Static, no hover motion */}
+        <div className="relative z-10 w-full aspect-video rounded-3xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff]">
           <img
             className="w-full h-full object-cover"
             alt="Beautifully organized desk setup"
