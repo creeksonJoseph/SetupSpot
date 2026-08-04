@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Local landing page image assets
-import heroWall1 from '../assets/landing/hero-wall-1.jpg';
-import heroWall2 from '../assets/landing/hero-wall-2.jpg';
-import heroWall3 from '../assets/landing/hero-wall-3.jpg';
-import heroWall4 from '../assets/landing/hero-wall-4.jpg';
-import heroWall5 from '../assets/landing/hero-wall-5.jpg';
-import heroWall6 from '../assets/landing/hero-wall-6.jpg';
-import heroWall7 from '../assets/landing/hero-wall-7.jpg';
-import heroWall8 from '../assets/landing/hero-wall-8.jpg';
-import heroWall9 from '../assets/landing/hero-wall-9.jpg';
-import heroWall10 from '../assets/landing/hero-wall-10.jpg';
-import heroWall11 from '../assets/landing/hero-wall-11.jpg';
-import heroWall12 from '../assets/landing/hero-wall-12.jpg';
+import heroWall1 from "../assets/landing/hero-wall-1.jpg";
+import heroWall2 from "../assets/landing/hero-wall-2.jpg";
+import heroWall3 from "../assets/landing/hero-wall-3.jpg";
+import heroWall4 from "../assets/landing/hero-wall-4.jpg";
+import heroWall5 from "../assets/landing/hero-wall-5.jpg";
+import heroWall6 from "../assets/landing/hero-wall-6.jpg";
+import heroWall7 from "../assets/landing/hero-wall-7.jpg";
+import heroWall8 from "../assets/landing/hero-wall-8.jpg";
+import heroWall9 from "../assets/landing/hero-wall-9.jpg";
+import heroWall10 from "../assets/landing/hero-wall-10.jpg";
+import heroWall11 from "../assets/landing/hero-wall-11.jpg";
+import heroWall12 from "../assets/landing/hero-wall-12.jpg";
 
-import heroBackLeft from '../assets/landing/hero-back-left.jpg';
-import heroBackRight from '../assets/landing/hero-back-right.jpg';
-import heroCenter from '../assets/landing/hero-center.jpg';
+import heroBackLeft from "../assets/landing/hero-back-left.jpg";
+import heroBackRight from "../assets/landing/hero-back-right.jpg";
+import heroCenter from "../assets/landing/hero-center.jpg";
 
-import stepDiscover from '../assets/landing/step-discover.jpg';
-import stepTag from '../assets/landing/step-tag.jpg';
-import stepSave from '../assets/landing/step-save.jpg';
+import stepDiscover from "../assets/landing/step-discover.jpg";
+import stepTag from "../assets/landing/step-tag.jpg";
+import stepSave from "../assets/landing/step-save.jpg";
 
 export default function LandingPage() {
   const { auth } = useAuth();
@@ -44,7 +44,7 @@ export default function LandingPage() {
 
     // Step connecting line scroll logic
     const handleScrollLine = () => {
-      const section = document.getElementById('how-it-works');
+      const section = document.getElementById("how-it-works");
       if (!section) return;
 
       const rect = section.getBoundingClientRect();
@@ -60,18 +60,18 @@ export default function LandingPage() {
         progress = Math.max(0, Math.min(1, progress));
       }
 
-      const line = document.getElementById('scroll-line');
+      const line = document.getElementById("scroll-line");
       if (line) {
         line.style.height = `${progress * 100}%`;
       }
 
-      const nodes = document.querySelectorAll('.step-node');
+      const nodes = document.querySelectorAll(".step-node");
       nodes.forEach((node) => {
         const nodeRect = node.parentElement.getBoundingClientRect();
         if (nodeRect.top < startTrigger) {
-          node.style.transform = 'translate(-50%, -50%) scale(1)';
+          node.style.transform = "translate(-50%, -50%) scale(1)";
         } else {
-          node.style.transform = 'translate(-50%, -50%) scale(0)';
+          node.style.transform = "translate(-50%, -50%) scale(0)";
         }
       });
     };
@@ -81,11 +81,11 @@ export default function LandingPage() {
       handleScrollLine();
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -95,27 +95,27 @@ export default function LandingPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
+            entry.target.classList.add("is-visible");
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.1, rootMargin: "0px 0px -30px 0px" },
     );
 
-    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    const revealElements = document.querySelectorAll(".reveal-on-scroll");
     revealElements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
   }, []);
 
   return (
-    <div className="font-sans text-[#475569] antialiased bg-[#f7f9fb] min-h-screen">
+    <div className="font-sans text-[#475569] antialiased bg-[#f7f9fb] min-h-screen overflow-x-hidden">
       {/* Dynamic Header Navbar */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${
           isScrolled
-            ? 'bg-[#ffffff]/95 backdrop-blur-md shadow-xs border-b border-[#E2E8F0]'
-            : 'bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]'
+            ? "bg-[#ffffff]/95 backdrop-blur-md shadow-xs border-b border-[#E2E8F0]"
+            : "bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]"
         }`}
       >
         <div className="flex justify-between items-center max-w-container-max mx-auto px-md h-16">
@@ -180,7 +180,8 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg md:text-xl text-[#475569] max-w-xl leading-relaxed font-normal">
-              Browse thousands of curated workspaces, tag mechanical keyboards & gear specs, and save inspiration into custom collections.
+              Browse thousands of curated workspaces, tag mechanical keyboards &
+              gear specs, and save inspiration into custom collections.
             </p>
 
             {/* Hero CTAs */}
@@ -201,20 +202,37 @@ export default function LandingPage() {
           </div>
 
           {/* Right Column: 3 Seamless Infinite Marquee Columns (7 cols on lg) */}
-          <div className="lg:col-span-7 relative flex justify-center lg:justify-end gap-3.5 sm:gap-4 overflow-hidden py-4 h-[460px] sm:h-[500px] pointer-events-none select-none">
+          <div className="lg:col-span-7 relative flex justify-center lg:justify-end gap-3.5 sm:gap-4 overflow-hidden h-[460px] sm:h-[500px] pointer-events-none select-none">
             {/* Column 1: Upward Marquee */}
             <div className="flex flex-col gap-4 w-36 sm:w-44 lg:w-44 shrink-0 overflow-hidden h-full">
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up">
                 {col1Images.map((img, idx) => (
-                  <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={idx}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-4 shrink-0 animate-marquee-up" aria-hidden="true">
+              <div
+                className="flex flex-col gap-4 shrink-0 animate-marquee-up"
+                aria-hidden="true"
+              >
                 {col1Images.map((img, idx) => (
-                  <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={`dup-${idx}`}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -224,15 +242,32 @@ export default function LandingPage() {
             <div className="flex flex-col gap-4 w-36 sm:w-44 lg:w-44 shrink-0 overflow-hidden h-full">
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-down">
                 {col2Images.map((img, idx) => (
-                  <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={idx}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-4 shrink-0 animate-marquee-down" aria-hidden="true">
+              <div
+                className="flex flex-col gap-4 shrink-0 animate-marquee-down"
+                aria-hidden="true"
+              >
                 {col2Images.map((img, idx) => (
-                  <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={`dup-${idx}`}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -242,15 +277,32 @@ export default function LandingPage() {
             <div className="hidden sm:flex flex-col gap-4 w-36 sm:w-44 lg:w-44 shrink-0 overflow-hidden h-full">
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up-slow">
                 {col3Images.map((img, idx) => (
-                  <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={idx}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-4 shrink-0 animate-marquee-up-slow" aria-hidden="true">
+              <div
+                className="flex flex-col gap-4 shrink-0 animate-marquee-up-slow"
+                aria-hidden="true"
+              >
                 {col3Images.map((img, idx) => (
-                  <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div
+                    key={`dup-${idx}`}
+                    className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0"
+                  >
+                    <img
+                      src={img}
+                      alt={`Setup ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -261,7 +313,7 @@ export default function LandingPage() {
 
       {/* Featured Showcase Interactive Hero Mockup */}
       <section className="max-w-container-max mx-auto px-md pb-16 reveal-on-scroll">
-        <div className="relative w-full max-w-5xl mx-auto">
+        <div className="relative w-full max-w-5xl mx-auto overflow-hidden">
           {/* Back Left Photo */}
           <div className="absolute -left-12 -top-12 w-64 h-64 md:w-80 md:h-80 -rotate-3 z-0 rounded-xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-lg hidden sm:block transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:rotate-0 cursor-pointer">
             <img
@@ -290,7 +342,7 @@ export default function LandingPage() {
               {/* Tag 1: Mechanical Keyboard */}
               <div
                 className="absolute bottom-[20%] left-[45%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: '0.35s' }}
+                style={{ animationDelay: "0.35s" }}
               >
                 <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
                   Mechanical Keyboard
@@ -301,7 +353,7 @@ export default function LandingPage() {
               {/* Tag 2: Monitor Light Bar */}
               <div
                 className="absolute top-[25%] left-[50%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: '0.7s' }}
+                style={{ animationDelay: "0.7s" }}
               >
                 <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
                   Monitor Light Bar
@@ -312,7 +364,7 @@ export default function LandingPage() {
               {/* Tag 3: Widescreen Monitor */}
               <div
                 className="absolute top-[40%] right-[30%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: '1.0s' }}
+                style={{ animationDelay: "1.0s" }}
               >
                 <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
                   Widescreen Monitor
@@ -323,7 +375,7 @@ export default function LandingPage() {
               {/* Tag 4: Cable Tray */}
               <div
                 className="absolute bottom-[10%] right-[40%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: '1.35s' }}
+                style={{ animationDelay: "1.35s" }}
               >
                 <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
                   Cable Tray
@@ -347,7 +399,7 @@ export default function LandingPage() {
             <div
               className="absolute top-0 left-0 w-full bg-[#0066ff] transition-all duration-100 ease-out rounded-full"
               id="scroll-line"
-              style={{ height: '0%' }}
+              style={{ height: "0%" }}
             ></div>
           </div>
         </div>
@@ -370,9 +422,13 @@ export default function LandingPage() {
             <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
               Step 01
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">Discover.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
+              Discover.
+            </h2>
             <p className="text-base text-[#475569] leading-relaxed">
-              Get inspired by the world's most beautiful workspaces. Browse curated feeds of minimalist, productive, and creative setups from designers, developers, and creators globally.
+              Get inspired by the world's most beautiful workspaces. Browse
+              curated feeds of minimalist, productive, and creative setups from
+              designers, developers, and creators globally.
             </p>
           </div>
         </div>
@@ -386,9 +442,13 @@ export default function LandingPage() {
             <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
               Step 02
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">Tag.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
+              Tag.
+            </h2>
             <p className="text-base text-[#475569] leading-relaxed">
-              See exactly what gear makes the setup. From custom mechanical keyboards to 4k monitors and acoustic panels, hover over tags to discover specs, brands, and where to buy.
+              See exactly what gear makes the setup. From custom mechanical
+              keyboards to 4k monitors and acoustic panels, hover over tags to
+              discover specs, brands, and where to buy.
             </p>
           </div>
           <div className="rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:border-[#0066ff]/40 cursor-pointer">
@@ -416,9 +476,13 @@ export default function LandingPage() {
             <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
               Step 03
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">Save.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
+              Save.
+            </h2>
             <p className="text-base text-[#475569] leading-relaxed">
-              Organize your favorite finds into personal collections. Build mood boards for your future office renovation, save specific keyboard builds, or track cable management ideas.
+              Organize your favorite finds into personal collections. Build mood
+              boards for your future office renovation, save specific keyboard
+              builds, or track cable management ideas.
             </p>
           </div>
         </div>
@@ -480,12 +544,8 @@ export default function LandingPage() {
             <span className="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2">
               Legal
             </span>
-            <span className="text-sm text-[#475569]">
-              Privacy
-            </span>
-            <span className="text-sm text-[#475569]">
-              Terms
-            </span>
+            <span className="text-sm text-[#475569]">Privacy</span>
+            <span className="text-sm text-[#475569]">Terms</span>
           </div>
         </div>
       </footer>
