@@ -65,8 +65,8 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
+      <div className="flex items-center justify-between mb-4 sm:mb-8">
+        <h2 className="text-xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
           Your Setups ({setups.length})
         </h2>
       </div>

@@ -10,7 +10,7 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   return (
-    <section className="flex flex-col gap-6 mb-8 sm:mb-12">
+    <section className="flex flex-col gap-3 sm:gap-6 mb-4 sm:mb-8">
       <SuggestFeatureModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
@@ -18,11 +18,11 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
 
       {/* Avatar, User Details & Desktop Top-Right Actions Row */}
       <div className="flex flex-row items-center justify-between gap-4 sm:gap-6 w-full">
-        <div className="flex flex-row items-center gap-4 sm:gap-6 min-w-0 flex-1">
+        <div className="flex flex-row items-center gap-3 sm:gap-6 min-w-0 flex-1">
           {/* Avatar Container */}
           <div className="relative shrink-0">
             <div
-              className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-2 sm:border-4 shadow-md overflow-hidden flex items-center justify-center text-white"
+              className="w-16 h-16 sm:w-32 sm:h-32 rounded-full border-2 sm:border-4 shadow-md overflow-hidden flex items-center justify-center text-white"
               style={{
                 borderColor: "#ffffff",
                 background: "linear-gradient(135deg, #0066ff 0%, #5a27f1 100%)",
@@ -35,7 +35,7 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-black text-2xl sm:text-4xl uppercase tracking-wider">
+                <span className="font-black text-xl sm:text-4xl uppercase tracking-wider">
                   {user?.username ? user.username.charAt(0) : "U"}
                 </span>
               )}
@@ -45,7 +45,7 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
           {/* Username & Email */}
           <div className="flex-1 min-w-0">
             <h1
-              className="text-2xl sm:text-3xl md:text-4xl font-black tracking-[-0.033em] truncate"
+              className="text-xl sm:text-3xl md:text-4xl font-black tracking-[-0.033em] truncate"
               style={{ color: "#0F172A" }}
             >
               @{user?.username}
@@ -104,27 +104,27 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
 
       {/* Bio */}
       {user?.bio ? (
-        <p className="max-w-2xl text-base leading-relaxed" style={{ color: "#475569" }}>
+        <p className="max-w-2xl text-xs sm:text-base leading-normal" style={{ color: "#475569" }}>
           {user.bio}
         </p>
       ) : null}
 
       {/* Stats */}
-      <div className="flex items-center justify-start gap-8 mt-2">
+      <div className="flex items-center justify-start gap-6 sm:gap-8 mt-1 sm:mt-2">
         <div className="flex flex-col items-start">
-          <span className="font-extrabold text-2xl" style={{ color: "#0F172A" }}>
+          <span className="font-extrabold text-lg sm:text-2xl" style={{ color: "#0F172A" }}>
             {setupCount}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
             Setups
           </span>
         </div>
 
         <div className="flex flex-col items-start">
-          <span className="font-extrabold text-2xl text-[#0F172A]">
+          <span className="font-extrabold text-lg sm:text-2xl text-[#0F172A]">
             {totalLikes}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
             Total Likes
           </span>
         </div>

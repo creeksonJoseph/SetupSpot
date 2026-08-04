@@ -104,10 +104,10 @@ export default function Layout() {
                     {isAccountPage ? (
                         <button
                             onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                            className="p-2 text-[#0F172A] hover:text-[#0066ff] rounded-xl hover:bg-slate-100 transition-colors focus:outline-none"
+                            className="p-2 text-[#0F172A] hover:text-[#0066ff] rounded-xl hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
                             aria-label="Account Settings Menu"
                         >
-                            {accountMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            {accountMenuOpen ? <X size={24} /> : <Settings size={24} />}
                         </button>
                     ) : (
                         <Link

@@ -45,7 +45,7 @@ const AccountPage = () => {
         <UserProfileHeader user={user} handleLogout={handleLogout} />
 
         {/* Divider */}
-        <div className="h-px w-full bg-slate-200 dark:bg-slate-800 mb-12" />
+        <div className="h-px w-full bg-slate-200 dark:bg-slate-800 mb-4 sm:mb-8" />
 
         {/* Your Posts Section */}
         <UserSetupsGrid setups={user.setups || []} deleteSetup={deleteSetup} />
