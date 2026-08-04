@@ -74,6 +74,26 @@ html, body, #root {
   }
 }
 
+@keyframes popInSequential {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.85);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-tag-seq {
+  opacity: 0;
+  animation: popInSequential 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .fade-in-up,
 .animate-fade-in-up {
   opacity: 0;

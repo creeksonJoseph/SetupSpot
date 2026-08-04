@@ -112,11 +112,10 @@ export default function LandingPage() {
     <div className="font-sans text-[#475569] antialiased bg-[#f7f9fb] min-h-screen overflow-x-hidden">
       {/* Dynamic Header Navbar */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${
-          isScrolled
-            ? "bg-[#ffffff]/95 backdrop-blur-md shadow-xs border-b border-[#E2E8F0]"
-            : "bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]"
-        }`}
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${isScrolled
+          ? "bg-[#ffffff]/95 backdrop-blur-md shadow-xs border-b border-[#E2E8F0]"
+          : "bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]"
+          }`}
       >
         <div className="flex justify-between items-center max-w-container-max mx-auto px-md h-16">
           {/* Official SetupSpot Brand Logo */}
@@ -312,76 +311,82 @@ export default function LandingPage() {
       </section>
 
       {/* Featured Showcase Interactive Hero Mockup */}
-      <section className="max-w-container-max mx-auto px-md pb-16 reveal-on-scroll">
-        <div className="relative w-full max-w-5xl mx-auto overflow-hidden">
-          {/* Back Left Photo */}
-          <div className="absolute -left-12 -top-12 w-64 h-64 md:w-80 md:h-80 -rotate-3 z-0 rounded-xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-lg hidden sm:block transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:rotate-0 cursor-pointer">
+      <section className="max-w-container-max mx-auto px-md py-12 reveal-on-scroll">
+        <div className="relative w-full max-w-5xl mx-auto pt-8 pb-4">
+          {/* Back Left Supporting Photo (Tucked behind back corner at -rotate-6) */}
+          <div className="absolute -left-6 sm:-left-12 -top-4 sm:-top-8 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 -rotate-6 z-0 rounded-2xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-xl hidden sm:block transition-all duration-300 ease-out hover:-translate-y-2 hover:rotate-0 hover:shadow-2xl hover:z-20 cursor-pointer">
             <img
               className="w-full h-full object-cover"
-              alt="Minimal mechanical keyboard and mouse setup"
+              alt="Minimal mechanical keyboard setup"
               src={heroBackLeft}
             />
           </div>
-          {/* Back Right Photo */}
-          <div className="absolute -right-12 -top-8 w-64 h-64 md:w-80 md:h-80 rotate-3 z-0 rounded-xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-lg hidden sm:block transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:rotate-0 cursor-pointer">
+
+          {/* Back Right Supporting Photo (Tucked behind back corner at rotate-6) */}
+          <div className="absolute -right-6 sm:-right-12 -top-2 sm:-top-6 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 rotate-6 z-0 rounded-2xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-xl hidden sm:block transition-all duration-300 ease-out hover:-translate-y-2 hover:rotate-0 hover:shadow-2xl hover:z-20 cursor-pointer">
             <img
               className="w-full h-full object-cover"
-              alt="Organized desk drawer with cables and tools"
+              alt="Organized desk gear and cables"
               src={heroBackRight}
             />
           </div>
-          {/* Main Center Photo */}
-          <div className="relative z-10 w-full aspect-video rounded-2xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] cursor-pointer">
+
+          {/* Main Focal Center Desk Photo */}
+          <div className="relative z-10 w-full aspect-video rounded-3xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.18)] cursor-pointer">
             <img
               className="w-full h-full object-cover"
-              alt="Modern minimalist desk setup"
+              alt="Beautifully organized desk setup"
               src={heroCenter}
             />
-            {/* Animated Equipment Tags Overlay */}
+
+            {/* Sequential Animated Equipment Tag Callouts */}
             <div className="absolute inset-0 pointer-events-none">
-              {/* Tag 1: Mechanical Keyboard */}
+              {/* Tag 1: Mechanical Keyboard (Delay 0.4s) */}
               <div
-                className="absolute bottom-[20%] left-[45%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: "0.35s" }}
+                className="absolute bottom-[22%] left-[44%] flex flex-col items-center animate-tag-seq"
+                style={{ animationDelay: '0.4s' }}
               >
-                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-md mb-2 whitespace-nowrap border border-[#0066ff]/15">
                   Mechanical Keyboard
                 </div>
-                <div className="w-px h-6 bg-white/80 shadow-xs"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                <div className="w-px h-7 bg-white/90 shadow-xs"></div>
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_0_4px_rgba(0,102,255,0.25)]"></div>
               </div>
-              {/* Tag 2: Monitor Light Bar */}
+
+              {/* Tag 2: Monitor Light Bar (Delay 0.9s) */}
               <div
-                className="absolute top-[25%] left-[50%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: "0.7s" }}
+                className="absolute top-[22%] left-[48%] flex flex-col items-center animate-tag-seq"
+                style={{ animationDelay: '0.9s' }}
               >
-                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-md mb-2 whitespace-nowrap border border-[#0066ff]/15">
                   Monitor Light Bar
                 </div>
-                <div className="w-px h-8 bg-white/80 shadow-xs"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                <div className="w-px h-8 bg-white/90 shadow-xs"></div>
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_0_4px_rgba(0,102,255,0.25)]"></div>
               </div>
-              {/* Tag 3: Widescreen Monitor */}
+
+              {/* Tag 3: Widescreen Monitor (Delay 1.4s) */}
               <div
-                className="absolute top-[40%] right-[30%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: "1.0s" }}
+                className="absolute top-[38%] right-[28%] flex flex-col items-center animate-tag-seq"
+                style={{ animationDelay: '1.4s' }}
               >
-                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-md mb-2 whitespace-nowrap border border-[#0066ff]/15">
                   Widescreen Monitor
                 </div>
-                <div className="w-px h-10 bg-white/80 shadow-xs"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                <div className="w-px h-10 bg-white/90 shadow-xs"></div>
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_0_4px_rgba(0,102,255,0.25)]"></div>
               </div>
-              {/* Tag 4: Cable Tray */}
+
+              {/* Tag 4: Cable Tray (Delay 1.9s) */}
               <div
-                className="absolute bottom-[10%] right-[40%] flex flex-col items-center animate-fade-in-up"
-                style={{ animationDelay: "1.35s" }}
+                className="absolute bottom-[12%] right-[38%] flex flex-col items-center animate-tag-seq"
+                style={{ animationDelay: '1.9s' }}
               >
-                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs mb-2 whitespace-nowrap">
+                <div className="bg-[#e6f0ff] text-[#0066ff] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-md mb-2 whitespace-nowrap border border-[#0066ff]/15">
                   Cable Tray
                 </div>
-                <div className="w-px h-12 bg-white/80 shadow-xs"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.3)]"></div>
+                <div className="w-px h-10 bg-white/90 shadow-xs"></div>
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_0_4px_rgba(0,102,255,0.25)]"></div>
               </div>
             </div>
           </div>
@@ -419,9 +424,6 @@ export default function LandingPage() {
             />
           </div>
           <div className="order-1 lg:order-2 space-y-4 lg:pl-lg">
-            <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
-              Step 01
-            </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
               Discover.
             </h2>
@@ -439,9 +441,6 @@ export default function LandingPage() {
             <div className="w-5 h-5 rounded-full bg-[#0066ff] shadow-md border-4 border-[#f7f9fb]"></div>
           </div>
           <div className="space-y-4 lg:pr-lg">
-            <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
-              Step 02
-            </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
               Tag.
             </h2>
@@ -473,9 +472,6 @@ export default function LandingPage() {
             />
           </div>
           <div className="order-1 lg:order-2 space-y-4 lg:pl-lg">
-            <div className="text-xs font-semibold text-[#0066ff] uppercase tracking-wider">
-              Step 03
-            </div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
               Save.
             </h2>
