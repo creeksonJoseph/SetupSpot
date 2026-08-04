@@ -29,7 +29,7 @@ export const AnnotationView = ({
   handleSaveData,
   loading,
 }) => (
-  <div className="w-full flex-1 flex flex-col md:grid md:grid-cols-[1fr_280px_320px] gap-4 md:h-[calc(100vh-120px)] overflow-y-auto md:overflow-hidden pb-16 md:pb-0">
+  <div className="w-full flex-1 flex flex-col md:grid md:grid-cols-[1fr_340px_280px] gap-4 pb-16 md:pb-0">
     {/* ── Column 1: Setup Title & Interactive Image Canvas ── */}
     <div
       className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
@@ -68,36 +68,87 @@ export const AnnotationView = ({
               style={{ maxHeight: "calc(100vh - 260px)" }}
               draggable={false}
             />
-            {/* Hotspot Pins */}
-            {annotations.map((ann) => (
-              <div
-                key={ann.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedAnnotationId(ann.id);
-                }}
-                className={`absolute w-6 h-6 rounded-full border-2 cursor-pointer transition-all duration-200 transform ${
-                  ann.id === selectedAnnotationId
-                    ? "bg-red-500 border-white scale-125 ring-4 ring-red-300 z-10"
-                    : "bg-white border-[#E2E8F0] hover:bg-blue-50"
-                }`}
-                style={{
-                  left: `${ann.x}%`,
-                  top: `${ann.y}%`,
-                  transform: "translate(-50%, -50%)",
-                }}
-                title={ann.name || "Click to edit"}
-              >
-                <span
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] font-bold pointer-events-none"
-                  style={{
-                    color: ann.id === selectedAnnotationId ? "#ffffff" : "#0F172A",
+            {/* Hotspot Pins with Dotted Leader Line & Offset Number Badges */}
+            {annotations.map((ann, idx) => {
+              const isSelected = ann.id === selectedAnnotationId;
+              const num = idx + 1;
+
+              return (
+                <div
+                  key={ann.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedAnnotationId(ann.id);
                   }}
+                  className="absolute group cursor-pointer z-10 select-none"
+                  style={{
+                    left: `${ann.x}%`,
+                    top: `${ann.y}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  title={ann.name || `Gear item #${num}`}
                 >
-                  {annotations.findIndex((a) => a.id === ann.id) + 1}
-                </span>
-              </div>
-            ))}
+                  {/* 1. Hotspot Target Focal Dot at (0, 0) */}
+                  <div className="relative flex items-center justify-center">
+                    <span
+                      className={`absolute w-5 h-5 rounded-full animate-ping ${
+                        isSelected ? "bg-[#0066ff] opacity-75" : "bg-slate-400 opacity-30"
+                      }`}
+                    />
+                    <span
+                      className={`relative w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-all ${
+                        isSelected
+                          ? "bg-[#0066ff] scale-125 ring-2 ring-[#0066ff]/40"
+                          : "bg-slate-900 hover:scale-110 hover:bg-[#0066ff]"
+                      }`}
+                    />
+                  </div>
+
+                  {/* 2. Dotted Leader Line starting directly at center of focal dot */}
+                  <svg
+                    className="absolute pointer-events-none overflow-visible"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      width: "24px",
+                      height: "44px",
+                      transform: "translate(-12px, -44px)",
+                    }}
+                    viewBox="0 0 24 44"
+                  >
+                    <line
+                      x1="12"
+                      y1="44"
+                      x2="12"
+                      y2="0"
+                      stroke={isSelected ? "#0066ff" : "#475569"}
+                      strokeWidth="2"
+                      strokeDasharray="2.5 2.5"
+                    />
+                  </svg>
+
+                  {/* 3. Number Badge positioned directly at the top of the leader line */}
+                  <div
+                    className="absolute pointer-events-none flex items-center justify-center"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -56px)",
+                    }}
+                  >
+                    <div
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-black shadow-lg border transition-all duration-200 pointer-events-auto flex items-center justify-center min-w-[22px] h-[22px] ${
+                        isSelected
+                          ? "bg-[#0066ff] text-white border-white ring-2 ring-[#0066ff]/30 scale-110"
+                          : "bg-[#0F172A] text-white border-slate-700 hover:bg-[#0066ff]"
+                      }`}
+                    >
+                      {num}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center text-slate-400 py-12">
@@ -111,81 +162,16 @@ export const AnnotationView = ({
       </p>
     </div>
 
-    {/* ── Column 2: Tagged Items List ── */}
+    {/* ── Column 2: Item Details Input Form & Save Action ── */}
     <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
-    >
-      <div
-        className="flex justify-between items-center pb-3 border-b shrink-0"
-        style={{ borderColor: "#E2E8F0" }}
-      >
-        <h3 className={`text-xs sm:text-sm font-black ${textPrimary}`}>
-          Tagged Items ({annotations.length})
-        </h3>
-        <Tag size={16} className="text-[#0066ff]" />
-      </div>
-
-      <div className="flex-1 min-h-0 flex flex-col mt-2">
-        <div className="max-h-60 md:max-h-none overflow-y-auto space-y-2 pr-1">
-          {annotations.length === 0 ? (
-            <p className={`text-xs text-center py-6 ${textSecondary}`}>
-              Tap anywhere on your setup photo to tag items.
-            </p>
-          ) : (
-            annotations.map((ann, index) => (
-              <div
-                key={ann.id}
-                onClick={() => setSelectedAnnotationId(ann.id)}
-                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
-                  ann.id === selectedAnnotationId
-                    ? "bg-blue-50/80 border-[#0066ff]/40 shadow-xs"
-                    : "border-slate-100 hover:bg-slate-50"
-                }`}
-              >
-                <span
-                  className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black shrink-0"
-                  style={{
-                    backgroundColor:
-                      ann.id === selectedAnnotationId ? "#0066ff" : "#94A3B8",
-                  }}
-                >
-                  {index + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold truncate ${textPrimary}`}>
-                    {ann.name || "Untitled Item"}
-                  </p>
-                  <p className="text-[11px] font-semibold text-[#0066ff] mt-0.5">
-                    {ann.price || "Set Price"}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveAnnotation(ann.id);
-                  }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                  title="Remove item"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-
-    {/* ── Column 3: Item Form & Save Action ── */}
-    <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden justify-between ${cardBg}`}
+      className={`p-4 rounded-none shadow-sm border flex flex-col h-auto md:h-full overflow-hidden justify-between ${cardBg}`}
     >
       <div className="flex-1 overflow-y-auto min-h-0">
         {!selectedAnnotation ? (
-          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-none border border-dashed border-slate-200">
             <Edit3 size={24} className="text-slate-400 mb-2" />
             <p className={`text-xs ${textSecondary}`}>
-              Select a pin on the photo to edit name, link, and price details.
+              Select a pin on the photo to edit item name, store link, and price.
             </p>
           </div>
         ) : (
@@ -276,6 +262,71 @@ export const AnnotationView = ({
             </span>
           </div>
         )}
+      </div>
+    </div>
+
+    {/* ── Column 3: Tagged Items List ── */}
+    <div
+      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
+    >
+      <div
+        className="flex justify-between items-center pb-3 border-b shrink-0"
+        style={{ borderColor: "#E2E8F0" }}
+      >
+        <h3 className={`text-xs sm:text-sm font-black ${textPrimary}`}>
+          Tagged Items ({annotations.length})
+        </h3>
+        <Tag size={16} className="text-[#0066ff]" />
+      </div>
+
+      <div className="flex-1 min-h-0 flex flex-col mt-2">
+        <div className="max-h-60 md:max-h-none overflow-y-auto space-y-2 pr-1">
+          {annotations.length === 0 ? (
+            <p className={`text-xs text-center py-6 ${textSecondary}`}>
+              Tap anywhere on your setup photo to tag items.
+            </p>
+          ) : (
+            annotations.map((ann, index) => (
+              <div
+                key={ann.id}
+                onClick={() => setSelectedAnnotationId(ann.id)}
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
+                  ann.id === selectedAnnotationId
+                    ? "bg-blue-50/80 border-[#0066ff]/40 shadow-xs"
+                    : "border-slate-100 hover:bg-slate-50"
+                }`}
+              >
+                <span
+                  className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black shrink-0"
+                  style={{
+                    backgroundColor:
+                      ann.id === selectedAnnotationId ? "#0066ff" : "#94A3B8",
+                  }}
+                >
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold truncate ${textPrimary}`}>
+                    {ann.name || "Untitled Item"}
+                  </p>
+                  <p className="text-[11px] font-semibold text-[#0066ff] mt-0.5">
+                    {ann.price || "Set Price"}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveAnnotation(ann.id);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="Remove item"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   </div>

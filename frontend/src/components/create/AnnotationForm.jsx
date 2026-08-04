@@ -10,7 +10,7 @@ export const AnnotationForm = React.memo(
         </h4>
         <button
           onClick={() => onRemove(annotation.id)}
-          className="p-1.5 rounded-lg transition-colors text-rose-600 hover:bg-rose-50"
+          className="p-1.5 rounded-none transition-colors text-rose-600 hover:bg-rose-50 cursor-pointer"
           title="Remove Item"
         >
           <Trash2 size={16} />
@@ -23,7 +23,7 @@ export const AnnotationForm = React.memo(
         value={annotation.name}
         onChange={(e) => onChange(annotation.id, e)}
         placeholder="Product Name (e.g. Apple Studio Display)"
-        className="w-full p-2.5 border rounded-lg text-xs outline-none transition-all"
+        className="w-full p-2.5 border rounded-none text-xs outline-none transition-all"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
         onFocus={(e) => (e.target.style.borderColor = "#0066ff")}
         onBlur={(e) => (e.target.style.borderColor = "#E2E8F0")}
@@ -34,7 +34,7 @@ export const AnnotationForm = React.memo(
         value={annotation.price}
         onChange={(e) => onChange(annotation.id, e)}
         placeholder="Price (e.g. $1,599)"
-        className="w-full p-2.5 border rounded-lg text-xs outline-none transition-all"
+        className="w-full p-2.5 border rounded-none text-xs outline-none transition-all"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
         onFocus={(e) => (e.target.style.borderColor = "#0066ff")}
         onBlur={(e) => (e.target.style.borderColor = "#E2E8F0")}
@@ -45,7 +45,7 @@ export const AnnotationForm = React.memo(
         value={annotation.link}
         onChange={(e) => onChange(annotation.id, e)}
         placeholder="Merchant Link (e.g. https://apple.com/...)"
-        className="w-full p-2.5 border rounded-lg text-xs outline-none transition-all"
+        className="w-full p-2.5 border rounded-none text-xs outline-none transition-all"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
         onFocus={(e) => (e.target.style.borderColor = "#0066ff")}
         onBlur={(e) => (e.target.style.borderColor = "#E2E8F0")}
@@ -56,7 +56,7 @@ export const AnnotationForm = React.memo(
         onChange={(e) => onChange(annotation.id, e)}
         placeholder="Item description (optional)"
         rows={3}
-        className="w-full p-2.5 border rounded-lg text-xs outline-none transition-all resize-none"
+        className="w-full p-2.5 border rounded-none text-xs outline-none transition-all resize-none"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0", color: "#0F172A" }}
         onFocus={(e) => (e.target.style.borderColor = "#0066ff")}
         onBlur={(e) => (e.target.style.borderColor = "#E2E8F0")}

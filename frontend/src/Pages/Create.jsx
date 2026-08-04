@@ -34,7 +34,7 @@ const Create = () => {
   } = useCreateSetup();
 
   return (
-    <div className="flex flex-col h-auto min-h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] overflow-y-auto md:overflow-hidden font-sans p-4 sm:p-6 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col w-full max-w-7xl mx-auto font-sans">
       {/* Header bar */}
       <div className="flex justify-between items-center pb-4 shrink-0">
         <div>
@@ -53,7 +53,7 @@ const Create = () => {
       </div>
 
       {/* Main Viewport Content */}
-      <div className="flex-1 flex items-center justify-center overflow-y-auto md:overflow-hidden w-full">
+      <div className="flex-1 w-full">
         {isAnnotating ? (
           <AnnotationView
             cardBg={cardBg}
