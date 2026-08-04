@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, Settings, UserCheck, ShieldCheck, MessageSquarePlus, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LandingHeader from './landing/LandingHeader'
+import { SuggestFeatureModal } from './feedback/SuggestFeatureModal'
 
 export default function Layout() {
     const location = useLocation()
-    const { auth } = useAuth()
+    const navigate = useNavigate()
+    const { auth, logout } = useAuth()
     const isLoggedIn = Boolean(auth?.token || auth?.user)
     const username = auth?.username || auth?.user?.username || auth?.user?.email?.split('@')[0]
     const email = auth?.email || auth?.user?.email
@@ -14,6 +17,10 @@ export default function Layout() {
     const initialLetter = username ? username[0].toUpperCase() : 'U'
 
     const [isScrolled, setIsScrolled] = useState(false)
+    const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+    const [showSuggestModal, setShowSuggestModal] = useState(false)
+
+    const isAccountPage = location.pathname.startsWith('/account')
 
     useEffect(() => {
         const handleScroll = () => {
@@ -39,6 +46,7 @@ export default function Layout() {
 
     const activeTab = getActiveTab()
 
+    // Desktop & Mobile Nav Items (2nd icon is Search leading to /search)
     const navItems = [
         { key: 'explore', icon: 'grid_view', title: 'Explore', path: '/explore' },
         { key: 'search', icon: 'search', title: 'Search', path: '/search' },
@@ -68,10 +76,15 @@ export default function Layout() {
     }
 
     // AUTHENTICATED APP LAYOUT:
-    // Mobile (< md): Top Header with Avatar + Bottom Navigation Bar
+    // Mobile (< md): Top Header with Avatar / Hamburger on Profile + Bottom Navigation Bar
     // Desktop (>= md): Full-height Sidebar with Logo at top & Avatar at bottom (No Top Header)
     return (
         <div className="min-h-screen flex flex-col font-sans bg-[#f7f9fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+            <SuggestFeatureModal
+                isOpen={showSuggestModal}
+                onClose={() => setShowSuggestModal(false)}
+            />
+
             {/* Mobile Top Navigation Header (< md ONLY) */}
             <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] z-40 flex justify-between items-center px-4 shadow-xs">
                 {/* Brand Logo */}
@@ -86,27 +99,97 @@ export default function Layout() {
                     </span>
                 </Link>
 
-                {/* Top Right: Mobile User Avatar Icon */}
+                {/* Top Right: Hamburger Menu on Profile Page vs Avatar Icon on other pages */}
                 <div className="flex items-center gap-3">
-                    <Link
-                        to="/account"
-                        className="flex items-center gap-2 group p-0.5 rounded-full hover:ring-2 hover:ring-[#0066ff]/20 transition-all"
-                        title={username || "Account"}
-                    >
-                        {avatarUrl ? (
-                            <img
-                                src={avatarUrl}
-                                alt={username || "User Avatar"}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-[#0066ff] shadow-xs transition-transform duration-200 group-hover:scale-105"
-                            />
-                        ) : (
-                            <div className="w-9 h-9 rounded-full bg-[#0066ff] text-white flex items-center justify-center font-bold text-sm shadow-xs transition-transform duration-200 group-hover:scale-105">
-                                {initialLetter}
-                            </div>
-                        )}
-                    </Link>
+                    {isAccountPage ? (
+                        <button
+                            onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                            className="p-2 text-[#0F172A] hover:text-[#0066ff] rounded-xl hover:bg-slate-100 transition-colors focus:outline-none"
+                            aria-label="Account Settings Menu"
+                        >
+                            {accountMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    ) : (
+                        <Link
+                            to="/account"
+                            className="flex items-center gap-2 group p-0.5 rounded-full hover:ring-2 hover:ring-[#0066ff]/20 transition-all"
+                            title={username || "Account"}
+                        >
+                            {avatarUrl ? (
+                                <img
+                                    src={avatarUrl}
+                                    alt={username || "User Avatar"}
+                                    className="w-9 h-9 rounded-full object-cover border-2 border-[#0066ff] shadow-xs transition-transform duration-200 group-hover:scale-105"
+                                />
+                            ) : (
+                                <div className="w-9 h-9 rounded-full bg-[#0066ff] text-white flex items-center justify-center font-bold text-sm shadow-xs transition-transform duration-200 group-hover:scale-105">
+                                    {initialLetter}
+                                </div>
+                            )}
+                        </Link>
+                    )}
                 </div>
             </header>
+
+            {/* Account Page Hamburger Menu Overlay for Mobile */}
+            {isAccountPage && accountMenuOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+                        onClick={() => setAccountMenuOpen(false)}
+                        aria-hidden="true"
+                    />
+                    <div className="fixed top-16 right-4 z-50 w-64 bg-white rounded-2xl p-3 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
+                        <div className="flex flex-col gap-1.5">
+                            <button
+                                onClick={() => {
+                                    setAccountMenuOpen(false)
+                                    navigate('/settings?tab=profile')
+                                }}
+                                className="flex items-center gap-2.5 text-xs font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors w-full text-left cursor-pointer"
+                            >
+                                <UserCheck size={16} />
+                                <span>Edit Account Details</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setAccountMenuOpen(false)
+                                    navigate('/settings?tab=security')
+                                }}
+                                className="flex items-center gap-2.5 text-xs font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors w-full text-left cursor-pointer"
+                            >
+                                <ShieldCheck size={16} />
+                                <span>Password & Security</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setAccountMenuOpen(false)
+                                    setShowSuggestModal(true)
+                                }}
+                                className="flex items-center gap-2.5 text-xs font-semibold text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#0066ff]/10 transition-colors w-full text-left cursor-pointer"
+                            >
+                                <MessageSquarePlus size={16} />
+                                <span>Suggest Feature / Report Problem</span>
+                            </button>
+
+                            <div className="h-px w-full bg-[#E2E8F0] my-1" />
+
+                            <button
+                                onClick={() => {
+                                    setAccountMenuOpen(false)
+                                    logout()
+                                }}
+                                className="flex items-center gap-2.5 text-xs font-bold text-red-600 hover:text-red-700 py-2.5 px-3 rounded-xl hover:bg-red-50 transition-colors w-full text-left cursor-pointer"
+                            >
+                                <LogOut size={16} />
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* Desktop Left Sidebar (>= md ONLY) — Full Height Top to Bottom */}
             <nav className="hidden md:flex w-20 fixed left-0 top-0 bottom-0 flex-col items-center py-6 z-30 border-r bg-white border-[#E2E8F0] justify-between">

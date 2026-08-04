@@ -5,10 +5,10 @@ export const DeletePostModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Delete Setup Post?",
+  title = "Delete Setup?",
   setupTitle,
   setupImage,
-  confirmText = "Delete Post",
+  confirmText = "Delete Setup",
   description,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -94,7 +94,6 @@ export const DeletePostModal = ({
           </p>
         </div>
 
-
         {/* Thumbnail Preview */}
         {setupImage && (
           <div className="mt-3.5 mb-1 rounded-xl overflow-hidden border h-28 relative" style={{ borderColor: '#E2E8F0' }}>
@@ -108,7 +107,7 @@ export const DeletePostModal = ({
             <div className="flex justify-between items-center text-xs font-semibold" style={{ color: '#0F172A' }}>
               <span className="flex items-center gap-1.5" style={{ color: '#ba1a1a' }}>
                 <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: '#ba1a1a' }} />
-                Deleting post...
+                Deleting setup...
               </span>
               <span>{progress}%</span>
             </div>

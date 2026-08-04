@@ -67,7 +67,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
-          Your Posts ({setups.length})
+          Your Setups ({setups.length})
         </h2>
       </div>
 
@@ -84,7 +84,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
             <span className="material-symbols-outlined text-3xl">photo_camera</span>
           </div>
           <h3 className="text-lg font-bold" style={{ color: "#0F172A" }}>
-            No setups posted yet
+            No setups created yet
           </h3>
           <p className="text-sm mt-1 max-w-sm" style={{ color: "#727687" }}>
             Share your workspace setup with the community and get inspired by others.
@@ -129,7 +129,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                         setOpenMenuId((prev) => (prev === setup.id ? null : setup.id));
                       }}
                       className="flex items-center justify-center w-8 h-8 rounded-full shadow-md bg-white/90 backdrop-blur-xs text-slate-700 hover:text-slate-900 opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-200 cursor-pointer hover:bg-white"
-                      title="Post options"
+                      title="Setup options"
                     >
                       <MoreVertical size={16} />
                     </button>
@@ -157,7 +157,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                           className="flex items-center gap-2 w-full px-3 py-2 text-left rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} className="text-red-500" />
-                          <span>Delete Post</span>
+                          <span>Delete Setup</span>
                         </button>
                       </div>
                     )}
@@ -177,13 +177,11 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
           {/* Automatic Infinite Scroll Sentinel */}
           {visibleLimit < setups.length && (
             <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
-              <span className="text-xs font-medium text-slate-400">Loading more posts...</span>
+              <span className="text-xs font-medium text-slate-400">Loading more setups...</span>
             </div>
           )}
         </div>
       )}
-
-
 
       {/* Explore More Collections Footer Button */}
       {setups.length > 0 && (
@@ -205,8 +203,3 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
     </section>
   );
 };
-
-
-
-
-

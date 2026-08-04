@@ -54,20 +54,21 @@ const SettingsPage = () => {
 
           <div>
             <h1 className="text-3xl font-black leading-tight tracking-[-0.033em]" style={{ color: '#0F172A' }}>
-              Account Settings
+              {activeTab === 'security' ? 'Password & Security' : 'Edit Account Details'}
             </h1>
             <p className="text-sm font-normal leading-normal mt-1" style={{ color: '#475569' }}>
-              Update your public profile, bio, and account security preferences.
+              {activeTab === 'security'
+                ? 'Manage your account password and security preferences.'
+                : 'Update your public profile, bio, and account details.'}
             </p>
           </div>
         </div>
 
-
-        {/* Tab Selector */}
-        <div className="flex items-center gap-2 mb-5 border-b pb-2.5" style={{ borderColor: '#E2E8F0' }}>
+        {/* Tab Selector — Hidden on mobile so mobile displays strictly the selected section */}
+        <div className="hidden sm:flex items-center gap-2 mb-5 border-b pb-2.5" style={{ borderColor: '#E2E8F0' }}>
           <button
             onClick={() => setActiveTab('profile')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all cursor-pointer"
             style={{
               backgroundColor: activeTab === 'profile' ? 'rgba(0,102,255,0.08)' : 'transparent',
               color: activeTab === 'profile' ? '#0066ff' : '#727687',
@@ -78,7 +79,7 @@ const SettingsPage = () => {
           </button>
           <button
             onClick={() => setActiveTab('security')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all cursor-pointer"
             style={{
               backgroundColor: activeTab === 'security' ? 'rgba(0,102,255,0.08)' : 'transparent',
               color: activeTab === 'security' ? '#0066ff' : '#727687',

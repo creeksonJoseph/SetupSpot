@@ -68,7 +68,8 @@ const UserProfilePage = () => {
 
   const avatarUrl = profile.avatar_url;
   const initials = profile.username?.charAt(0)?.toUpperCase() ?? "U";
-  const setupCount = profile.post_count ?? 0;
+  const setupCount = profile.post_count ?? profile.setups?.length ?? 0;
+  const totalLikes = profile.total_likes ?? profile.setups?.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) ?? 0;
   const collectionCount = profile.collection_count ?? 0;
   const profileUrl = `${window.location.origin}/user/${profile.username}`;
 
@@ -153,6 +154,14 @@ const UserProfilePage = () => {
               </span>
               <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
                 {setupCount === 1 ? "Setup" : "Setups"}
+              </span>
+            </div>
+            <div>
+              <span className="text-lg font-black" style={{ color: "#0F172A" }}>
+                {totalLikes}
+              </span>
+              <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
+                {totalLikes === 1 ? "Like Received" : "Likes Received"}
               </span>
             </div>
             <div>
