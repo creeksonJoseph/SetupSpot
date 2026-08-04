@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
+  Camera,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -41,37 +42,34 @@ export const UploadView = ({
     stopQrSession,
   } = usePhoneUploadSocket(handleRemoteImageUrl);
 
-  // Derived: QR box should be blurred & masked when stale or reconnecting
   const isStale = isExpired || isReconnecting;
 
-  // QR container border colour signals state at a glance
   const qrBorderColor = justReconnected
-    ? "#10B981"   // emerald — fresh code ready
+    ? "#10B981"
     : isExpired
-    ? "#F59E0B"   // amber — expired
-    : "#E2E8F0";  // slate — normal
+    ? "#F59E0B"
+    : "#E2E8F0";
 
   return (
-    <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-
-      {/* ── Left Panel: Desktop File Upload Dropzone ── */}
-      <div className={`p-8 rounded-2xl shadow-sm border flex flex-col items-center justify-center text-center ${cardBg}`}>
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 shrink-0">
-          <Upload size={24} />
+    <div className="w-full max-w-6xl flex flex-col md:grid md:grid-cols-2 gap-6 items-stretch p-2 sm:p-4">
+      {/* ── Left Panel: Primary File / Camera Upload (Optimized for Mobile & Desktop) ── */}
+      <div className={`p-6 sm:p-8 rounded-3xl shadow-sm border flex flex-col items-center justify-center text-center ${cardBg}`}>
+        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0066ff] flex items-center justify-center mb-3 shrink-0">
+          <Upload size={28} />
         </div>
-        <h2 className={`text-xl font-bold mb-1 ${textPrimary}`}>
-          Upload from Computer
+        <h2 className={`text-xl sm:text-2xl font-black mb-1 ${textPrimary}`}>
+          Upload Setup Image
         </h2>
-        <p className={`text-xs mb-6 max-w-xs ${textSecondary}`}>
-          Drag and drop or select a high-quality desk setup image from your device.
+        <p className={`text-xs sm:text-sm mb-6 max-w-xs ${textSecondary}`}>
+          Take a photo or select a high-quality desk setup image from your device.
         </p>
 
         <label
           htmlFor="file-upload"
-          className="w-full flex-1 min-h-[220px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:border-blue-400 hover:bg-blue-50/20"
+          className="w-full flex-1 min-h-[200px] sm:min-h-[240px] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:border-[#0066ff] hover:bg-blue-50/20 active:scale-[0.99]"
           style={{
-            borderColor: isUploading ? "#0050cb" : "#E2E8F0",
-            backgroundColor: isUploading ? "rgba(0,80,203,0.04)" : "#f7f9fb",
+            borderColor: isUploading ? "#0066ff" : "#E2E8F0",
+            backgroundColor: isUploading ? "rgba(0,102,255,0.04)" : "#f7f9fb",
             cursor: isUploading ? "wait" : "pointer",
           }}
         >
@@ -92,13 +90,18 @@ export const UploadView = ({
                   {uploadProgress}%
                 </text>
               </svg>
-              <p className={`text-xs font-medium ${textSecondary}`}>Uploading image…</p>
+              <p className={`text-xs font-semibold ${textSecondary}`}>Uploading image…</p>
             </div>
           ) : (
             <>
-              <Image size={40} className="mb-2 text-slate-400" />
-              <p className={`text-xs font-semibold ${textPrimary}`}>Click or Drag to Select File</p>
-              <p className="text-[11px] text-slate-400 mt-1">PNG, JPG, WEBP up to 10MB</p>
+              <div className="flex items-center gap-3 mb-3">
+                <Camera size={32} className="text-[#0066ff]" />
+                <Image size={32} className="text-slate-400" />
+              </div>
+              <span className="px-5 py-2.5 rounded-xl bg-[#0066ff] text-white text-xs font-bold shadow-md hover:bg-blue-700 transition-colors mb-2">
+                Choose Photo / Take Picture
+              </span>
+              <p className="text-[11px] text-slate-400">PNG, JPG, WEBP up to 10MB</p>
             </>
           )}
           <input
@@ -112,12 +115,12 @@ export const UploadView = ({
         </label>
       </div>
 
-      {/* ── Right Panel: On-Demand Mobile QR Code Phone Upload ── */}
-      <div className={`p-8 rounded-2xl shadow-sm border flex flex-col items-center justify-center text-center relative ${cardBg}`}>
-        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 shrink-0">
-          <Smartphone size={24} />
+      {/* ── Right Panel: Desktop-Only Live QR Phone Upload ── */}
+      <div className={`hidden md:flex p-8 rounded-3xl shadow-sm border flex-col items-center justify-center text-center relative ${cardBg}`}>
+        <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 shrink-0">
+          <Smartphone size={28} />
         </div>
-        <h2 className={`text-xl font-bold mb-1 ${textPrimary}`}>
+        <h2 className={`text-2xl font-black mb-1 ${textPrimary}`}>
           Upload via Phone Camera
         </h2>
         <p className={`text-xs mb-5 max-w-xs ${textSecondary}`}>
@@ -149,7 +152,7 @@ export const UploadView = ({
           /* ── Initial state: Generate button ── */
           <button
             onClick={startQrSession}
-            className="px-6 py-3 rounded-xl font-bold text-xs text-white transition-all flex items-center justify-center gap-2.5 shadow-sm hover:bg-blue-700"
+            className="px-6 py-3 rounded-xl font-bold text-xs text-white transition-all flex items-center justify-center gap-2.5 shadow-sm hover:bg-blue-700 cursor-pointer"
             style={{ backgroundColor: "#0066ff" }}
           >
             <QrCode size={18} />
@@ -159,8 +162,6 @@ export const UploadView = ({
         ) : (
           /* ── QR active: code + state overlays ── */
           <div className="flex flex-col items-center w-full gap-2">
-
-            {/* "Connection refreshed" badge — appears above QR, fades out after 6s */}
             {justReconnected && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 animate-in fade-in slide-in-from-top-1 duration-300">
                 <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
@@ -170,7 +171,6 @@ export const UploadView = ({
               </div>
             )}
 
-            {/* QR code box — blurred & masked when stale */}
             <div
               className="relative flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner transition-colors duration-300"
               style={{
@@ -178,7 +178,6 @@ export const UploadView = ({
                 transition: "border-color 0.4s ease",
               }}
             >
-              {/* The QR code itself (or the "generating" spinner) */}
               <div
                 className="transition-all duration-300"
                 style={{
@@ -189,10 +188,6 @@ export const UploadView = ({
                 }}
               >
                 {connected && mobileUploadUrl ? (
-                  /*
-                   * key={sessionId} makes React remount QRCodeSVG on every new
-                   * session, triggering the zoom-in entrance animation automatically.
-                   */
                   <QRCodeSVG
                     key={sessionId}
                     value={mobileUploadUrl}
@@ -209,17 +204,14 @@ export const UploadView = ({
                 )}
               </div>
 
-              {/* ── Overlay — only rendered when stale ── */}
               {isStale && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-[10px] bg-white/80 backdrop-blur-[2px]">
                   {isReconnecting ? (
-                    /* Reconnecting spinner */
                     <>
                       <Loader2 size={22} className="animate-spin text-blue-600" />
                       <p className="text-xs font-semibold text-slate-600">Reconnecting…</p>
                     </>
                   ) : isIdleTimeout ? (
-                    /* Idle for 60 s — require deliberate user action */
                     <button
                       onClick={startQrSession}
                       className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors"
@@ -228,7 +220,6 @@ export const UploadView = ({
                       <span className="text-xs font-bold text-blue-600">Generate New Code</span>
                     </button>
                   ) : (
-                    /* Expired but not idle yet — quick regenerate */
                     <>
                       <AlertTriangle size={20} className="text-amber-500" />
                       <p className="text-[11px] font-semibold text-slate-600 text-center px-2 leading-tight">
@@ -238,8 +229,6 @@ export const UploadView = ({
                         onClick={startQrSession}
                         className="mt-1 px-3.5 py-1.5 rounded-lg text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-colors"
                         style={{ backgroundColor: "#0066ff" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
                       >
                         <QrCode size={12} />
                         Regenerate
@@ -250,7 +239,6 @@ export const UploadView = ({
               )}
             </div>
 
-            {/* Status line below QR box */}
             {receivedSuccess ? (
               <div className="flex items-center gap-2 text-emerald-600 font-semibold text-xs py-0.5">
                 <CheckCircle2 size={14} />
@@ -269,13 +257,10 @@ export const UploadView = ({
               </div>
             )}
 
-            {/* Cancel button — bottom-right corner of the card */}
             <button
               onClick={stopQrSession}
               className="absolute bottom-4 right-4 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition-colors shadow-sm"
               style={{ backgroundColor: "#dc2626" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
             >
               Cancel
             </button>
