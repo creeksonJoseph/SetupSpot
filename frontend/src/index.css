@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: #f7f9fb;
+}
+
 @keyframes blink {
   0%, 100% {
     opacity: 1;
@@ -57,5 +64,66 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Pinterest-Style Floating Grid Column Animation */
+@keyframes floatUpSlow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes floatDownSlow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(16px); }
+  100% { transform: translateY(0); }
+}
+
+.animate-float-up {
+  animation: floatUpSlow 8s ease-in-out infinite;
+}
+
+.animate-float-down {
+  animation: floatDownSlow 9s ease-in-out infinite;
+}
+
+.animate-float-up-delayed {
+  animation: floatUpSlow 10s ease-in-out 1.5s infinite;
+}
+
+/* Perfect Seamless Infinite Marquee Animations */
+@keyframes marqueeUp {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(calc(-100% - 1rem));
+  }
+}
+
+@keyframes marqueeDown {
+  0% {
+    transform: translateY(calc(-100% - 1rem));
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+.animate-marquee-up {
+  animation: marqueeUp 54s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-down {
+  animation: marqueeDown 58s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-up-slow {
+  animation: marqueeUp 64s linear infinite;
+  will-change: transform;
+}
+
+
 
 
