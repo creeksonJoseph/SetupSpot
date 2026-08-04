@@ -1,72 +1,132 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 
 export default function LandingHeader({ isScrolled, isLoggedIn }) {
   const location = useLocation();
   const isExploreActive = location.pathname === '/explore';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${
-        isScrolled
-          ? 'bg-[#ffffff]/95 backdrop-blur-md shadow-xs border-b border-[#E2E8F0]'
-          : 'bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]'
-      }`}
-    >
-      <div className="flex justify-between items-center max-w-container-max mx-auto px-md h-16">
-        {/* Official SetupSpot Brand Logo — Takes you to Landing Page */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <img
-            alt="SetupSpot Logo"
-            className="w-9 h-9 rounded-xl object-contain transition-transform duration-300 group-hover:scale-105"
-            src="/favicon_io/android-chrome-192x192.png"
-          />
-          <span className="text-xl font-bold text-[#0F172A] tracking-tight font-sans">
-            SetupSpot
-          </span>
-        </Link>
-
-        {/* Navigation Links (Center) — ONLY highlighted if on /explore page */}
-        <div className="hidden md:flex items-center gap-lg">
+    <>
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${
+          isScrolled
+            ? 'bg-[#ffffff]/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0]'
+            : 'bg-[#f7f9fb]/90 backdrop-blur-md border-b border-[#E2E8F0]'
+        }`}
+      >
+        <div className="flex justify-between items-center max-w-7xl mx-auto px-4 md:px-10 h-14 md:h-16">
+          {/* Official SetupSpot Brand Logo — Takes you to Landing Page */}
           <Link
-            to="/explore"
-            className={
-              isExploreActive
-                ? "text-[#0066ff] border-b-2 border-[#0066ff] pb-1 text-xs font-semibold uppercase tracking-wider transition-colors"
-                : "text-[#475569] border-b-2 border-transparent pb-1 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#0066ff]"
-            }
+            to="/"
+            className="flex items-center gap-2.5 group"
+            onClick={() => setMobileMenuOpen(false)}
           >
-            Explore
+            <img
+              src="/Logo.png"
+              alt="SetupSpot Logo"
+              className="w-8 h-8 rounded-xl object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+            <span className="text-xl font-bold text-[#0F172A] tracking-tight font-sans">
+              SetupSpot
+            </span>
           </Link>
-        </div>
 
-        {/* Actions (Right) */}
-        <div className="flex items-center gap-md">
-          {isLoggedIn ? (
+          {/* Navigation Links (Desktop Center) */}
+          <div className="hidden md:flex items-center gap-lg">
             <Link
               to="/explore"
-              className="bg-[#0066ff] text-[#ffffff] text-xs font-semibold uppercase tracking-wider px-6 py-2 rounded-full hover:bg-[#0050cb] transition-all duration-200 hover:-translate-y-0.5 shadow-xs"
+              className={
+                isExploreActive
+                  ? "text-[#0066ff] border-b-2 border-[#0066ff] pb-1 text-xs font-semibold uppercase tracking-wider transition-colors"
+                  : "text-[#475569] border-b-2 border-transparent pb-1 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#0066ff]"
+              }
             >
-              Open App
+              Explore
             </Link>
-          ) : (
-            <>
+          </div>
+
+          {/* Desktop Actions (>= md) */}
+          <div className="hidden md:flex items-center gap-4">
+            {isLoggedIn ? (
+              <Link
+                to="/explore"
+                className="bg-[#0066ff] text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#0050cb] transition-all shadow-xs"
+              >
+                Open App
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-xs font-semibold uppercase tracking-wider text-[#475569] hover:text-[#0066ff] transition-colors duration-200"
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-[#0066ff] text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#0050cb] transition-all shadow-xs"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Actions (< md) */}
+          <div className="flex md:hidden items-center gap-2">
+            {isLoggedIn ? (
+              <Link
+                to="/explore"
+                className="bg-[#0066ff] text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all shadow-xs"
+              >
+                Open App
+              </Link>
+            ) : (
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-1.5 text-[#0F172A] hover:text-[#0066ff] rounded-lg transition-colors focus:outline-none"
+                aria-label="Toggle navigation menu"
+              >
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Dark Overlay Background & Compact Popup Menu for Guests */}
+      {!isLoggedIn && mobileMenuOpen && (
+        <>
+          {/* Dark Backdrop Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Compact Popup Card positioned top right below navbar */}
+          <div className="fixed top-16 right-4 z-50 w-44 bg-white rounded-2xl p-2 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
+            <div className="flex flex-col gap-1">
               <Link
                 to="/login"
-                className="text-xs font-semibold uppercase tracking-wider text-[#475569] hover:text-[#0066ff] transition-colors duration-200 hidden sm:block"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors"
               >
                 Log In
               </Link>
               <Link
                 to="/signup"
-                className="bg-[#0066ff] text-[#ffffff] text-xs font-semibold uppercase tracking-wider px-6 py-2 rounded-full hover:bg-[#0050cb] transition-all duration-200 hover:-translate-y-0.5 shadow-xs"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors"
               >
                 Sign Up
               </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </nav>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }

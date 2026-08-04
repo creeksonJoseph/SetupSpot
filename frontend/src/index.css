@@ -35,6 +35,15 @@ html, body, #root {
   background: transparent;
 }
 
+/* Hide scrollbar for clean mobile horizontal carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @keyframes blink {
   0%, 100% {
     opacity: 1;
