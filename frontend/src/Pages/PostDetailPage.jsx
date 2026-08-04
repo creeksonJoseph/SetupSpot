@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
+import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
 import { PostDetailSkeleton } from "../components/CardSkeleton";
 
@@ -10,6 +11,7 @@ import SimilarSetups from "../components/SimilarSetups";
 import AddToCollectionModal from "../components/AddToCollectionModal";
 import PostSocialBar from "../components/PostSocialBar";
 import CommentSection from "../components/CommentSection";
+import AuthPromptModal from "../components/auth/AuthPromptModal";
 
 const PostDetailPage = () => {
   const { id } = useParams();
@@ -38,6 +40,8 @@ const PostDetailPage = () => {
     toggleFavorite,
     commentsOpen,
     setCommentsOpen,
+    authModalState,
+    closeAuthModal,
   } = usePostDetail(id);
 
   // Track live comment count from CommentSection (lazy-updated)
@@ -84,9 +88,12 @@ const PostDetailPage = () => {
   const displayedItems = isFocusMode ? [initialFocusedItem] : allItems;
   const hasOtherItems = initialFocusedItem && allItems.length > 1;
 
+  const { auth } = useAuth();
+  const isLoggedIn = Boolean(auth?.token || auth?.user);
+
   return (
     <div
-      className="flex min-h-screen md:h-screen -m-8 overflow-y-auto md:overflow-hidden"
+      className={`flex min-h-screen md:h-screen overflow-y-auto md:overflow-hidden ${isLoggedIn ? "-m-8" : "p-4 sm:p-6"}`}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/*
@@ -213,6 +220,13 @@ const PostDetailPage = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         item={selectedItemForCollection}
+      />
+
+      {/* Guest Auth Prompt modal */}
+      <AuthPromptModal
+        isOpen={authModalState.isOpen}
+        onClose={closeAuthModal}
+        actionName={authModalState.actionName}
       />
     </div>
   );

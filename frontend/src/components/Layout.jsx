@@ -1,11 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import LandingHeader from './landing/LandingHeader'
 
 export default function Layout() {
     const location = useLocation()
     const { auth } = useAuth()
+    const isLoggedIn = Boolean(auth?.token || auth?.user)
     const username = auth?.username || auth?.user?.username
+
+    const [isScrolled, setIsScrolled] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20)
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        handleScroll()
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     const getActiveTab = () => {
         const path = location.pathname
@@ -15,10 +28,9 @@ export default function Layout() {
         if (path.startsWith('/create')) return 'create'
         if (path.startsWith('/account')) return 'account'
         if (path.startsWith('/settings')) return 'account'
-        return 'explore'
+        if (path.startsWith('/explore')) return 'explore'
+        return ''
     }
-
-
 
     const activeTab = getActiveTab()
 
@@ -29,13 +41,30 @@ export default function Layout() {
         { key: 'create', icon: 'add', title: 'Create', path: '/create' },
     ]
 
+    // GUEST LAYOUT: No sidebar, top header navbar with active explore tab rules
+    if (!isLoggedIn) {
+        return (
+            <div className="min-h-screen flex flex-col font-sans bg-[#f7f9fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+                <LandingHeader isScrolled={isScrolled} isLoggedIn={false} />
+                {/* Spacer below fixed header to prevent masking page content */}
+                <div className="h-16 w-full shrink-0" aria-hidden="true" />
+                <main className="w-full flex-1">
+                    <Outlet />
+                </main>
+            </div>
+        )
+    }
+
+    // AUTHENTICATED APP LAYOUT: Left sidebar for logged in users
     return (
         <div className="flex min-h-screen font-sans" style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}>
             {/* Navigation Sidebar */}
             <nav className="w-20 fixed left-0 top-0 bottom-0 flex flex-col items-center py-8 z-30 border-r" style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}>
-                {/* Logo */}
+                {/* Logo — Links to Landing Page */}
                 <div className="mb-12">
-                    <img src="/favicon_io/android-chrome-192x192.png" alt="SetupSpot" className="w-10 h-10 rounded-xl object-contain" />
+                    <Link to="/">
+                        <img src="/favicon_io/android-chrome-192x192.png" alt="SetupSpot" className="w-10 h-10 rounded-xl object-contain transition-transform duration-200 hover:scale-105" />
+                    </Link>
                 </div>
 
                 {/* Navigation Items */}
@@ -88,12 +117,9 @@ export default function Layout() {
                             </div>
                         </div>
                     )}
-
-
                 </div>
 
-
-                {/* Account Icon (retains original 360 rotation + username pill) */}
+                {/* Account Icon */}
                 <div className="flex flex-col gap-4">
                     <div className="relative group flex items-center">
                         <Link
@@ -119,7 +145,7 @@ export default function Layout() {
                             ) : (
                                 <>
                                     <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                                    <span className="text-black">Guest (Sign in)</span>
+                                    <span className="text-black">Account</span>
                                 </>
                             )}
                         </div>

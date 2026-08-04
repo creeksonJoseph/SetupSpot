@@ -1,19 +1,21 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ShareMenu } from "../ShareMenu";
+import AuthPromptModal from "../auth/AuthPromptModal";
 
 export const SetupCard = ({ setup, toggleFavorite }) => {
   const { auth } = useAuth();
-  const navigate = useNavigate();
+  const isLoggedIn = Boolean(auth?.token || auth?.user);
   const [shareOpen, setShareOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!auth) {
-      navigate("/login");
+    if (!isLoggedIn) {
+      setAuthModalOpen(true);
       return;
     }
     // Spring-bounce pulse animation
@@ -100,6 +102,13 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
 
       {/* Share Modal */}
       {shareOpen && <ShareMenu setup={setup} onClose={() => setShareOpen(false)} />}
+
+      {/* Guest Auth Required Modal */}
+      <AuthPromptModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        actionName="save setups to favourites"
+      />
     </>
   );
 };

@@ -1,7 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function LandingHeader({ isScrolled, isLoggedIn }) {
+  const location = useLocation();
+  const isExploreActive = location.pathname === '/explore';
+
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ease-out ${
@@ -11,7 +14,7 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
       }`}
     >
       <div className="flex justify-between items-center max-w-container-max mx-auto px-md h-16">
-        {/* Official SetupSpot Brand Logo */}
+        {/* Official SetupSpot Brand Logo — Takes you to Landing Page */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
             alt="SetupSpot Logo"
@@ -23,11 +26,15 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
           </span>
         </Link>
 
-        {/* Navigation Links (Center) */}
+        {/* Navigation Links (Center) — ONLY highlighted if on /explore page */}
         <div className="hidden md:flex items-center gap-lg">
           <Link
             to="/explore"
-            className="text-[#0066ff] border-b-2 border-[#0066ff] pb-1 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#0050cb] hover:border-[#0050cb]"
+            className={
+              isExploreActive
+                ? "text-[#0066ff] border-b-2 border-[#0066ff] pb-1 text-xs font-semibold uppercase tracking-wider transition-colors"
+                : "text-[#475569] border-b-2 border-transparent pb-1 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#0066ff]"
+            }
           >
             Explore
           </Link>

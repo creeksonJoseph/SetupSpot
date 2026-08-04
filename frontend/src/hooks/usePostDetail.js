@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 export function usePostDetail(id) {
   const authFetch = useAuthFetch();
+  const { auth } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [setup, setSetup] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +20,27 @@ export function usePostDetail(id) {
   const [selectedItemForCollection, setSelectedItemForCollection] = useState(null);
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
+
+  const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
+
+  const isLoggedIn = Boolean(auth?.token || auth?.user);
+
+  const triggerAuthModal = useCallback((actionName = 'continue') => {
+    setAuthModalState({ isOpen: true, actionName });
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setAuthModalState({ isOpen: false, actionName: '' });
+  }, []);
+
+  const checkAuth = useCallback(() => {
+    if (!auth?.token && !auth?.user) {
+      showToast('Please log in or sign up to interact', 'info');
+      navigate('/login');
+      return false;
+    }
+    return true;
+  }, [auth, navigate, showToast]);
 
   const fetchSetup = useCallback(async () => {
     if (!id) return;
@@ -64,9 +89,13 @@ export function usePostDetail(id) {
   }, []);
 
   const handleOpenModal = useCallback((item) => {
+    if (!isLoggedIn) {
+      triggerAuthModal('add gear to collections');
+      return;
+    }
     setSelectedItemForCollection(item);
     setIsModalOpen(true);
-  }, []);
+  }, [isLoggedIn, triggerAuthModal]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
@@ -75,6 +104,10 @@ export function usePostDetail(id) {
 
   /** Toggle setup-level like (separate from Favorites). */
   const toggleLike = useCallback(async () => {
+    if (!isLoggedIn) {
+      triggerAuthModal('like setups');
+      return;
+    }
     if (!setup) return;
 
     // Optimistic update
@@ -103,10 +136,14 @@ export function usePostDetail(id) {
       } : null);
       showToast('Could not update like, try again.', 'error');
     }
-  }, [setup, authFetch, showToast]);
+  }, [isLoggedIn, triggerAuthModal, setup, authFetch, showToast]);
 
   /** Save setup to Favourites (separate from Like). */
   const toggleFavorite = useCallback(async () => {
+    if (!isLoggedIn) {
+      triggerAuthModal('save setups to favourites');
+      return;
+    }
     if (!setup) return;
 
     const isFavorited = setup.is_favorited ?? false;
@@ -158,6 +195,9 @@ export function usePostDetail(id) {
     toggleFavorite,
     commentsOpen,
     setCommentsOpen,
+    authModalState,
+    triggerAuthModal,
+    closeAuthModal,
     refetch: fetchSetup,
   };
 }

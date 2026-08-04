@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "../hooks/useAdmin";
-import { DeletePostModal } from "./account/DeletePostModal";
+import AuthPromptModal from "./auth/AuthPromptModal";
 
 const CommentSection = ({ setupId, onCommentCountChange }) => {
   const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment } =
@@ -14,6 +14,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   const [draft, setDraft] = useState("");
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, commentId: null, isAdmin: false });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const listEndRef = useRef(null);
 
 
@@ -37,6 +38,10 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   }, [comments.length, fetched, onCommentCountChange]);
 
   const handleSend = async () => {
+    if (!auth?.token && !auth?.user) {
+      setAuthModalOpen(true);
+      return;
+    }
     if (!draft.trim()) return;
     await addComment(draft.trim());
     setDraft("");
@@ -229,6 +234,12 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
         title="Delete Comment?"
         confirmText="Delete Comment"
         description="Are you sure you want to delete this comment? This action cannot be undone."
+      />
+
+      <AuthPromptModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        actionName="post comments"
       />
     </div>
   );
