@@ -196,7 +196,7 @@ export default function LandingPage() {
                 to={isLoggedIn ? "/create" : "/signup"}
                 className="bg-[#ffffff] text-[#0F172A] border border-[#E2E8F0] text-xs font-semibold uppercase tracking-wider px-8 py-3.5 rounded-full hover:border-[#0066ff] hover:text-[#0066ff] transition-all duration-200 hover:-translate-y-0.5 shadow-xs w-full sm:w-auto text-center"
               >
-                {isLoggedIn ? "Share Your Setup" : "Join SetupSpot"}
+                {isLoggedIn ? "Share Your Setup" : "Create Account"}
               </Link>
             </div>
           </div>
