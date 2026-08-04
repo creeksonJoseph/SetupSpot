@@ -11,6 +11,7 @@ import ResetPasswordPage from './Pages/ResetPasswordPage'
 import Collections from './Pages/Collections'
 import Create from './Pages/Create'
 import ExplorePage from './Pages/ExplorePage'
+import SearchPage from './Pages/SearchPage'
 import PostDetailPage from './Pages/PostDetailPage'
 import FavouritesPage from './Pages/FavouritesPage'
 import AccountPage from './Pages/AccountPage'
@@ -41,6 +42,7 @@ function App() {
           {/* Layout wrapper — nav sidebar is visible for app workspace routes */}
           <Route element={<Layout />}>
             <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="setup/:id" element={<PostDetailPage />} />
             <Route path="user/:username" element={<UserProfilePage />} />
             <Route path="collection/:id" element={<PublicCollectionPage />} />

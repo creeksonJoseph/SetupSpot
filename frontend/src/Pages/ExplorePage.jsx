@@ -5,6 +5,8 @@ import SearchBar from '../components/SearchBar';
 import { SetupCard } from '../components/explore/SetupCard';
 import { SetupGridSkeleton } from '../components/CardSkeleton';
 
+import { useLocation } from 'react-router-dom';
+
 // Convert an Algolia hit to the same shape as a setup from the REST API
 const hitToSetup = (hit) => ({
   id: parseInt(hit.objectID, 10),
@@ -14,8 +16,8 @@ const hitToSetup = (hit) => ({
   isFavorited: false,
 });
 
-
 const ExplorePage = () => {
+  const location = useLocation();
   const { setups, loading, toggleFavorite } = useSetups();
   // null = no active search; array = Algolia hits (may be empty)
   const [searchHits, setSearchHits] = useState(null);
@@ -28,6 +30,17 @@ const ExplorePage = () => {
 
   const isSearching = searchHits !== null;
   const displayedSetups = isSearching ? searchHits.map(hitToSetup) : setups;
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('search') === 'true') {
+      const inputEl = document.getElementById('explore-search-input');
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [location.search]);
 
   // Automatic Infinite Scroll Handler
   useEffect(() => {
@@ -70,8 +83,8 @@ const ExplorePage = () => {
             )}
           </div>
 
-          {/* Right: search bar */}
-          <div style={{ flex: '0 1 420px', minWidth: '240px' }}>
+          {/* Right: search bar (Desktop only — mobile uses dedicated /search page) */}
+          <div className="hidden md:block" style={{ flex: '0 1 420px', minWidth: '240px' }}>
             <SearchBar onResults={handleSearchResults} />
           </div>
         </div>
