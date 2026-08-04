@@ -8,6 +8,7 @@ export default function Layout() {
     const { auth } = useAuth()
     const isLoggedIn = Boolean(auth?.token || auth?.user)
     const username = auth?.username || auth?.user?.username || auth?.user?.email?.split('@')[0]
+    const email = auth?.email || auth?.user?.email
     const avatarUrl = auth?.user?.avatar_url || auth?.avatar_url || auth?.user?.avatar || auth?.user?.profile_picture || auth?.user?.picture
 
     const initialLetter = username ? username[0].toUpperCase() : 'U'
