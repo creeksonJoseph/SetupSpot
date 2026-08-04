@@ -15,15 +15,16 @@ const hitToSetup = (hit) => ({
 export default function SearchPage() {
   const { setups, loading, toggleFavorite } = useSetups();
   const [searchHits, setSearchHits] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
 
   // Extract dynamic popular search terms from actual database/Redis setups
   const popularTags = useMemo(() => {
-    if (!setups || setups.length === 0) return ['Keyboard', 'Monitor', 'Desk', 'Minimalist', 'RGB'];
+    if (!setups || setups.length === 0) return [];
 
     const tagCounts = {};
-    const stopWords = new Set(['with', 'from', 'your', 'this', 'that', 'have', 'and', 'for', 'the', 'setup', 'my', 'desk']);
+    const stopWords = new Set(['with', 'from', 'your', 'this', 'that', 'have', 'and', 'for', 'the', 'setup', 'my', 'desk', 'room', 'space']);
 
     setups.forEach((setup) => {
       const words = setup.title ? setup.title.split(/\s+/) : [];
@@ -91,24 +92,32 @@ export default function SearchPage() {
 
         {/* Full-width Search Bar */}
         <div className="w-full">
-          <SearchBar onResults={handleSearchResults} />
+          <SearchBar onResults={handleSearchResults} query={searchQuery} setQuery={setSearchQuery} />
         </div>
 
         {/* Real Dynamic Popular Searches Suggestions */}
-        {popularTags.length > 0 && (
-          <div className="pt-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#727687] mb-2.5">
-              Popular Searches
-            </p>
+        <div className="pt-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#727687] mb-2.5">
+            Popular Searches
+          </p>
+          {loading && !setups.length ? (
+            /* Skeleton Loading State for Popular Search Pills */
+            <div className="flex flex-wrap gap-2 animate-pulse">
+              <div className="h-7 w-20 bg-slate-200 rounded-full" />
+              <div className="h-7 w-24 bg-slate-200 rounded-full" />
+              <div className="h-7 w-16 bg-slate-200 rounded-full" />
+              <div className="h-7 w-28 bg-slate-200 rounded-full" />
+              <div className="h-7 w-20 bg-slate-200 rounded-full" />
+            </div>
+          ) : popularTags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {popularTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => {
+                    setSearchQuery(tag);
                     const inputEl = document.getElementById('explore-search-input');
                     if (inputEl) {
-                      inputEl.value = tag;
-                      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
                       inputEl.focus();
                     }
                   }}
@@ -118,8 +127,8 @@ export default function SearchPage() {
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          ) : null}
+        </div>
       </div>
 
       {/* Results / Random Discovery Feed */}
