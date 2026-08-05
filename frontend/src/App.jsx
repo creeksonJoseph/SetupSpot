@@ -46,9 +46,15 @@ function App() {
             <Route path="setup/:id" element={<PostDetailPage />} />
             <Route path="user/:username" element={<UserProfilePage />} />
             <Route path="collection/:id" element={<PublicCollectionPage />} />
-            <Route path="collections" element={<Collections />} />
-
             {/* Protected routes — auth required */}
+            <Route
+              path="collections"
+              element={
+                <ProtectedRoute>
+                  <Collections />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="favorites"
               element={

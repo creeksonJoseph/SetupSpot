@@ -168,7 +168,7 @@ export const AnnotationView = ({
     >
       <div className="flex-1 overflow-y-auto min-h-0">
         {!selectedAnnotation ? (
-          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-none border border-dashed border-slate-200">
+          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-none border-0">
             <Edit3 size={24} className="text-slate-400 mb-2" />
             <p className={`text-xs ${textSecondary}`}>
               Select a pin on the photo to edit item name, store link, and price.

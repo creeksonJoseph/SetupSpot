@@ -52,21 +52,21 @@ export const UploadView = ({
 
   return (
     <div className="w-full max-w-6xl flex flex-col md:grid md:grid-cols-2 gap-6 items-stretch p-2 sm:p-4">
-      {/* ── Left Panel: Primary File / Camera Upload (Optimized for Mobile & Desktop) ── */}
-      <div className={`p-6 sm:p-8 rounded-3xl shadow-sm border flex flex-col items-center justify-center text-center ${cardBg}`}>
-        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0066ff] flex items-center justify-center mb-3 shrink-0">
-          <Upload size={28} />
+      {/* ── Left Panel: Primary File / Camera Upload ── */}
+      <div className="p-2 md:p-8 md:rounded-3xl md:shadow-sm md:border flex flex-col items-start text-left bg-transparent md:bg-white w-full">
+        <div className="hidden md:flex w-12 h-12 rounded-2xl bg-blue-50 text-[#0066ff] items-center justify-center mb-3 shrink-0">
+          <Upload size={24} />
         </div>
-        <h2 className={`text-xl sm:text-2xl font-black mb-1 ${textPrimary}`}>
+        <h2 className={`hidden md:block text-xl sm:text-2xl font-black mb-1 ${textPrimary}`}>
           Upload Setup Image
         </h2>
-        <p className={`text-xs sm:text-sm mb-6 max-w-xs ${textSecondary}`}>
+        <p className={`text-xs sm:text-sm mb-6 max-w-sm ${textSecondary}`}>
           Take a photo or select a high-quality desk setup image from your device.
         </p>
 
         <label
           htmlFor="file-upload"
-          className="w-full flex-1 min-h-[200px] sm:min-h-[240px] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:border-[#0066ff] hover:bg-blue-50/20 active:scale-[0.99]"
+          className="w-full flex-1 min-h-[200px] sm:min-h-[240px] border-0 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:bg-blue-50/20 active:scale-[0.99]"
           style={{
             borderColor: isUploading ? "#0066ff" : "#E2E8F0",
             backgroundColor: isUploading ? "rgba(0,102,255,0.04)" : "#f7f9fb",
