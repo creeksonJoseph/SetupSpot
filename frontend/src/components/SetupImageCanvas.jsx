@@ -23,57 +23,63 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
           The entire image area is clickable to open the fullscreen lightbox.
         */}
         <div
-          className="relative w-full cursor-zoom-in"
-          style={{ maxHeight: "70vh" }}
+          className="relative w-full aspect-[4/5] cursor-zoom-in overflow-hidden"
           onClick={() => setLightboxOpen(true)}
           title="Click to expand"
         >
           <img
             src={imageUrl}
             alt="Setup"
-            className="w-full block"
-            style={{ maxHeight: "70vh", objectFit: "contain" }}
+            className="w-full h-full object-cover block"
             draggable={false}
           />
 
           {/* Expand hint — appears on hover */}
           <div
-            className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-            style={{ backgroundColor: "rgba(0,0,0,0.6)", color: "#ffffff", backdropFilter: "blur(4px)" }}
+            className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-sm"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.88)",
+              color: "#0F172A",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.6)",
+              boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+            }}
           >
             <Expand size={13} />
             Expand
           </div>
 
-          {/* Item pins — stop propagation so clicking a pin doesn't open lightbox */}
-          {items.map((item, index) => (
-            <div
-              key={item.id}
-              className={`absolute rounded-full border-2 transition-all cursor-pointer ${
-                item.id === hoveredItemId ? "w-10 h-10 scale-125" : "w-6 h-6"
-              }`}
-              style={{
-                top: `${item.y}%`,
-                left: `${item.x}%`,
-                transform: "translate(-50%, -50%)",
-                borderColor: "#0066ff",
-                backgroundColor:
-                  item.id === hoveredItemId ? "rgba(0,102,255,0.3)" : "rgba(255,255,255,0.8)",
-                boxShadow: item.id === hoveredItemId ? "0 0 0 4px rgba(0,102,255,0.2)" : "none",
-                zIndex: 10,
-              }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseEnter={() => setHoveredItemId(item.id)}
-              onMouseLeave={() => setHoveredItemId(null)}
-            >
+          {/* Item pins — 44px touch target wrapper around refined visual dot */}
+          {items.map((item, index) => {
+            const isHovered = item.id === hoveredItemId;
+            return (
               <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                style={{ backgroundColor: "#0066ff" }}
+                key={item.id}
+                className="absolute z-10 w-11 h-11 flex items-center justify-center cursor-pointer select-none"
+                style={{
+                  top: `${item.y}%`,
+                  left: `${item.x}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseEnter={() => setHoveredItemId(item.id)}
+                onMouseLeave={() => setHoveredItemId(null)}
               >
-                {index + 1}
+                <div
+                  className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
+                    isHovered ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
+                  }`}
+                  style={{
+                    backgroundColor: "#0066ff",
+                    border: "2px solid rgba(255,255,255,0.9)",
+                    boxShadow: isHovered ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  {index + 1}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

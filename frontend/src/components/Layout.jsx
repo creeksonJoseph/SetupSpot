@@ -104,9 +104,9 @@ export default function Layout() {
                     <img
                         src="/Logo.png"
                         alt="SetupSpot Logo"
-                        className="w-8 h-8 rounded-xl object-contain transition-transform duration-300 group-hover:scale-105"
+                        className="w-7 h-7 rounded-xl object-contain transition-transform duration-300 group-hover:scale-105"
                     />
-                    <span className="text-xl font-bold text-[#0F172A] tracking-tight font-sans">
+                    <span className="text-[17px] font-bold text-[#0F172A] tracking-tight font-sans">
                         SetupSpot
                     </span>
                 </Link>
@@ -175,12 +175,25 @@ export default function Layout() {
                                 <span>Password & Security</span>
                             </button>
 
+                            {isAdmin && (
+                                <button
+                                    onClick={() => {
+                                        setAccountMenuOpen(false)
+                                        navigate('/admin')
+                                    }}
+                                    className="flex items-center gap-2.5 text-xs font-semibold text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#0066ff]/10 transition-colors w-full text-left cursor-pointer"
+                                >
+                                    <ShieldCheck size={16} />
+                                    <span>Admin Portal</span>
+                                </button>
+                            )}
+
                             <button
                                 onClick={() => {
                                     setAccountMenuOpen(false)
                                     setShowSuggestModal(true)
                                 }}
-                                className="flex items-center gap-2.5 text-xs font-semibold text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#0066ff]/10 transition-colors w-full text-left cursor-pointer"
+                                className="flex items-center gap-2.5 text-xs font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors w-full text-left cursor-pointer"
                             >
                                 <MessageSquarePlus size={16} />
                                 <span>Suggest Feature / Report Problem</span>
@@ -317,27 +330,6 @@ export default function Layout() {
                         </Link>
                     );
                 })}
-
-                {/* Admin Tab for Mobile */}
-                {isAdmin && (
-                    <Link
-                        to="/admin"
-                        className="flex flex-col items-center justify-center flex-1 py-1 transition-colors"
-                        style={{
-                            color: activeTab === 'admin' ? "#0066ff" : "#727687",
-                        }}
-                    >
-                        <span
-                            className="material-symbols-outlined text-2xl"
-                            style={{ fontVariationSettings: activeTab === 'admin' ? "'FILL' 1" : "'FILL' 0" }}
-                        >
-                            shield_person
-                        </span>
-                        <span className={`text-[10px] font-semibold mt-0.5 ${activeTab === 'admin' ? "text-[#0066ff] font-bold" : "text-[#727687]"}`}>
-                            Admin
-                        </span>
-                    </Link>
-                )}
             </nav>
 
             {/* Main Content Area */}

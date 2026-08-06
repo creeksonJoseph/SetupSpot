@@ -58,7 +58,7 @@ const PostDetailPage = () => {
   // ── Mobile-only state ────────────────────────────────────────────
   const [flashedPinId, setFlashedPinId] = useState(null);
   const [mobileLightboxOpen, setMobileLightboxOpen] = useState(false);
-  const [mobileExpandedItemId, setMobileExpandedItemId] = useState(null);
+  const [mobileExpandedItemId, setMobileExpandedItemId] = useState(initialFocusedItemId || null);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileShareOpen, setMobileShareOpen] = useState(false);
   const [mobileDeleteConfirm, setMobileDeleteConfirm] = useState(false);
@@ -123,19 +123,24 @@ const PostDetailPage = () => {
       <div className="md:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
 
         {/* Hero image with pins */}
-        <div className="relative rounded-2xl overflow-hidden shadow-xs border" style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-xs border aspect-[4/5] w-full" style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}>
           <img
             src={setup.image_url}
             alt={setup.title || "Setup"}
-            className="w-full block"
-            style={{ maxHeight: "70vh", objectFit: "contain" }}
+            className="w-full h-full object-cover block"
           />
 
           {/* Back pill */}
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full text-white text-xs font-semibold cursor-pointer"
-            style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
+            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.88)",
+              color: "#0F172A",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.6)",
+              boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+            }}
           >
             <ArrowLeft size={14} />
             Back
@@ -144,40 +149,60 @@ const PostDetailPage = () => {
           {/* Expand pill */}
           <button
             onClick={() => setMobileLightboxOpen(true)}
-            className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full text-white text-xs font-semibold cursor-pointer"
-            style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
+            className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.88)",
+              color: "#0F172A",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.6)",
+              boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+            }}
           >
             <Expand size={13} />
             Expand
           </button>
 
-          {/* Numbered hotspot pins */}
-          {allItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="absolute z-10 flex items-center justify-center rounded-full text-white text-xs font-bold cursor-pointer"
-              style={{
-                top: `${item.y}%`,
-                left: `${item.x}%`,
-                transform: "translate(-50%, -50%)",
-                width: flashedPinId === item.id ? "30px" : "26px",
-                height: flashedPinId === item.id ? "30px" : "26px",
-                backgroundColor: "#0066ff",
-                border: "2px solid rgba(255,255,255,0.85)",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
-                transition: "all 0.18s ease",
-              }}
-              onClick={() => flashItem(item.id)}
-            >
-              {index + 1}
-            </div>
-          ))}
+          {/* Numbered hotspot pins — 44px touch target wrapper around refined 26px dot */}
+          {allItems.map((item, index) => {
+            const isFlashed = flashedPinId === item.id;
+            return (
+              <div
+                key={item.id}
+                className="absolute z-10 w-11 h-11 flex items-center justify-center cursor-pointer select-none"
+                style={{
+                  top: `${item.y}%`,
+                  left: `${item.x}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                onClick={() => flashItem(item.id)}
+              >
+                <div
+                  className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
+                    isFlashed ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
+                  }`}
+                  style={{
+                    backgroundColor: "#0066ff",
+                    border: "2px solid rgba(255,255,255,0.9)",
+                    boxShadow: isFlashed ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  {index + 1}
+                </div>
+              </div>
+            );
+          })}
 
           {/* "Tap a pin to shop" badge */}
           {allItems.length > 0 && (
             <div
-              className="absolute bottom-3 right-3 z-10 text-white text-[11.5px] font-semibold px-2.5 py-1.5 rounded-full"
-              style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
+              className="absolute bottom-3 right-3 z-10 text-[11.5px] font-bold px-2.5 py-1.5 rounded-full shadow-sm"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.88)",
+                color: "#0F172A",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.6)",
+                boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+              }}
             >
               Tap a pin to shop
             </div>
