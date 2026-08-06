@@ -42,21 +42,21 @@ const SettingsPage = () => {
     <main className="flex-1 px-4 py-4 sm:px-6 md:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Page Header */}
-        <div className="mb-4 px-1 flex flex-col gap-2">
+        <div className="mb-3 sm:mb-5 px-1 flex flex-col gap-1.5 sm:gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold self-start transition-all hover:bg-slate-100 shadow-2xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] sm:text-xs font-semibold self-start transition-all hover:bg-slate-100 shadow-2xs cursor-pointer"
             style={{ borderColor: '#E2E8F0', color: '#0F172A', backgroundColor: '#ffffff' }}
           >
-            <ArrowLeft size={15} />
+            <ArrowLeft size={13} />
             <span>Back</span>
           </button>
 
           <div>
-            <h1 className="text-3xl font-black leading-tight tracking-[-0.033em]" style={{ color: '#0F172A' }}>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold leading-snug tracking-[-0.02em]" style={{ color: '#0F172A' }}>
               {activeTab === 'security' ? 'Password & Security' : 'Edit Account Details'}
             </h1>
-            <p className="text-sm font-normal leading-normal mt-1" style={{ color: '#475569' }}>
+            <p className="text-xs sm:text-sm font-normal leading-normal mt-0.5" style={{ color: '#475569' }}>
               {activeTab === 'security'
                 ? 'Manage your account password and security preferences.'
                 : 'Update your public profile, bio, and account details.'}

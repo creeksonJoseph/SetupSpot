@@ -20,11 +20,11 @@ export const SecurityTab = ({
   handleChangePassword,
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 max-w-4xl">
       {/* Left Column: OTP Verification Flow */}
-      <div className="space-y-4">
-        <div className="mb-4">
-          <h2 className="text-lg font-bold" style={{ color: '#0F172A' }}>
+      <div className="space-y-3.5">
+        <div className="mb-2 sm:mb-4">
+          <h2 className="text-sm sm:text-base font-bold" style={{ color: '#0F172A' }}>
             1. Verification Code
           </h2>
           <p className="text-xs mt-0.5" style={{ color: '#727687' }}>
@@ -216,8 +216,8 @@ export const SecurityTab = ({
           pwdStep < 3 ? 'opacity-40 blur-[1.5px] pointer-events-none select-none' : 'opacity-100 blur-none pointer-events-auto'
         }`}
       >
-        <div className="mb-4">
-          <h2 className="text-lg font-bold" style={{ color: '#0F172A' }}>
+        <div className="mb-2 sm:mb-4">
+          <h2 className="text-sm sm:text-base font-bold" style={{ color: '#0F172A' }}>
             2. Set New Password
           </h2>
           <p className="text-xs mt-0.5" style={{ color: '#727687' }}>
