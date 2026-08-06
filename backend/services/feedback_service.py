@@ -30,16 +30,19 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
             formatted_cat = category.replace('_', ' ').title()
             admin_reply_url = f"https://setupspot.tech/admin?tab=feedback&id={feedback_id}" if feedback_id else "https://setupspot.tech/admin?tab=feedback"
 
+            is_bug = "bug" in category.lower()
+            heading_title = "New Bug Report" if is_bug else "New User Feedback"
+
             resend.Emails.send({
-                "from": "noreply@setupspot.tech",
+                "from": "SetupSpot <admin@setupspot.tech>",
                 "to": ADMIN_EMAIL,
-                "subject": f"New SetupSpot Feedback from @{username}",
+                "subject": "New Message from SetupSpot",
                 "html": f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>New User Feedback - SetupSpot</title>
+  <title>{heading_title} - SetupSpot</title>
 </head>
 <body style="margin:0; padding:24px 12px; background-color:#F7F9FB; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#0F172A; -webkit-font-smoothing:antialiased;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -65,7 +68,7 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px; border-bottom: 1px solid #E2E8F0; padding-bottom: 20px;">
                 <tr>
                   <td style="vertical-align: top;">
-                    <h2 style="font-size: 20px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">New User Feedback</h2>
+                    <h2 style="font-size: 20px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">{heading_title}</h2>
                     <p style="font-size: 13px; color: #64748B; margin: 0;">Sent directly from SetupSpot</p>
                   </td>
                   <td align="right" style="vertical-align: top;">
