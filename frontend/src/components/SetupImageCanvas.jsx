@@ -23,14 +23,14 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
           The entire image area is clickable to open the fullscreen lightbox.
         */}
         <div
-          className="relative w-full aspect-[4/5] cursor-zoom-in overflow-hidden"
+          className="relative w-full max-h-[68vh] aspect-[4/5] cursor-zoom-in overflow-hidden flex items-center justify-center mx-auto"
           onClick={() => setLightboxOpen(true)}
           title="Click to expand"
         >
           <img
             src={imageUrl}
             alt="Setup"
-            className="w-full h-full object-cover block"
+            className="w-full h-full max-h-[68vh] object-cover block"
             draggable={false}
           />
 

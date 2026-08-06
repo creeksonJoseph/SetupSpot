@@ -483,9 +483,9 @@ const PostDetailPage = () => {
       {/* ══════════════════════════════════════════════════════════
           DESKTOP LAYOUT  (hidden below lg, 3-column grid)
       ══════════════════════════════════════════════════════════ */}
-      <div className="hidden lg:flex min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden">
+      <div className="hidden lg:flex min-h-screen overflow-y-auto">
         <div
-          className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto lg:overflow-hidden h-full w-full"
+          className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto h-full w-full"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 260px 300px",
@@ -493,9 +493,7 @@ const PostDetailPage = () => {
           }}
         >
           {/* LEFT COLUMN */}
-          <div className={`flex flex-col gap-2.5 max-h-full pr-1 ${
-            commentsOpen ? "overflow-y-auto" : "overflow-hidden"
-          }`}>
+          <div className="flex flex-col gap-2.5 max-h-full overflow-y-auto pr-1">
             <div className="shrink-0">
               <button
                 onClick={() => navigate(-1)}
