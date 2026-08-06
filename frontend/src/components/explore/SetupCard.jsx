@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
+import OptimizedImage from "../OptimizedImage";
 
-export const SetupCard = ({ setup, toggleFavorite }) => {
+export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
   const { auth } = useAuth();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
   const [shareOpen, setShareOpen] = useState(false);
@@ -51,10 +52,11 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
     <>
       <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
         <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-          <img
+          <OptimizedImage
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
             alt={setup.title}
             src={setup.image}
+            width={450}
             loading="lazy"
           />
 
@@ -127,4 +129,5 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
       />
     </>
   );
-};
+});
+

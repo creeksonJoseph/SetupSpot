@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import OptimizedImage from "../OptimizedImage";
 
-export const FavoriteCard = ({ setup, isRemoving, onRemove, onShare }) => {
+export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }) => {
   const [titleExpanded, setTitleExpanded] = useState(false);
   return (
     <div
@@ -10,10 +11,11 @@ export const FavoriteCard = ({ setup, isRemoving, onRemove, onShare }) => {
       }`}
     >
       <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-        <img
+        <OptimizedImage
           className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
           alt={setup.title}
           src={setup.image}
+          width={450}
           loading="lazy"
         />
 
@@ -71,4 +73,5 @@ export const FavoriteCard = ({ setup, isRemoving, onRemove, onShare }) => {
       </div>
     </div>
   );
-};
+});
+
