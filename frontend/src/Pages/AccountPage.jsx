@@ -29,10 +29,10 @@ const AccountPage = () => {
   if (!user) {
     return (
       <main className="flex-1 flex justify-center items-center min-h-[500px]">
-        <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 max-w-md">
+        <div className="text-center p-8 bg-white rounded-2xl border border-[#E2E8F0] max-w-md">
           <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">person_off</span>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">User profile not found</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Please sign in again to view your profile.</p>
+          <h2 className="text-lg font-bold text-slate-900">User profile not found</h2>
+          <p className="text-sm text-slate-500 mt-1">Please sign in again to view your profile.</p>
         </div>
       </main>
     );

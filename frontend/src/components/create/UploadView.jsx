@@ -53,7 +53,7 @@ export const UploadView = ({
   return (
     <div className="w-full max-w-6xl flex flex-col md:grid md:grid-cols-2 gap-6 items-stretch p-2 sm:p-4">
       {/* ── Left Panel: Primary File / Camera Upload ── */}
-      <div className="p-2 md:p-8 md:rounded-3xl md:shadow-sm md:border flex flex-col items-start text-left bg-transparent md:bg-white w-full">
+      <div className="p-2 md:p-8 md:rounded-3xl md:shadow-sm md:border border-[#E2E8F0] flex flex-col items-start text-left bg-transparent md:bg-white w-full">
         <div className="hidden md:flex w-12 h-12 rounded-2xl bg-blue-50 text-[#0066ff] items-center justify-center mb-3 shrink-0">
           <Upload size={24} />
         </div>
@@ -66,9 +66,9 @@ export const UploadView = ({
 
         <label
           htmlFor="file-upload"
-          className="w-full flex-1 min-h-[200px] sm:min-h-[240px] border-0 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:bg-blue-50/20 active:scale-[0.99]"
+          className="w-full flex-1 min-h-[200px] sm:min-h-[240px] border-2 border-dashed border-[#E2E8F0] rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer p-6 hover:bg-blue-50/20 hover:border-[#0066ff] active:scale-[0.99]"
           style={{
-            borderColor: isUploading ? "#0066ff" : "#E2E8F0",
+            borderColor: isUploading ? "#0066ff" : undefined,
             backgroundColor: isUploading ? "rgba(0,102,255,0.04)" : "#f7f9fb",
             cursor: isUploading ? "wait" : "pointer",
           }}
@@ -116,7 +116,7 @@ export const UploadView = ({
       </div>
 
       {/* ── Right Panel: Desktop-Only Live QR Phone Upload ── */}
-      <div className={`hidden md:flex p-8 rounded-3xl shadow-sm border flex-col items-center justify-center text-center relative ${cardBg}`}>
+      <div className="hidden md:flex p-8 rounded-3xl shadow-sm border border-[#E2E8F0] bg-white flex flex-col items-center justify-center text-center relative">
         <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 shrink-0">
           <Smartphone size={28} />
         </div>

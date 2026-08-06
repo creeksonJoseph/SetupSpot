@@ -140,7 +140,7 @@ export const AnnotationView = ({
                       className={`px-2 py-0.5 rounded-full text-[11px] font-black shadow-lg border transition-all duration-200 pointer-events-auto flex items-center justify-center min-w-[22px] h-[22px] ${
                         isSelected
                           ? "bg-[#0066ff] text-white border-white ring-2 ring-[#0066ff]/30 scale-110"
-                          : "bg-[#0F172A] text-white border-slate-700 hover:bg-[#0066ff]"
+                          : "bg-[#0F172A] text-white border-white/30 hover:bg-[#0066ff]"
                       }`}
                     >
                       {num}
