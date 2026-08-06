@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAdmin } from "../hooks/useAdmin";
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import {
   ShieldCheck,
   Users,
@@ -21,7 +21,6 @@ import {
   FolderOpen,
 } from "lucide-react";
 
-
 import { AdminDashboardSkeleton } from "../components/CardSkeleton";
 import { DeletePostModal } from "../components/account/DeletePostModal";
 import { AdminOverviewTab } from "../components/admin/AdminOverviewTab";
@@ -30,12 +29,8 @@ import { AdminSetupsTab } from "../components/admin/AdminSetupsTab";
 import { AdminCollectionsTab } from "../components/admin/AdminCollectionsTab";
 import { AdminFeedbackTab } from "../components/admin/AdminFeedbackTab";
 
-
-
-
 const TabSkeletonLoader = () => (
   <div className="p-6 bg-white border shadow-2xs space-y-4 animate-pulse" style={{ borderColor: "#E2E8F0" }}>
-
     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
       <div className="h-4 w-40 bg-slate-200 rounded-md" />
       <div className="h-4 w-20 bg-slate-100 rounded-md" />
@@ -54,8 +49,10 @@ const TabSkeletonLoader = () => (
   </div>
 );
 
-
 export const AdminPortalPage = () => {
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "overview";
+  const initialFeedbackId = searchParams.get("id") ? parseInt(searchParams.get("id"), 10) : null;
 
   const { auth } = useAuth();
   const {
@@ -81,10 +78,10 @@ export const AdminPortalPage = () => {
     replyToFeedback,
   } = useAdmin();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState("all");
-  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyingToId, setReplyingToId] = useState(initialFeedbackId);
 
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);

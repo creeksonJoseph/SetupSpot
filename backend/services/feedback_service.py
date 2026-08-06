@@ -10,7 +10,7 @@ ADMIN_EMAIL = "charanajoseph@gmail.com"
 logger = logging.getLogger("setupspot.feedback")
 
 
-def send_feedback_email(user_email: str, username: str, message: str, category: str):
+def send_feedback_email(user_email: str, username: str, message: str, category: str, feedback_id: int = None):
     """Dispatch real Resend email notification to charanajoseph@gmail.com."""
     import resend
     from core.config import settings
@@ -28,6 +28,7 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
             resend.api_key = settings.RESEND_API_KEY
             initial_letter = username[0].upper() if username else "?"
             formatted_cat = category.replace('_', ' ').title()
+            admin_reply_url = f"https://setupspot.tech/admin?tab=feedback&id={feedback_id}" if feedback_id else "https://setupspot.tech/admin?tab=feedback"
 
             resend.Emails.send({
                 "from": "noreply@setupspot.tech",
@@ -103,11 +104,11 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
                 <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
                     <td style="font-size: 13px; color: #64748B;">
-                      Reply to user: <a href="mailto:{user_email}" style="color: #0066ff; font-weight: 700; text-decoration: none;">{user_email}</a>
+                      User email: <strong style="color: #0F172A;">{user_email}</strong>
                     </td>
                     <td align="right">
-                      <a href="mailto:{user_email}" style="display: inline-block; padding: 10px 20px; border-radius: 10px; background-color: #0066ff; color: #ffffff; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">
-                        Reply Now &rarr;
+                      <a href="{admin_reply_url}" style="display: inline-block; padding: 10px 20px; border-radius: 10px; background-color: #0066ff; color: #ffffff; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">
+                        Reply via Admin Portal &rarr;
                       </a>
                     </td>
                   </tr>
@@ -159,6 +160,7 @@ def submit_feedback(db: Session, current_user: User, message: str, category: str
         username=current_user.username,
         message=message,
         category=category,
+        feedback_id=item.id,
     )
     return format_feedback_out(item, current_user)
 
