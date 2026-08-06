@@ -10,6 +10,7 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);
+  const [titleExpanded, setTitleExpanded] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -57,7 +58,7 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
             loading="lazy"
           />
 
-          {/* Dark shade overlay on hover */}
+          {/* Dark shade overlay — hover only */}
           <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Save button — top right */}
@@ -90,14 +91,29 @@ export const SetupCard = ({ setup, toggleFavorite }) => {
             </span>
           </button>
 
-          {/* Gradient overlay with setup title & author */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          {/* Gradient overlay with setup title & author — hover only (desktop) */}
+          <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <p className="text-white font-semibold text-base leading-tight drop-shadow">
               {setup.title}
             </p>
             <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
           </div>
         </Link>
+
+        {/* Mobile caption — only on phones, hidden on sm+ (desktop uses hover overlay) */}
+        <div
+          className="sm:hidden mt-1.5 px-0.5 cursor-pointer"
+          onClick={() => setTitleExpanded((prev) => !prev)}
+        >
+          <p
+            className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"}`}
+          >
+            {setup.title}
+          </p>
+          {titleExpanded && (
+            <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
+          )}
+        </div>
       </div>
 
       {/* Share Modal */}

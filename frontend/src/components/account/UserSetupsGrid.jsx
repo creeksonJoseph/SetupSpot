@@ -8,6 +8,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
   const [pendingDeleteSetup, setPendingDeleteSetup] = useState(null);
   const [shareSetup, setShareSetup] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [expandedTitleId, setExpandedTitleId] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
 
@@ -117,7 +118,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                     loading="lazy"
                   />
 
-                  {/* Dark shade overlay on hover */}
+                  {/* Dark shade overlay — hover only */}
                   <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   {/* 3-Dots Menu Button — top right */}
@@ -163,13 +164,26 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                     )}
                   </div>
 
-                  {/* Gradient overlay with setup title — Matches Explore Page */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  {/* Gradient overlay with setup title — hover only (desktop) */}
+                  <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                     <p className="text-white font-semibold text-base leading-tight drop-shadow truncate">
                       {setup.title}
                     </p>
                   </div>
                 </Link>
+
+                {/* Mobile caption — only on phones */}
+                <div
+                  className="sm:hidden mt-1.5 px-0.5 cursor-pointer"
+                  onClick={() => setExpandedTitleId((prev) => prev === setup.id ? null : setup.id)}
+                >
+                  <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${expandedTitleId === setup.id ? "" : "truncate"}`}>
+                    {setup.title}
+                  </p>
+                  {expandedTitleId === setup.id && (
+                    <p className="text-[10px] text-[#727687] mt-0.5">@{setup.author || setup.username}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -105,7 +105,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="font-sans text-[#475569] antialiased bg-[#f7f9fb] min-h-screen">
+    <div className="font-sans text-[#475569] antialiased bg-[#f7f9fb] min-h-screen overflow-x-hidden">
       <LandingHeader isScrolled={isScrolled} isLoggedIn={isLoggedIn} />
       <HeroSplitSection
         isLoggedIn={isLoggedIn}

@@ -16,8 +16,8 @@ const SetupCardSkeleton = ({ tall = false }) => (
 );
 
 export const ProfilePostsTab = ({ setups = [] }) => {
-  // Show skeleton for one render cycle so the browser can paint before images load
   const [mounting, setMounting] = useState(true);
+  const [expandedTitleId, setExpandedTitleId] = useState(null);
 
   useLayoutEffect(() => {
     const id = requestAnimationFrame(() => setMounting(false));
@@ -66,10 +66,17 @@ export const ProfilePostsTab = ({ setups = [] }) => {
               <ImageOff size={28} style={{ color: "#CBD5E1" }} />
             </div>
           )}
-          <div className="px-3 py-2.5 border-t" style={{ borderColor: "#F1F5F9" }}>
-            <p className="text-xs font-bold truncate" style={{ color: "#0F172A" }}>
+          <div
+            className="px-3 py-2 border-t cursor-pointer"
+            style={{ borderColor: "#F1F5F9" }}
+            onClick={() => setExpandedTitleId((prev) => prev === setup.id ? null : setup.id)}
+          >
+            <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${expandedTitleId === setup.id ? "" : "truncate"}`}>
               {setup.title}
             </p>
+            {expandedTitleId === setup.id && setup.author && (
+              <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
+            )}
           </div>
         </Link>
       ))}
