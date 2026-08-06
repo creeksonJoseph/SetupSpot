@@ -8,7 +8,7 @@ import AuthPromptModal from "./auth/AuthPromptModal";
 import { DeletePostModal } from "./account/DeletePostModal";
 
 const CommentSection = ({ setupId, onCommentCountChange }) => {
-  const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment } =
+  const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment, removeCommentFromState } =
     useComments(setupId);
   const { auth } = useAuth();
   const { adminDeleteComment } = useAdmin();
@@ -16,8 +16,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, commentId: null, isAdmin: false });
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const listEndRef = useRef(null);
-
+  const containerRef = useRef(null);
 
   const isAdmin = Boolean(
     auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
@@ -27,11 +26,6 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
-
-  // Scroll to bottom on new comments
-  useEffect(() => {
-    listEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [comments.length]);
 
   // Notify parent of count changes for the icon badge
   useEffect(() => {
@@ -46,6 +40,11 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     if (!draft.trim()) return;
     await addComment(draft.trim());
     setDraft("");
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 100);
   };
 
   const handleKeyDown = (e) => {
@@ -62,13 +61,19 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
 
   const handleConfirmDeleteComment = async () => {
     if (!deleteModal.commentId) return;
-    if (deleteModal.isAdmin) {
-      const ok = await adminDeleteComment(deleteModal.commentId);
-      if (ok) fetchComments();
-    } else {
-      await deleteComment(deleteModal.commentId);
-    }
+    const targetId = deleteModal.commentId;
+    const isAdminDelete = deleteModal.isAdmin;
+
+    // Immediately remove from React state so it vanishes without needing a refresh
+    removeCommentFromState(targetId);
+    setDeleteModal({ isOpen: false, commentId: null, isAdmin: false });
     setActiveMenuId(null);
+
+    if (isAdminDelete) {
+      await adminDeleteComment(targetId);
+    } else {
+      await deleteComment(targetId);
+    }
   };
 
 
@@ -78,7 +83,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
       style={{ borderColor: "#E2E8F0", backgroundColor: "#ffffff", maxHeight: "340px" }}
     >
       {/* Comments list */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
         {loading && (
           <div className="flex items-center justify-center py-6">
             <Loader2 size={20} className="animate-spin" style={{ color: "#0066ff" }} />
@@ -185,7 +190,6 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
             </div>
           );
         })}
-        <div ref={listEndRef} />
       </div>
 
 

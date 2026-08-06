@@ -52,9 +52,13 @@ export function useComments(setupId) {
     }
   }, [setupId, authFetch, showToast]);
 
+  const removeCommentFromState = useCallback((commentId) => {
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+  }, []);
+
   const deleteComment = useCallback(async (commentId) => {
     // Optimistic remove
-    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    removeCommentFromState(commentId);
     try {
       const res = await authFetch(`/comments/${commentId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete comment');
@@ -64,7 +68,7 @@ export function useComments(setupId) {
       // Re-fetch to restore correct state
       setFetched(false);
     }
-  }, [authFetch, showToast]);
+  }, [authFetch, showToast, removeCommentFromState]);
 
-  return { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment };
+  return { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment, removeCommentFromState };
 }
