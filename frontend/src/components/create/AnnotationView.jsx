@@ -29,10 +29,10 @@ export const AnnotationView = ({
   handleSaveData,
   loading,
 }) => (
-  <div className="w-full flex-1 flex flex-col md:grid md:grid-cols-[1fr_340px_320px] gap-4 pb-16 md:pb-0">
+  <div className="w-full flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_340px_320px] gap-4 pb-16 lg:pb-0">
     {/* ── Column 1: Setup Title & Interactive Image Canvas ── */}
     <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
+      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden ${cardBg}`}
     >
       <div className="flex justify-between items-center pb-3 shrink-0">
         <input

@@ -97,8 +97,8 @@ export default function Layout() {
                 onConfirm={handleSignOut}
             />
 
-            {/* Mobile Top Navigation Header (< md ONLY) */}
-            <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] z-40 flex justify-between items-center px-4 shadow-xs">
+            {/* Mobile Top Navigation Header (< lg ONLY) */}
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] z-40 flex justify-between items-center px-4 shadow-xs">
                 {/* Brand Logo */}
                 <Link to="/" className="flex items-center gap-2.5 group">
                     <img
@@ -147,11 +147,11 @@ export default function Layout() {
             {isAccountPage && accountMenuOpen && (
                 <>
                     <div
-                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
                         onClick={() => setAccountMenuOpen(false)}
                         aria-hidden="true"
                     />
-                    <div className="fixed top-16 right-4 z-50 w-64 bg-white rounded-2xl p-3 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
+                    <div className="fixed top-16 right-4 z-50 w-64 bg-white rounded-2xl p-3 shadow-2xl border border-[#E2E8F0] lg:hidden animate-fade-in-up">
                         <div className="flex flex-col gap-1.5">
                             <button
                                 onClick={() => {
@@ -216,8 +216,8 @@ export default function Layout() {
                 </>
             )}
 
-            {/* Desktop Left Sidebar (>= md ONLY) — Full Height Top to Bottom */}
-            <nav className="hidden md:flex w-20 fixed left-0 top-0 bottom-0 flex-col items-center py-6 z-30 border-r bg-white border-[#E2E8F0] justify-between">
+            {/* Desktop Left Sidebar (>= lg ONLY) — Full Height Top to Bottom */}
+            <nav className="hidden lg:flex w-20 fixed left-0 top-0 bottom-0 flex-col items-center py-6 z-30 border-r bg-white border-[#E2E8F0] justify-between">
                 {/* Top: Logo */}
                 <div className="mb-4">
                     <Link to="/">
@@ -228,46 +228,47 @@ export default function Layout() {
                         />
                     </Link>
                 </div>
-
-                {/* Middle: Navigation Links */}
-                <div className="flex flex-col gap-6 flex-1 items-center justify-center">
-                    {navItems.map(({ key, icon, title, path }) => (
-                        <div key={key} className="relative group flex items-center">
-                            <Link
-                                to={path}
-                                className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-105 cursor-pointer"
-                                style={{
-                                    backgroundColor: activeTab === key ? "rgba(0,102,255,0.08)" : "transparent",
-                                    color: activeTab === key ? "#0066ff" : "#727687",
-                                }}
-                            >
-                                <span
-                                    className="material-symbols-outlined text-2xl block"
-                                    style={{ fontVariationSettings: activeTab === key ? "'FILL' 1" : "'FILL' 0" }}
+                {/* Navigation Items */}
+                <div className="flex flex-col items-center gap-4 w-full px-2">
+                    {navItems.map(({ key, icon, title, path }) => {
+                        const isActive = activeTab === key;
+                        return (
+                            <div key={key} className="relative group w-full flex justify-center">
+                                <Link
+                                    to={path}
+                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+                                        isActive
+                                            ? "bg-[#0066ff] text-white shadow-md shadow-[#0066ff]/25 scale-105"
+                                            : "text-[#727687] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                                    }`}
                                 >
-                                    {icon}
-                                </span>
-                            </Link>
-
-                            <div className="absolute left-full ml-3 px-3 py-1.5 bg-white text-slate-800 text-xs font-semibold rounded-lg shadow-lg border border-slate-200 whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-50">
-                                {title}
+                                    <span
+                                        className="material-symbols-outlined text-2xl transition-transform duration-200"
+                                        style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                                    >
+                                        {icon}
+                                    </span>
+                                </Link>
+                                <div className="absolute left-full ml-3 px-3 py-1.5 bg-white text-slate-800 text-xs font-semibold rounded-lg shadow-lg border border-slate-200 whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-50">
+                                    {title}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
 
-                    {/* Admin Portal Link */}
+                    {/* Admin Nav Item for Desktop Sidebar */}
                     {isAdmin && (
-                        <div className="relative group flex items-center">
+                        <div className="relative group w-full flex justify-center mt-1">
                             <Link
                                 to="/admin"
-                                className="p-3 rounded-xl transition-all duration-200 ease-out transform group-hover:scale-105 cursor-pointer"
-                                style={{
-                                    backgroundColor: activeTab === 'admin' ? "rgba(0,102,255,0.08)" : "transparent",
-                                    color: activeTab === 'admin' ? "#0066ff" : "#727687",
-                                }}
+                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+                                    activeTab === 'admin'
+                                        ? "bg-[#0066ff] text-white shadow-md shadow-[#0066ff]/25 scale-105"
+                                        : "text-[#727687] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                                }`}
                             >
                                 <span
-                                    className="material-symbols-outlined text-2xl block"
+                                    className="material-symbols-outlined text-2xl transition-transform duration-200"
                                     style={{ fontVariationSettings: activeTab === 'admin' ? "'FILL' 1" : "'FILL' 0" }}
                                 >
                                     shield_person
@@ -280,21 +281,20 @@ export default function Layout() {
                     )}
                 </div>
 
-                {/* Bottom: User Avatar for Desktop */}
-                <div className="mt-auto pt-4 relative group flex items-center">
+                {/* Bottom: Profile Avatar Icon with hover label */}
+                <div className="relative group w-full flex justify-center">
                     <Link
                         to="/account"
-                        className="p-1 rounded-full hover:ring-2 hover:ring-[#0066ff]/20 transition-all"
-                        title={username || "Account"}
+                        className="flex items-center justify-center w-12 h-12 rounded-2xl transition-transform duration-200 hover:scale-105"
                     >
                         {avatarUrl ? (
                             <img
                                 src={avatarUrl}
                                 alt={username || "User Avatar"}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-[#0066ff] shadow-xs transition-transform duration-200 group-hover:scale-105"
+                                className="w-9 h-9 rounded-full object-cover border-2 border-[#0066ff] shadow-xs"
                             />
                         ) : (
-                            <div className="w-9 h-9 rounded-full bg-[#0066ff] text-white flex items-center justify-center font-bold text-sm shadow-xs transition-transform duration-200 group-hover:scale-105">
+                            <div className="w-9 h-9 rounded-full bg-[#0066ff] text-white flex items-center justify-center font-bold text-sm shadow-xs">
                                 {initialLetter}
                             </div>
                         )}
@@ -305,8 +305,8 @@ export default function Layout() {
                 </div>
             </nav>
 
-            {/* Mobile Bottom Navigation Bar (< md ONLY) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E2E8F0] z-40 flex items-center justify-around px-2 shadow-lg">
+            {/* Mobile Bottom Navigation Bar (< lg ONLY) */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E2E8F0] z-40 flex items-center justify-around px-2 shadow-lg">
                 {navItems.map(({ key, icon, title, path }) => {
                     const isActive = activeTab === key;
                     return (
@@ -333,7 +333,7 @@ export default function Layout() {
             </nav>
 
             {/* Main Content Area */}
-            <main className="flex-1 pt-16 md:pt-6 pb-20 md:pb-8 md:ml-20 p-4 md:p-8">
+            <main className="flex-1 pt-16 lg:pt-6 pb-20 lg:pb-8 lg:ml-20 p-4 lg:p-8">
                 <Outlet />
             </main>
         </div>

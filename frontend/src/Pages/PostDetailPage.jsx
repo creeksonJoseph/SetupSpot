@@ -114,13 +114,13 @@ const PostDetailPage = () => {
 
   return (
     <div
-      className={isLoggedIn ? "md:-m-8" : "p-4 sm:p-6"}
+      className={isLoggedIn ? "lg:-m-8" : "p-4 sm:p-6"}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/* ══════════════════════════════════════════════════════════
-          MOBILE LAYOUT  (hidden on md+)
+          MOBILE & TABLET LAYOUT  (hidden on lg+)
       ══════════════════════════════════════════════════════════ */}
-      <div className="md:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
+      <div className="lg:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
 
         {/* Unified Card Container (Photo + Author Row attached) */}
         <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
@@ -481,11 +481,11 @@ const PostDetailPage = () => {
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          DESKTOP LAYOUT  (hidden below md, 3-column grid)
+          DESKTOP LAYOUT  (hidden below lg, 3-column grid)
       ══════════════════════════════════════════════════════════ */}
-      <div className="hidden md:flex min-h-screen md:h-screen overflow-y-auto md:overflow-hidden">
+      <div className="hidden lg:flex min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden">
         <div
-          className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto md:overflow-hidden h-full w-full"
+          className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto lg:overflow-hidden h-full w-full"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 260px 300px",
