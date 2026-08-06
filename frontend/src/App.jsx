@@ -9,23 +9,46 @@ import Layout from './components/Layout'
 import LandingPage from './Pages/LandingPage'
 import ExplorePage from './Pages/ExplorePage'
 
-// Code-split secondary routes with React.lazy
-const LoginPage = lazy(() => import('./Pages/LoginPage'))
-const SignupPage = lazy(() => import('./Pages/SignupPage'))
-const ForgotPasswordPage = lazy(() => import('./Pages/ForgotPasswordPage'))
-const ResetPasswordPage = lazy(() => import('./Pages/ResetPasswordPage'))
-const Collections = lazy(() => import('./Pages/Collections'))
-const Create = lazy(() => import('./Pages/Create'))
-const SearchPage = lazy(() => import('./Pages/SearchPage'))
-const PostDetailPage = lazy(() => import('./Pages/PostDetailPage'))
-const FavouritesPage = lazy(() => import('./Pages/FavouritesPage'))
-const AccountPage = lazy(() => import('./Pages/AccountPage'))
-const SettingsPage = lazy(() => import('./Pages/SettingsPage'))
-const UserProfilePage = lazy(() => import('./Pages/UserProfilePage'))
-const PublicCollectionPage = lazy(() => import('./Pages/PublicCollectionPage'))
-const AdminPortalPage = lazy(() => import('./Pages/AdminPortalPage'))
-const NotFoundPage = lazy(() => import('./Pages/NotFoundPage'))
-const MobileUploadPage = lazy(() => import('./Pages/MobileUploadPage'))
+/**
+ * Safe lazy loader with auto-reload retry if a new deployment changed JS chunk hashes.
+ */
+function lazyWithRetry(componentImport) {
+  return lazy(async () => {
+    const pageHasAlreadyBeenReloaded = JSON.parse(
+      window.sessionStorage.getItem('chunk_reload_retry') || 'false'
+    )
+
+    try {
+      const component = await componentImport()
+      window.sessionStorage.removeItem('chunk_reload_retry')
+      return component
+    } catch (error) {
+      if (!pageHasAlreadyBeenReloaded) {
+        window.sessionStorage.setItem('chunk_reload_retry', 'true')
+        window.location.reload()
+      }
+      throw error
+    }
+  })
+}
+
+// Code-split secondary routes with lazyWithRetry
+const LoginPage = lazyWithRetry(() => import('./Pages/LoginPage'))
+const SignupPage = lazyWithRetry(() => import('./Pages/SignupPage'))
+const ForgotPasswordPage = lazyWithRetry(() => import('./Pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazyWithRetry(() => import('./Pages/ResetPasswordPage'))
+const Collections = lazyWithRetry(() => import('./Pages/Collections'))
+const Create = lazyWithRetry(() => import('./Pages/Create'))
+const SearchPage = lazyWithRetry(() => import('./Pages/SearchPage'))
+const PostDetailPage = lazyWithRetry(() => import('./Pages/PostDetailPage'))
+const FavouritesPage = lazyWithRetry(() => import('./Pages/FavouritesPage'))
+const AccountPage = lazyWithRetry(() => import('./Pages/AccountPage'))
+const SettingsPage = lazyWithRetry(() => import('./Pages/SettingsPage'))
+const UserProfilePage = lazyWithRetry(() => import('./Pages/UserProfilePage'))
+const PublicCollectionPage = lazyWithRetry(() => import('./Pages/PublicCollectionPage'))
+const AdminPortalPage = lazyWithRetry(() => import('./Pages/AdminPortalPage'))
+const NotFoundPage = lazyWithRetry(() => import('./Pages/NotFoundPage'))
+const MobileUploadPage = lazyWithRetry(() => import('./Pages/MobileUploadPage'))
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh] w-full">
