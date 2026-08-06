@@ -11,10 +11,10 @@ export const ProfileTab = ({
   handleSaveProfile,
 }) => {
   return (
-    <form onSubmit={handleSaveProfile} className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-5 items-start">
+    <form onSubmit={handleSaveProfile} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
       {/* Left Column: Avatar & Profile Card */}
       <div
-        className="bg-white rounded-2xl border p-3.5 sm:p-4 shadow-2xs flex flex-row lg:flex-col items-center justify-between sm:justify-start lg:justify-center gap-3 text-left lg:text-center w-full"
+        className="bg-transparent sm:bg-white rounded-none sm:rounded-2xl border-0 sm:border p-0 sm:p-4 shadow-none sm:shadow-2xs flex flex-row lg:flex-col items-center justify-between sm:justify-start lg:justify-center gap-3 text-left lg:text-center w-full"
         style={{ borderColor: '#E2E8F0' }}
       >
         <div className="flex items-center lg:flex-col gap-3 lg:gap-1.5 shrink-0">
@@ -87,7 +87,7 @@ export const ProfileTab = ({
 
       {/* Right Column: Account Details Form */}
       <div
-        className="lg:col-span-2 bg-white rounded-2xl border p-3.5 md:p-4 shadow-sm flex flex-col justify-between"
+        className="lg:col-span-2 bg-transparent sm:bg-white rounded-none sm:rounded-2xl border-0 sm:border p-0 sm:p-4 shadow-none sm:shadow-sm flex flex-col justify-between"
         style={{ borderColor: '#E2E8F0' }}
       >
         <div className="space-y-2.5">
