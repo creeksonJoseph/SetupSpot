@@ -5,6 +5,7 @@ import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "../hooks/useAdmin";
 import AuthPromptModal from "./auth/AuthPromptModal";
+import { DeletePostModal } from "./account/DeletePostModal";
 
 const CommentSection = ({ setupId, onCommentCountChange }) => {
   const { comments, loading, submitting, fetched, fetchComments, addComment, deleteComment } =

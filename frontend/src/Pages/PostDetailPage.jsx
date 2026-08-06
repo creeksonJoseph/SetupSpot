@@ -24,6 +24,9 @@ const PostDetailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const { auth } = useAuth();
+  const isLoggedIn = Boolean(auth?.token || auth?.user);
+
   const initialFocusedItemId = searchParams.get("itemId")
     ? parseInt(searchParams.get("itemId"), 10)
     : null;
@@ -109,9 +112,6 @@ const PostDetailPage = () => {
   const displayedItems = isFocusMode ? [initialFocusedItem] : allItems;
   const hasOtherItems = initialFocusedItem && allItems.length > 1;
 
-  const { auth } = useAuth();
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
-
   return (
     <div
       className={isLoggedIn ? "md:-m-8" : "p-4 sm:p-6"}
@@ -122,80 +122,20 @@ const PostDetailPage = () => {
       ══════════════════════════════════════════════════════════ */}
       <div className="md:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
 
-        {/* Hero image with pins */}
-        <div className="relative rounded-2xl overflow-hidden shadow-xs border aspect-[4/5] w-full" style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}>
-          <img
-            src={setup.image_url}
-            alt={setup.title || "Setup"}
-            className="w-full h-full object-cover block"
-          />
+        {/* Unified Card Container (Photo + Author Row attached) */}
+        <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
+          {/* Hero image with pins */}
+          <div className="relative aspect-[4/5] w-full" style={{ backgroundColor: "#0F172A" }}>
+            <img
+              src={setup.image_url}
+              alt={setup.title || "Setup"}
+              className="w-full h-full object-cover block"
+            />
 
-          {/* Back pill */}
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.88)",
-              color: "#0F172A",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.6)",
-              boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
-            }}
-          >
-            <ArrowLeft size={14} />
-            Back
-          </button>
-
-          {/* Expand pill */}
-          <button
-            onClick={() => setMobileLightboxOpen(true)}
-            className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.88)",
-              color: "#0F172A",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.6)",
-              boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
-            }}
-          >
-            <Expand size={13} />
-            Expand
-          </button>
-
-          {/* Numbered hotspot pins — 44px touch target wrapper around refined 26px dot */}
-          {allItems.map((item, index) => {
-            const isFlashed = flashedPinId === item.id;
-            return (
-              <div
-                key={item.id}
-                className="absolute z-10 w-11 h-11 flex items-center justify-center cursor-pointer select-none"
-                style={{
-                  top: `${item.y}%`,
-                  left: `${item.x}%`,
-                  transform: "translate(-50%, -50%)",
-                }}
-                onClick={() => flashItem(item.id)}
-              >
-                <div
-                  className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
-                    isFlashed ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
-                  }`}
-                  style={{
-                    backgroundColor: "#0066ff",
-                    border: "2px solid rgba(255,255,255,0.9)",
-                    boxShadow: isFlashed ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.35)",
-                  }}
-                >
-                  {index + 1}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* "Tap a pin to shop" badge */}
-          {allItems.length > 0 && (
-            <div
-              className="absolute bottom-3 right-3 z-10 text-[11.5px] font-bold px-2.5 py-1.5 rounded-full shadow-sm"
+            {/* Back pill */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
               style={{
                 backgroundColor: "rgba(255,255,255,0.88)",
                 color: "#0F172A",
@@ -204,16 +144,78 @@ const PostDetailPage = () => {
                 boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
               }}
             >
-              Tap a pin to shop
-            </div>
-          )}
-        </div>
+              <ArrowLeft size={14} />
+              Back
+            </button>
 
-        {/* Author + action icons row */}
-        <div
-          className="flex items-center justify-between px-4 py-3 bg-white border rounded-2xl mt-3 shadow-xs"
-          style={{ borderColor: "#E2E8F0" }}
-        >
+            {/* Expand pill */}
+            <button
+              onClick={() => setMobileLightboxOpen(true)}
+              className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.88)",
+                color: "#0F172A",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.6)",
+                boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+              }}
+            >
+              <Expand size={13} />
+              Expand
+            </button>
+
+            {/* Numbered hotspot pins — 44px touch target wrapper around refined 26px dot */}
+            {allItems.map((item, index) => {
+              const isFlashed = flashedPinId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className="absolute z-10 w-11 h-11 flex items-center justify-center cursor-pointer select-none"
+                  style={{
+                    top: `${item.y}%`,
+                    left: `${item.x}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  onClick={() => flashItem(item.id)}
+                >
+                  <div
+                    className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
+                      isFlashed ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
+                    }`}
+                    style={{
+                      backgroundColor: "#0066ff",
+                      border: "2px solid rgba(255,255,255,0.9)",
+                      boxShadow: isFlashed ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.35)",
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* "Tap a pin to shop" badge */}
+            {allItems.length > 0 && (
+              <div
+                className="absolute bottom-3 right-3 z-10 text-[11.5px] font-bold px-2.5 py-1.5 rounded-full shadow-sm"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.88)",
+                  color: "#0F172A",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.6)",
+                  boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
+                }}
+              >
+                Tap a pin to shop
+              </div>
+            )}
+          </div>
+
+          {/* Author + action icons row (Attached to Image Bottom) */}
+          <div
+            className="flex items-center justify-between px-4 py-3 bg-white border-t"
+            style={{ borderColor: "#E2E8F0" }}
+          >
           <Link to={`/profile/${setup.author}`} className="flex items-center gap-2.5">
             {setup.author_avatar ? (
               <img
@@ -330,13 +332,14 @@ const PostDetailPage = () => {
           </div>
         </div>
 
-        {/* Comments (lazy mount) */}
+        {/* Comments (lazy mount - expanding seamlessly inside the card) */}
         {commentsOpen && (
           <CommentSection
             setupId={setup.id}
             onCommentCountChange={handleCommentCountChange}
           />
         )}
+        </div>
 
         {/* Items in Setup */}
         {allItems.length > 0 && (
