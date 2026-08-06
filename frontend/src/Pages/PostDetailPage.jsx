@@ -114,28 +114,28 @@ const PostDetailPage = () => {
 
   return (
     <div
-      className={isLoggedIn ? "-m-8" : "p-4 sm:p-6"}
+      className={isLoggedIn ? "md:-m-8" : "p-4 sm:p-6"}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/* ══════════════════════════════════════════════════════════
           MOBILE LAYOUT  (hidden on md+)
       ══════════════════════════════════════════════════════════ */}
-      <div className="md:hidden min-h-screen" style={{ backgroundColor: "#F7F9FB" }}>
+      <div className="md:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
 
         {/* Hero image with pins */}
-        <div className="relative" style={{ backgroundColor: "#0F172A" }}>
+        <div className="relative rounded-2xl overflow-hidden shadow-xs border" style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}>
           <img
             src={setup.image_url}
             alt={setup.title || "Setup"}
             className="w-full block"
-            style={{ maxHeight: "78vh", objectFit: "contain" }}
+            style={{ maxHeight: "70vh", objectFit: "contain" }}
           />
 
           {/* Back pill */}
           <button
             onClick={() => navigate(-1)}
             className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full text-white text-xs font-semibold cursor-pointer"
-            style={{ backgroundColor: "rgba(15,23,42,0.55)", backdropFilter: "blur(6px)" }}
+            style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
           >
             <ArrowLeft size={14} />
             Back
@@ -145,7 +145,7 @@ const PostDetailPage = () => {
           <button
             onClick={() => setMobileLightboxOpen(true)}
             className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full text-white text-xs font-semibold cursor-pointer"
-            style={{ backgroundColor: "rgba(15,23,42,0.55)", backdropFilter: "blur(6px)" }}
+            style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
           >
             <Expand size={13} />
             Expand
@@ -177,7 +177,7 @@ const PostDetailPage = () => {
           {allItems.length > 0 && (
             <div
               className="absolute bottom-3 right-3 z-10 text-white text-[11.5px] font-semibold px-2.5 py-1.5 rounded-full"
-              style={{ backgroundColor: "rgba(15,23,42,0.55)", backdropFilter: "blur(6px)" }}
+              style={{ backgroundColor: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
             >
               Tap a pin to shop
             </div>
@@ -186,7 +186,7 @@ const PostDetailPage = () => {
 
         {/* Author + action icons row */}
         <div
-          className="flex items-center justify-between px-4 py-3 bg-white border-b"
+          className="flex items-center justify-between px-4 py-3 bg-white border rounded-2xl mt-3 shadow-xs"
           style={{ borderColor: "#E2E8F0" }}
         >
           <Link to={`/profile/${setup.author}`} className="flex items-center gap-2.5">
@@ -315,7 +315,7 @@ const PostDetailPage = () => {
 
         {/* Items in Setup */}
         {allItems.length > 0 && (
-          <div className="px-4 pt-5 pb-2">
+          <div className="px-1 pt-5 pb-2">
             <h2 className="text-[15px] font-bold mb-3" style={{ color: "#0F172A" }}>
               Items in Setup{" "}
               <span style={{ color: "#64748B", fontWeight: 600 }}>({allItems.length})</span>
@@ -447,7 +447,7 @@ const PostDetailPage = () => {
         )}
 
         {/* Similar Setups */}
-        <div className="px-4 pt-7 pb-28">
+        <div className="px-1 pt-6 pb-8">
           <SimilarSetups currentSetupId={id} mobileMode />
         </div>
       </div>
