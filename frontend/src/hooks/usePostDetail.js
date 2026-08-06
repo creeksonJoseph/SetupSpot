@@ -24,6 +24,7 @@ export function usePostDetail(id) {
   const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
 
   const isLoggedIn = Boolean(auth?.token || auth?.user);
+  const currentUsername = auth?.username || auth?.user?.username;
 
   const triggerAuthModal = useCallback((actionName = 'continue') => {
     setAuthModalState({ isOpen: true, actionName });
@@ -175,6 +176,25 @@ export function usePostDetail(id) {
     }
   }, [setup, authFetch, showToast]);
 
+  /** Delete this setup (owner only). Navigates back on success. */
+  const deleteSetup = useCallback(async () => {
+    if (!setup) return;
+    try {
+      const res = await authFetch(`/setups/${setup.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Setup deleted successfully.', 'success');
+        navigate(-1);
+      } else {
+        showToast('Failed to delete setup.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to delete setup.', 'error');
+    }
+  }, [setup, authFetch, showToast, navigate]);
+
+  /** Whether the currently logged-in user is the author of this setup. */
+  const isOwner = Boolean(currentUsername && setup?.author && currentUsername === setup.author);
 
 
   return {
@@ -193,6 +213,8 @@ export function usePostDetail(id) {
     handleCloseModal,
     toggleLike,
     toggleFavorite,
+    deleteSetup,
+    isOwner,
     commentsOpen,
     setCommentsOpen,
     authModalState,

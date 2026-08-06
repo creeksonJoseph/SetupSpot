@@ -85,8 +85,8 @@ export default function SignupPage() {
 
         {/* Form Card */}
         <div
-          className="w-full rounded-xl p-12 border shadow-xs"
-          style={{ borderColor: "rgba(226,232,240,0.5)", backgroundColor: "rgba(255,255,255,0.85)" }}
+          className="w-full rounded-xl p-12 border relative z-10"
+          style={{ borderColor: "rgba(226,232,240,0.5)", backgroundColor: "rgba(255,255,255,0.25)" }}
         >
           <Steps current={step} />
 

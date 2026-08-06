@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Trash2, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import ShareMenu from "./ShareMenu";
 
@@ -14,10 +14,13 @@ const PostSocialBar = ({
   onToggleLike,
   onToggleComments,
   onToggleFavorite,
+  isOwner = false,
+  onDeleteSetup,
 }) => {
 
   const [moreOpen, setMoreOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const moreRef = useRef(null);
 
   // Close 3-dot popover when clicking outside
@@ -25,6 +28,7 @@ const PostSocialBar = ({
     const handler = (e) => {
       if (moreRef.current && !moreRef.current.contains(e.target)) {
         setMoreOpen(false);
+        setDeleteConfirm(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -182,6 +186,54 @@ const PostSocialBar = ({
                   </span>
                 </button>
 
+                {/* Delete Setup — owners only */}
+                {isOwner && (
+                  <>
+                    <div className="h-px w-full" style={{ backgroundColor: "#E2E8F0" }} />
+                    {deleteConfirm ? (
+                      <div
+                        className="flex flex-col gap-2 px-4 py-3"
+                        style={{ backgroundColor: "rgba(186,26,26,0.04)" }}
+                      >
+                        <div className="flex items-center gap-2 text-xs font-bold" style={{ color: "#ba1a1a" }}>
+                          <AlertTriangle size={14} />
+                          <span>Delete this setup?</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setDeleteConfirm(false)}
+                            className="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer"
+                            style={{ borderColor: "#E2E8F0", color: "#475569", backgroundColor: "#ffffff" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fb")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => { setMoreOpen(false); setDeleteConfirm(false); onDeleteSetup?.(); }}
+                            className="flex-1 py-1.5 rounded-lg text-xs font-bold text-white transition-colors cursor-pointer"
+                            style={{ backgroundColor: "#ba1a1a" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#9b1313")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ba1a1a")}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirm(true)}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors cursor-pointer"
+                        style={{ color: "#ba1a1a", backgroundColor: "transparent" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(186,26,26,0.06)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      >
+                        <Trash2 size={16} style={{ color: "#ba1a1a" }} />
+                        <span className="font-semibold">Delete Setup</span>
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

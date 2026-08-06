@@ -2,18 +2,25 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageSquarePlus } from "lucide-react";
 import { SuggestFeatureModal } from "../feedback/SuggestFeatureModal";
+import ConfirmSignOutModal from "../auth/ConfirmSignOutModal";
 
 export const UserProfileHeader = ({ user, handleLogout }) => {
   const setupCount = user?.post_count ?? user?.setups?.length ?? 0;
   const totalLikes = user?.total_likes ?? user?.setups?.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) ?? 0;
   const avatarUrl = user?.avatar_url || user?.avatar || user?.profile_picture;
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   return (
     <section className="flex flex-col gap-3 sm:gap-6 mb-4 sm:mb-8">
       <SuggestFeatureModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+      <ConfirmSignOutModal
+        isOpen={showSignOutModal}
+        onClose={() => setShowSignOutModal(false)}
+        onConfirm={handleLogout}
       />
 
       {/* Avatar, User Details & Desktop Top-Right Actions Row */}
@@ -86,7 +93,7 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
 
           {/* Logout Button */}
           <button
-            onClick={handleLogout}
+            onClick={() => setShowSignOutModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer"
             style={{
               borderColor: "rgba(186,26,26,0.2)",

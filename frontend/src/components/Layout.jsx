@@ -4,6 +4,7 @@ import { Menu, X, Settings, UserCheck, ShieldCheck, MessageSquarePlus, LogOut } 
 import { useAuth } from '../context/AuthContext'
 import LandingHeader from './landing/LandingHeader'
 import { SuggestFeatureModal } from './feedback/SuggestFeatureModal'
+import ConfirmSignOutModal from './auth/ConfirmSignOutModal'
 
 export default function Layout() {
     const location = useLocation()
@@ -19,6 +20,12 @@ export default function Layout() {
     const [isScrolled, setIsScrolled] = useState(false)
     const [accountMenuOpen, setAccountMenuOpen] = useState(false)
     const [showSuggestModal, setShowSuggestModal] = useState(false)
+    const [showSignOutModal, setShowSignOutModal] = useState(false)
+
+    const handleSignOut = () => {
+        logout()
+        setShowSignOutModal(false)
+    }
 
     const isAccountPage = location.pathname.startsWith('/account')
 
@@ -83,6 +90,11 @@ export default function Layout() {
             <SuggestFeatureModal
                 isOpen={showSuggestModal}
                 onClose={() => setShowSuggestModal(false)}
+            />
+            <ConfirmSignOutModal
+                isOpen={showSignOutModal}
+                onClose={() => setShowSignOutModal(false)}
+                onConfirm={handleSignOut}
             />
 
             {/* Mobile Top Navigation Header (< md ONLY) */}
@@ -179,7 +191,7 @@ export default function Layout() {
                             <button
                                 onClick={() => {
                                     setAccountMenuOpen(false)
-                                    logout()
+                                    setShowSignOutModal(true)
                                 }}
                                 className="flex items-center gap-2.5 text-xs font-bold text-red-600 hover:text-red-700 py-2.5 px-3 rounded-xl hover:bg-red-50 transition-colors w-full text-left cursor-pointer"
                             >

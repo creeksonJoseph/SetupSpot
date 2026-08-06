@@ -38,6 +38,8 @@ const PostDetailPage = () => {
     handleCloseModal,
     toggleLike,
     toggleFavorite,
+    deleteSetup,
+    isOwner,
     commentsOpen,
     setCommentsOpen,
     authModalState,
@@ -148,6 +150,8 @@ const PostDetailPage = () => {
               onToggleLike={toggleLike}
               onToggleComments={() => setCommentsOpen((o) => !o)}
               onToggleFavorite={toggleFavorite}
+              isOwner={isOwner}
+              onDeleteSetup={deleteSetup}
             />
 
 
