@@ -160,3 +160,57 @@ export const UserProfileSkeleton = () => {
     </main>
   );
 };
+
+/**
+ * Animated Skeleton Loader for Comments Section
+ */
+export const CommentsSkeleton = ({ count = 3 }) => {
+  return (
+    <div className="px-4 py-4 space-y-4 animate-pulse">
+      {/* Comment composer skeleton */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex-1 h-9 bg-slate-100 rounded-xl border border-slate-200" />
+      </div>
+      {/* Comment rows skeleton */}
+      <div className="space-y-4 pt-1">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded-full bg-slate-200 shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 w-24 bg-slate-200 rounded-md" />
+              <div className="h-3 w-full bg-slate-100 rounded-md" />
+              <div className="h-3 w-3/4 bg-slate-100 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Animated Skeleton Loader for Similar Setups panel
+ */
+export const SimilarSetupsSkeleton = ({ count = 6 }) => {
+  return (
+    <div className="flex flex-col animate-pulse">
+      <div className="h-4 w-36 bg-slate-200 rounded-md mb-3" />
+      <div
+        className="rounded-xl border p-2.5"
+        style={{ backgroundColor: '#ffffff', borderColor: '#E2E8F0' }}
+      >
+        <div className="columns-2 gap-2 space-y-2">
+          {Array.from({ length: count }).map((_, i) => (
+            <div key={i} className="break-inside-avoid mb-2">
+              <div
+                className="w-full rounded-lg bg-slate-200"
+                style={{ aspectRatio: i % 3 === 0 ? '4/5' : '4/4' }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

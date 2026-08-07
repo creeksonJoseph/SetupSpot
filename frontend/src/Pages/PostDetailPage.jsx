@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, Suspense } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useAuth } from "../context/AuthContext";
@@ -7,7 +7,7 @@ import {
   ArrowLeft, Expand, Plus, ChevronDown, ChevronUp,
   ShoppingBag, ExternalLink, Info, Trash2, Share2,
 } from "lucide-react";
-import { PostDetailSkeleton } from "../components/CardSkeleton";
+import { PostDetailSkeleton, SimilarSetupsSkeleton } from "../components/CardSkeleton";
 
 import SetupImageCanvas from "../components/SetupImageCanvas";
 import SetupItemList from "../components/SetupItemList";
@@ -474,9 +474,11 @@ const PostDetailPage = () => {
           </div>
         )}
 
-        {/* Similar Setups */}
+        {/* Similar Setups — independent Suspense boundary, loads in parallel with the rest */}
         <div className="px-1 pt-6 pb-8">
-          <SimilarSetups currentSetupId={id} mobileMode />
+          <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
+            <SimilarSetups currentSetupId={id} mobileMode />
+          </Suspense>
         </div>
       </div>
 
@@ -580,9 +582,11 @@ const PostDetailPage = () => {
             />
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT COLUMN — independent Suspense boundary, loads in parallel */}
           <div className="h-full overflow-hidden">
-            <SimilarSetups currentSetupId={id} />
+            <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
+              <SimilarSetups currentSetupId={id} />
+            </Suspense>
           </div>
         </div>
       </div>

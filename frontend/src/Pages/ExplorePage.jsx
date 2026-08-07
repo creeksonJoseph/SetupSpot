@@ -18,10 +18,10 @@ const hitToSetup = (hit) => ({
 
 const ExplorePage = () => {
   const location = useLocation();
-  const { setups, loading, toggleFavorite } = useSetups();
+  const { setups, loading, loadingMore, hasMore, loadMore, toggleFavorite } = useSetups();
+
   // null = no active search; array = Algolia hits (may be empty)
   const [searchHits, setSearchHits] = useState(null);
-  const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
 
   const handleSearchResults = useCallback((hits) => {
@@ -42,17 +42,17 @@ const ExplorePage = () => {
     }
   }, [location.search]);
 
-  // Automatic Infinite Scroll Handler
+  // Infinite scroll — triggers real server-side cursor pagination via loadMore()
   useEffect(() => {
-    if (visibleLimit >= displayedSetups.length || !sentinelRef.current) return;
+    if (isSearching || !hasMore || !sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleLimit((prev) => prev + 24);
+          loadMore();
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: '400px' } // Start fetching 400px before the sentinel is visible
     );
 
     const currentSentinel = sentinelRef.current;
@@ -60,7 +60,7 @@ const ExplorePage = () => {
     return () => {
       if (currentSentinel) observer.unobserve(currentSentinel);
     };
-  }, [visibleLimit, displayedSetups.length]);
+  }, [isSearching, hasMore, loadMore]);
 
   return (
     <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
@@ -103,15 +103,26 @@ const ExplorePage = () => {
         ) : (
           <div>
             <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-              {displayedSetups.slice(0, visibleLimit).map((setup) => (
+              {displayedSetups.map((setup) => (
                 <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
               ))}
             </div>
 
-            {/* Automatic Infinite Scroll Sentinel */}
-            {visibleLimit < displayedSetups.length && (
-              <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
-                <span className="text-xs font-medium text-slate-400">Loading more setups...</span>
+            {/* Infinite scroll sentinel — triggers loadMore() when entering viewport */}
+            {!isSearching && (
+              <div
+                ref={sentinelRef}
+                className="h-16 w-full flex items-center justify-center my-4"
+              >
+                {loadingMore && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
+                    <span className="text-xs font-medium text-slate-400">Loading more setups…</span>
+                  </div>
+                )}
+                {!hasMore && setups.length > 0 && (
+                  <p className="text-xs text-slate-300 font-medium">You've seen all setups ✓</p>
+                )}
               </div>
             )}
           </div>
@@ -122,5 +133,3 @@ const ExplorePage = () => {
 };
 
 export default ExplorePage;
-
-
