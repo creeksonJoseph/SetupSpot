@@ -1,37 +1,12 @@
-import React, { useState, useLayoutEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Layers } from "lucide-react";
 import { CollectionMosaicCover } from "../collections/CollectionMosaicCover";
+import { CollectionGridSkeleton } from "../CardSkeleton";
 
-// Skeleton card for a single collection
-const CollectionCardSkeleton = () => (
-  <div className="rounded-2xl border bg-white overflow-hidden shadow-2xs animate-pulse" style={{ borderColor: "#E2E8F0" }}>
-    <div className="aspect-[4/3] w-full bg-slate-100" />
-    <div className="p-3 space-y-2">
-      <div className="h-3.5 w-3/4 rounded bg-slate-200" />
-      <div className="h-2.5 w-1/3 rounded bg-slate-100" />
-    </div>
-  </div>
-);
-
-export const ProfileCollectionsTab = ({ collections = [] }) => {
-  // Show skeleton for one render cycle so the browser can paint before heavy image loading
-  const [mounting, setMounting] = useState(true);
-
-  useLayoutEffect(() => {
-    const id = requestAnimationFrame(() => setMounting(false));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  // Always show a skeleton on first mount
-  if (mounting) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {Array.from({ length: Math.max(collections.length, 2) }).map((_, i) => (
-          <CollectionCardSkeleton key={i} />
-        ))}
-      </div>
-    );
+export const ProfileCollectionsTab = ({ collections = [], loading = false }) => {
+  if (loading || !collections) {
+    return <CollectionGridSkeleton count={6} />;
   }
 
   if (collections.length === 0) {

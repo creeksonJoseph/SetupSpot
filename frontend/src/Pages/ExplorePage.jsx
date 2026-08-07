@@ -90,7 +90,7 @@ const ExplorePage = () => {
         </div>
 
         {loading && !isSearching ? (
-          <SetupGridSkeleton count={8} />
+          <SetupGridSkeleton count={10} />
         ) : displayedSetups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>

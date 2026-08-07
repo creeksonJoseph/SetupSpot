@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MoreVertical, Share2, Trash2 } from "lucide-react";
 import { DeletePostModal } from "./DeletePostModal";
 import { ShareMenu } from "../ShareMenu";
+import { SetupGridSkeleton } from "../CardSkeleton";
 
-export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
+export const UserSetupsGrid = ({ setups = [], loading = false, deleteSetup }) => {
   const [pendingDeleteSetup, setPendingDeleteSetup] = useState(null);
   const [shareSetup, setShareSetup] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -20,7 +21,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
 
   // Automatic Infinite Scroll Handler
   useEffect(() => {
-    if (visibleLimit >= setups.length || !sentinelRef.current) return;
+    if (visibleLimit >= (setups?.length || 0) || !sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -36,14 +37,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
     return () => {
       if (currentSentinel) observer.unobserve(currentSentinel);
     };
-  }, [visibleLimit, setups.length]);
-
-  const handleSharePost = (e, setup) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setOpenMenuId(null);
-    setShareSetup(setup);
-  };
+  }, [visibleLimit, setups?.length]);
 
   return (
     <section className="mb-16">
@@ -52,7 +46,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
         <ShareMenu setup={shareSetup} onClose={() => setShareSetup(null)} />
       )}
 
-      {/* Delete Confirmation Modal with Progress Bar */}
+      {/* Delete Confirmation Modal */}
       <DeletePostModal
         isOpen={!!pendingDeleteSetup}
         onClose={() => setPendingDeleteSetup(null)}
@@ -68,12 +62,15 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-8">
         <h2 className="text-xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
-          Your Setups ({setups.length})
+          Your Setups {setups ? `(${setups.length})` : ""}
         </h2>
       </div>
 
-      {/* Empty State */}
-      {setups.length === 0 ? (
+      {/* Loading Skeleton state — NEVER flash empty state during data loading */}
+      {loading || !setups ? (
+        <SetupGridSkeleton count={10} />
+      ) : setups.length === 0 ? (
+        /* Empty State — Only shown after loading completes and setups count is genuinely 0 */
         <div
           className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-dashed text-center"
           style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}

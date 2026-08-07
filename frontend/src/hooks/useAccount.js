@@ -4,14 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import { useAuthFetch } from './useAuthFetch';
 import { useToast } from '../context/ToastContext';
 
+// Module-level cache for account details (0ms revisiting)
+let accountCache = null;
+
 export function useAccount() {
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
   const { showToast } = useToast();
 
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => accountCache?.data ?? (auth?.user?.username ? auth.user : null));
+  const [loading, setLoading] = useState(() => !accountCache && !auth?.user?.username);
   const [error, setError] = useState(null);
 
   const [pwdStep, setPwdStep] = useState(1);
@@ -37,20 +40,25 @@ export function useAccount() {
   useEffect(() => () => clearInterval(pwdTimerRef.current), []);
 
   const fetchUserData = useCallback(async () => {
-    setLoading(true);
+    if (!accountCache && !auth?.user) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await authFetch('/users/me');
       if (!res.ok) throw new Error('Failed to fetch user data');
       const data = await res.json();
+      accountCache = { data, timestamp: Date.now() };
       setUser(data);
     } catch (err) {
       console.error('Error fetching user data:', err);
-      setError(err.message);
+      if (!accountCache && !auth?.user) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
-  }, [authFetch]);
+  }, [authFetch, auth?.user]);
 
   useEffect(() => {
     if (auth?.access_token) {

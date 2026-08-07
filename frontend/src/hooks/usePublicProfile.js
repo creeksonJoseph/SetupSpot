@@ -6,30 +6,42 @@ import { useAuthFetch } from './useAuthFetch';
  * Returns: { profile, loading, error }
  * Profile shape: { id, username, bio, avatar_url, post_count, collection_count, setups[], collections[] }
  */
+// Module-level cache for public profiles (0ms revisiting)
+const profileCache = {};
+
 export function usePublicProfile(username) {
   const authFetch = useAuthFetch();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const cached = profileCache[username];
+  const isFresh = cached && Date.now() - cached.timestamp < 60_000;
+
+  const [profile, setProfile] = useState(cached?.data ?? null);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState(null);
 
   const fetchProfile = useCallback(async () => {
     if (!username) return;
-    setLoading(true);
+    if (!profileCache[username]) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await authFetch(`/users/${username}`);
 
       if (!res.ok) throw new Error('User not found');
       const data = await res.json();
+
+      profileCache[username] = { data, timestamp: Date.now() };
       setProfile(data);
     } catch (err) {
       console.error('usePublicProfile error:', err);
-      setError(err.message);
+      if (!profileCache[username]) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
   }, [username, authFetch]);
-
 
   useEffect(() => {
     fetchProfile();

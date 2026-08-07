@@ -1,37 +1,13 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ImageOff } from "lucide-react";
+import { SetupGridSkeleton } from "../CardSkeleton";
 
-// Skeleton card for a single setup
-const SetupCardSkeleton = ({ tall = false }) => (
-  <div
-    className="rounded-2xl border bg-white overflow-hidden shadow-2xs animate-pulse break-inside-avoid mb-4"
-    style={{ borderColor: "#E2E8F0" }}
-  >
-    <div className={`w-full bg-slate-100 ${tall ? "aspect-[3/4]" : "aspect-[4/3]"}`} />
-    <div className="px-3 py-2.5 border-t" style={{ borderColor: "#F1F5F9" }}>
-      <div className="h-3 w-2/3 rounded bg-slate-200" />
-    </div>
-  </div>
-);
-
-export const ProfilePostsTab = ({ setups = [] }) => {
-  const [mounting, setMounting] = useState(true);
+export const ProfilePostsTab = ({ setups = [], loading = false }) => {
   const [expandedTitleId, setExpandedTitleId] = useState(null);
 
-  useLayoutEffect(() => {
-    const id = requestAnimationFrame(() => setMounting(false));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  if (mounting) {
-    return (
-      <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
-        {Array.from({ length: Math.max(setups.length, 4) }).map((_, i) => (
-          <SetupCardSkeleton key={i} tall={i % 3 === 0} />
-        ))}
-      </div>
-    );
+  if (loading || !setups) {
+    return <SetupGridSkeleton count={10} />;
   }
 
   if (setups.length === 0) {
