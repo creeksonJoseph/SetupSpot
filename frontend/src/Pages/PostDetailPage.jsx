@@ -491,17 +491,17 @@ const PostDetailPage = () => {
       {/* ══════════════════════════════════════════════════════════
           DESKTOP LAYOUT  (hidden below lg, 3-column grid)
       ══════════════════════════════════════════════════════════ */}
-      <div className="hidden lg:flex min-h-screen overflow-y-auto">
+      <div className="hidden lg:flex h-screen max-h-screen overflow-hidden">
         <div
-          className="flex flex-1 gap-4 p-4 lg:p-5 overflow-y-auto h-full w-full"
+          className="flex flex-1 gap-4 p-4 lg:p-5 h-full w-full overflow-hidden"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 260px 300px",
-            alignItems: "start",
+            alignItems: "stretch",
           }}
         >
           {/* LEFT COLUMN — Hero Canvas & Social Actions */}
-          <div className="flex flex-col gap-2.5 max-h-full overflow-y-auto pr-1">
+          <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-1">
             <div className="shrink-0">
               <button
                 onClick={() => navigate(-1)}
@@ -554,7 +554,7 @@ const PostDetailPage = () => {
           </div>
 
           {/* MIDDLE COLUMN — Equipment Items Breakdown */}
-          <div className="h-full overflow-hidden flex flex-col gap-2">
+          <div className="h-full overflow-hidden flex flex-col">
             {!setup ? (
               <ItemsListSkeleton count={5} />
             ) : (
@@ -599,7 +599,7 @@ const PostDetailPage = () => {
           </div>
 
           {/* RIGHT COLUMN — independent Suspense boundary, loads in parallel */}
-          <div className="h-full overflow-hidden">
+          <div className="h-full overflow-hidden flex flex-col">
             <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
               <SimilarSetups currentSetupId={id} />
             </Suspense>

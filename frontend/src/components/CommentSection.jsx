@@ -84,11 +84,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     >
       {/* Comments list */}
       <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
-        {loading && (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 size={20} className="animate-spin" style={{ color: "#0066ff" }} />
-          </div>
-        )}
+        {loading && <CommentsSkeleton count={3} />}
 
         {!loading && comments.length === 0 && (
           <p className="text-center text-sm py-4" style={{ color: "#727687" }}>

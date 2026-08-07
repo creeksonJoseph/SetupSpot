@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useSimilarSetups } from "../hooks/useSimilarSetups";
+import { SimilarSetupsSkeleton } from "./CardSkeleton";
 
 const SimilarSetups = ({ currentSetupId, mobileMode = false }) => {
   const [expandedTitleId, setExpandedTitleId] = useState(null);
@@ -30,9 +31,7 @@ const SimilarSetups = ({ currentSetupId, mobileMode = false }) => {
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 size={20} className="animate-spin" style={{ color: "#0066ff" }} />
-          </div>
+          <SimilarSetupsSkeleton count={6} />
         ) : recommendedSetups.length === 0 ? (
           <p className="text-xs text-center py-8" style={{ color: "#727687" }}>
             No similar setups found.

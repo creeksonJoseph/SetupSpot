@@ -266,3 +266,25 @@ export const ItemsListSkeleton = ({ count = 5 }) => {
     </div>
   );
 };
+
+/**
+ * Animated Skeleton Loader for Settings Page
+ */
+export const SettingsSkeleton = () => {
+  return (
+    <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 max-w-7xl mx-auto space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-6 w-48 bg-slate-200 rounded-md" />
+        <div className="h-4 w-72 bg-slate-100 rounded-md" />
+      </div>
+      <div className="h-10 w-64 bg-slate-200 rounded-xl" />
+      <div className="p-6 border bg-white rounded-3xl space-y-4" style={{ borderColor: "#E2E8F0" }}>
+        <div className="h-4 w-32 bg-slate-200 rounded-md" />
+        <div className="h-10 w-full bg-slate-100 rounded-xl" />
+        <div className="h-4 w-32 bg-slate-200 rounded-md pt-2" />
+        <div className="h-20 w-full bg-slate-100 rounded-xl" />
+      </div>
+    </main>
+  );
+};
+
