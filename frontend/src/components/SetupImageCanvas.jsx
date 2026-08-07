@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { ImageLightbox } from "./ImageLightbox";
 import { Expand } from "lucide-react";
+import { getBlurPlaceholderUrl } from "../utils/imageOptimizer";
 
 /**
  * SetupImageCanvas
  *
  * Displays the setup photo constrained to 70vh so it never forces page scroll.
+ * Includes low-res blur-up placeholder while loading full-res image.
  * Clicking the image opens an Unsplash-style fullscreen lightbox with zoom/pan.
  * Item pins remain visible on the canvas and trigger hover state in the item list.
  */
 const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemId }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const blurSrc = getBlurPlaceholderUrl(imageUrl);
 
   return (
     <>
@@ -18,25 +22,35 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
         className="w-full rounded-xl border overflow-hidden relative group"
         style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}
       >
-        {/*
-          Image is capped at 70vh with object-contain — always visible, no overflow.
-          The entire image area is clickable to open the fullscreen lightbox.
-        */}
         <div
           className="relative w-full max-h-[68vh] aspect-[4/5] cursor-zoom-in overflow-hidden flex items-center justify-center mx-auto"
           onClick={() => setLightboxOpen(true)}
           title="Click to expand"
         >
+          {/* Low-res blurred background placeholder */}
+          {blurSrc && !loaded && (
+            <img
+              src={blurSrc}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+            />
+          )}
+
+          {/* Main high-res image */}
           <img
             src={imageUrl}
             alt="Setup"
-            className="w-full h-full max-h-[68vh] object-cover block"
+            onLoad={() => setLoaded(true)}
+            className={`w-full h-full max-h-[68vh] object-cover block relative z-1 transition-opacity duration-300 ${
+              loaded ? "opacity-100" : "opacity-0"
+            }`}
             draggable={false}
           />
 
           {/* Expand hint — appears on hover */}
           <div
-            className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-sm"
+            className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-sm z-10"
             style={{
               backgroundColor: "rgba(255,255,255,0.88)",
               color: "#0F172A",

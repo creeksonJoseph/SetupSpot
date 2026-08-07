@@ -86,7 +86,7 @@ export default function Layout() {
     // Mobile (< md): Top Header with Avatar / Hamburger on Profile + Bottom Navigation Bar
     // Desktop (>= md): Full-height Sidebar with Logo at top & Avatar at bottom (No Top Header)
     return (
-        <div className="min-h-screen flex flex-col font-sans bg-[#f7f9fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+        <div className="min-h-screen lg:h-screen lg:max-h-screen flex flex-col lg:overflow-hidden font-sans bg-[#f7f9fb]" style={{ fontFamily: "Inter, sans-serif" }}>
             <SuggestFeatureModal
                 isOpen={showSuggestModal}
                 onClose={() => setShowSuggestModal(false)}
@@ -333,7 +333,7 @@ export default function Layout() {
             </nav>
 
             {/* Main Content Area */}
-            <main className="flex-1 pt-16 lg:pt-6 pb-20 lg:pb-8 lg:ml-20 p-4 lg:p-8">
+            <main className="flex-1 min-h-0 pt-16 lg:pt-4 pb-20 lg:pb-4 lg:ml-20 p-4 lg:p-6 overflow-y-auto flex flex-col">
                 <Outlet />
             </main>
         </div>

@@ -18,11 +18,13 @@ import CommentSection from "../components/CommentSection";
 import AuthPromptModal from "../components/auth/AuthPromptModal";
 import { ImageLightbox } from "../components/ImageLightbox";
 import { ShareMenu } from "../components/ShareMenu";
+import { getBlurPlaceholderUrl } from "../utils/imageOptimizer";
 
 const PostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [mobileImageLoaded, setMobileImageLoaded] = useState(false);
 
   const { auth } = useAuth();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
@@ -112,7 +114,7 @@ const PostDetailPage = () => {
 
   return (
     <div
-      className={isLoggedIn ? "xl:-m-8 h-full max-h-full overflow-hidden flex flex-col flex-1" : "p-2 sm:p-4 h-full max-h-full overflow-hidden flex flex-col flex-1"}
+      className={isLoggedIn ? "lg:-m-6 lg:-my-6 h-full max-h-full min-h-0 overflow-hidden flex flex-col flex-1" : "p-2 sm:p-4 h-full max-h-full min-h-0 overflow-hidden flex flex-col flex-1"}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/* ══════════════════════════════════════════════════════════
@@ -129,11 +131,23 @@ const PostDetailPage = () => {
             {/* Unified Card Container (Photo + Author Row attached) */}
             <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
               {/* Hero image with pins */}
-              <div className="relative aspect-[4/5] w-full" style={{ backgroundColor: "#0F172A" }}>
+              <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ backgroundColor: "#0F172A" }}>
+                {setup.image_url && !mobileImageLoaded && (
+                  <img
+                    src={getBlurPlaceholderUrl(setup.image_url)}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+                  />
+                )}
+
                 <img
                   src={setup.image_url}
                   alt={setup.title || "Setup"}
-                  className="w-full h-full object-cover block"
+                  onLoad={() => setMobileImageLoaded(true)}
+                  className={`w-full h-full object-cover block relative z-1 transition-opacity duration-300 ${
+                    mobileImageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
                 />
 
                 {/* Back pill */}
@@ -532,14 +546,14 @@ const PostDetailPage = () => {
           </div>
 
           {/* MIDDLE COLUMN — Equipment Items Breakdown */}
-          <div className="h-full overflow-hidden flex flex-col">
+          <div className="h-full overflow-hidden flex flex-col min-h-0">
             {!setup ? (
               <ItemsListSkeleton count={5} />
             ) : (
               <>
                 {initialFocusedItem && (
                   <div
-                    className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs"
+                    className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs mb-2"
                     style={{
                       backgroundColor: "rgba(0,102,255,0.06)",
                       borderColor: "rgba(0,102,255,0.2)",
@@ -577,7 +591,7 @@ const PostDetailPage = () => {
           </div>
 
           {/* RIGHT COLUMN — independent Suspense boundary, loads in parallel */}
-          <div className="h-full overflow-hidden flex flex-col">
+          <div className="h-full overflow-hidden flex flex-col min-h-0">
             <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
               <SimilarSetups currentSetupId={id} />
             </Suspense>

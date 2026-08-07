@@ -17,7 +17,7 @@ const SimilarSetups = ({ currentSetupId, mobileMode = false }) => {
   } = useSimilarSetups(currentSetupId);
 
   return (
-    <div className={mobileMode ? "flex flex-col" : "flex flex-col h-full"}>
+    <div className={mobileMode ? "flex flex-col" : "flex flex-col h-full min-h-0 flex-1"}>
       <h2 className="text-sm font-bold pb-3 shrink-0" style={{ color: "#0F172A" }}>
         More Similar Setups
       </h2>
@@ -26,7 +26,7 @@ const SimilarSetups = ({ currentSetupId, mobileMode = false }) => {
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className={`flex flex-col rounded-xl border p-2.5 space-y-3 ${
-          mobileMode ? "" : "overflow-y-auto flex-1"
+          mobileMode ? "" : "overflow-y-auto min-h-0 flex-1"
         }`}
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
