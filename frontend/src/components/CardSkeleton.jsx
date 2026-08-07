@@ -214,3 +214,55 @@ export const SimilarSetupsSkeleton = ({ count = 6 }) => {
     </div>
   );
 };
+
+/**
+ * Animated Skeleton Loader for Setup Image Canvas & Hero Author Bar
+ */
+export const SetupHeroSkeleton = () => {
+  return (
+    <div className="flex flex-col rounded-2xl border bg-white overflow-hidden animate-pulse shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+      {/* Hero Image Skeleton */}
+      <div className="relative aspect-[4/5] lg:aspect-[4/3] w-full bg-slate-200" />
+      {/* Author Bar Skeleton */}
+      <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor: "#E2E8F0" }}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-slate-200 shrink-0" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-28 bg-slate-200 rounded-md" />
+            <div className="h-3 w-16 bg-slate-100 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-slate-100" />
+          <div className="w-8 h-8 rounded-xl bg-slate-100" />
+          <div className="w-8 h-8 rounded-xl bg-slate-100" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Animated Skeleton Loader for Items Breakdown List
+ */
+export const ItemsListSkeleton = ({ count = 5 }) => {
+  return (
+    <div className="flex flex-col space-y-3 animate-pulse">
+      <div className="h-4 w-32 bg-slate-200 rounded-md mb-1" />
+      <div className="rounded-2xl border bg-white divide-y overflow-hidden shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between p-3.5 gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-6.5 h-6.5 rounded-full bg-slate-200 shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <div className="h-3.5 w-3/4 bg-slate-200 rounded-md" />
+                <div className="h-3 w-16 bg-slate-100 rounded-md" />
+              </div>
+            </div>
+            <div className="w-8 h-8 bg-slate-100 rounded-xl shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

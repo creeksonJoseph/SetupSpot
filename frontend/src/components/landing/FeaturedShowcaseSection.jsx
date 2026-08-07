@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function FeaturedShowcaseSection({ heroBackLeft, heroBackRight, heroCenter }) {
   return (
-    <section className="max-w-container-max mx-auto px-md py-12 reveal-on-scroll">
+    <section className="max-w-container-max mx-auto px-6 sm:px-10 md:px-12 lg:px-16 py-12 reveal-on-scroll">
       <div className="relative w-full max-w-5xl mx-auto pt-8 pb-4">
         {/* Back Left Supporting Photo (Tucked behind back corner at -rotate-6) */}
         <div className="absolute -left-6 sm:-left-12 -top-4 sm:-top-8 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 -rotate-6 z-0 rounded-2xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-xl hidden sm:block transition-all duration-300 ease-out hover:-translate-y-2 hover:rotate-0 hover:shadow-2xl hover:z-20 cursor-pointer">

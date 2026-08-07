@@ -4,14 +4,20 @@ import { useAuthFetch } from './useAuthFetch';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
+// Module-level cache for setup details (0ms revisiting)
+const setupDetailCache = {};
+
 export function usePostDetail(id) {
   const authFetch = useAuthFetch();
   const { auth } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const [setup, setSetup] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cachedEntry = setupDetailCache[id];
+  const isFresh = cachedEntry && Date.now() - cachedEntry.timestamp < 60_000;
+
+  const [setup, setSetup] = useState(cachedEntry?.data ?? null);
+  const [loading, setLoading] = useState(!cachedEntry);
   const [error, setError] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +51,9 @@ export function usePostDetail(id) {
 
   const fetchSetup = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
+    if (!setupDetailCache[id]) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const response = await authFetch(`/setups/${id}`);
@@ -65,11 +73,13 @@ export function usePostDetail(id) {
         items: data.items || [],
       };
 
-
+      setupDetailCache[id] = { data: transformedData, timestamp: Date.now() };
       setSetup(transformedData);
     } catch (err) {
       console.error('Fetch Error:', err);
-      setError('Failed to load setup data.');
+      if (!setupDetailCache[id]) {
+        setError('Failed to load setup data.');
+      }
     } finally {
       setLoading(false);
     }

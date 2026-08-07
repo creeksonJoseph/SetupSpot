@@ -7,7 +7,7 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
   return (
     <>
       {/* Mobile Hero View (< md) */}
-      <section className="pt-24 pb-6 px-4 bg-[#f7f9fb] md:hidden">
+      <section className="pt-24 pb-6 px-6 sm:px-10 bg-[#f7f9fb] md:hidden">
         <h1 className="text-4xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
           Curate your setup.
         </h1>
@@ -48,9 +48,9 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
 
       {/* Desktop Hero View (>= md) */}
       <section className="relative pt-24 pb-12 overflow-hidden bg-[#f7f9fb] hidden md:block">
-        <div className="max-w-container-max mx-auto px-md md:px-gutter grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-20">
+        <div className="max-w-container-max mx-auto px-6 sm:px-10 md:px-12 lg:px-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-20">
           {/* Left Column: Text & Actions (5 cols on lg) */}
-          <div className="lg:col-span-5 text-left space-y-6">
+          <div className="lg:col-span-5 text-left space-y-6 lg:pl-2">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0F172A] tracking-tight leading-[1.12]">
               Curate your setup.
             </h1>

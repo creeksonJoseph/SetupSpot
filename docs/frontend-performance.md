@@ -10,16 +10,16 @@ This document details the frontend performance strategies, rendering optimizatio
 Instead of blocking an entire page while fetching heavy secondary datasets (e.g. similar setup recommendations or comments), the UI renders critical hero content first. Data-heavy subtrees are wrapped in React `<Suspense>` boundaries paired with skeleton components.
 
 ### Implementation Pattern (Spotify Model)
-On the setup detail view ([`PostDetailPage.jsx`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/src/Pages/PostDetailPage.jsx)), the primary setup image, item annotations, and hero metadata render as soon as the main payload resolves.
-
-The secondary recommended setups grid (`SimilarSetups`) is wrapped independently:
+On the setup detail view ([`PostDetailPage.jsx`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/src/Pages/PostDetailPage.jsx)), the screen layout container is rendered immediately. Each of the three columns operates and renders its fallback skeleton or content independently:
 
 ```jsx
-{/* Primary content renders immediately */}
-<SetupImageCanvas setup={setup} />
-<SetupItemList items={setup.items} />
+{/* Left Column: Hero Image & Social Bar */}
+{!setup ? <SetupHeroSkeleton /> : <SetupImageCanvas setup={setup} />}
 
-{/* Secondary content fetches in parallel behind Suspense */}
+{/* Middle Column: Equipment Breakdown */}
+{!setup ? <ItemsListSkeleton count={5} /> : <SetupItemList items={setup.items} />}
+
+{/* Right Column: Recommended Similar Setups (Fetches in parallel behind Suspense) */}
 <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
   <SimilarSetups currentSetupId={id} />
 </Suspense>
@@ -31,8 +31,10 @@ The secondary recommended setups grid (`SimilarSetups`) is wrapped independently
 
 To prevent layout shifts (CLS) and provide immediate visual feedback, custom animated skeletons were added to [`CardSkeleton.jsx`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/src/components/CardSkeleton.jsx):
 
+- `SetupHeroSkeleton`: Simulates the hero image canvas and author action bar.
+- `ItemsListSkeleton`: Simulates equipment list accordion rows with price tags.
+- `SimilarSetupsSkeleton`: Simulates multi-column recommendation cards.
 - `CommentsSkeleton`: Simulates comment input composer and threaded user comments.
-- `SimilarSetupsSkeleton`: Simulates multi-column masonry cards for recommendations.
 - `SetupGridSkeleton`: Simulates the main explore masonry grid.
 
 ---
