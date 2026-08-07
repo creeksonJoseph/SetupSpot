@@ -78,7 +78,8 @@ export function usePostDetail(id) {
     } catch (err) {
       console.error('Fetch Error:', err);
       if (!setupDetailCache[id]) {
-        setError('Failed to load setup data.');
+        const isStarting = err?.message?.includes('starting') || err?.message?.includes('fetch') || err?.name === 'TypeError';
+        setError(isStarting ? 'Server is starting up... Please wait a few seconds and refresh.' : 'Failed to load setup data.');
       }
     } finally {
       setLoading(false);

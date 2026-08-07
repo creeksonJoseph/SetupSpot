@@ -33,6 +33,12 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Early background ping to wake up free-tier Render server as soon as HTML starts parsing
+      (function () {
+        fetch('https://setupspot.onrender.com/health').catch(function () {});
+      })();
+    </script>
     <style>
       .material-symbols-outlined {
         font-variation-settings:

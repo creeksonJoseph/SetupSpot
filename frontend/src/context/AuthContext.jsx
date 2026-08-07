@@ -4,7 +4,7 @@
  * Token is persisted to localStorage so sessions survive page reload.
  */
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { API, FALLBACK_API } from "../hooks/api";
+import { API } from "../hooks/api";
 
 const AuthContext = createContext(null);
 
@@ -47,16 +47,23 @@ export function AuthProvider({ children }) {
 
   const fetchWithFallback = async (endpoint, options) => {
     const primaryUrl = `${API}${endpoint}`;
-    try {
-      return await fetch(primaryUrl, options);
-    } catch (err) {
-      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      if (isLocal && API !== FALLBACK_API) {
-        const fallbackUrl = `${FALLBACK_API}${endpoint}`;
-        return await fetch(fallbackUrl, options);
+    const attempts = [0, 2000, 3000, 4000, 5000];
+    let lastError = null;
+
+    for (let i = 0; i < attempts.length; i++) {
+      if (attempts[i] > 0) {
+        await new Promise((r) => setTimeout(r, attempts[i]));
       }
-      throw err;
+      try {
+        return await fetch(primaryUrl, options);
+      } catch (err) {
+        lastError = err;
+      }
     }
+
+    const isNetworkErr = lastError?.name === 'TypeError' || lastError?.message?.includes('fetch');
+    const serverStartingMsg = 'Server is starting up. Please wait a few seconds and try again.';
+    throw new Error(isNetworkErr ? serverStartingMsg : (lastError?.message || serverStartingMsg));
   };
 
   // Sync latest user profile (/users/me) on mount so email & is_admin are populated

@@ -15,7 +15,7 @@
  *     is instant — no skeleton flash.
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { API, FALLBACK_API } from './api';
+import { API } from './api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -50,14 +50,23 @@ async function fetchPage(baseUrl, cursor, token, cachedEtag) {
 }
 
 async function fetchWithFallback(cursor, token, cachedEtag) {
-  try {
-    return await fetchPage(API, cursor, token, cachedEtag);
-  } catch {
-    if (API !== FALLBACK_API) {
-      return await fetchPage(FALLBACK_API, cursor, token, cachedEtag);
+  const attempts = [0, 2000, 3000, 4000, 5000];
+  let lastError = null;
+
+  for (let i = 0; i < attempts.length; i++) {
+    if (attempts[i] > 0) {
+      await new Promise((r) => setTimeout(r, attempts[i]));
     }
-    throw new Error('Failed to fetch setups from all endpoints');
+    try {
+      return await fetchPage(API, cursor, token, cachedEtag);
+    } catch (err) {
+      lastError = err;
+    }
   }
+
+  const isNetworkErr = lastError?.name === 'TypeError' || lastError?.message?.includes('fetch');
+  const serverStartingMsg = 'Server is starting up. Please wait a few seconds and try again.';
+  throw new Error(isNetworkErr ? serverStartingMsg : (lastError?.message || serverStartingMsg));
 }
 
 export function useSetups() {
@@ -181,17 +190,10 @@ export function useSetups() {
       };
       const method = isFavorited ? 'DELETE' : 'POST';
 
-      const tryToggle = async (baseUrl) => {
-        const res = await fetch(`${baseUrl}/favorites`, {
-          method, headers,
-          body: JSON.stringify({ setup_id: setupId }),
-        });
-        return res;
-      };
-
-      let response;
-      try { response = await tryToggle(API); }
-      catch { response = await tryToggle(FALLBACK_API); }
+      const response = await fetch(`${API}/favorites`, {
+        method, headers,
+        body: JSON.stringify({ setup_id: setupId }),
+      });
 
       if (!response.ok) throw new Error('Failed to toggle favorite');
 

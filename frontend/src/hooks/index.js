@@ -1,4 +1,4 @@
-export { API, FALLBACK_API, RENDER_API, LOCAL_API } from './api';
+export { API, RENDER_API } from './api';
 export { useAuthFetch } from './useAuthFetch';
 export { useSetups } from './useSetups';
 export { usePostDetail } from './usePostDetail';
