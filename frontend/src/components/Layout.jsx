@@ -72,10 +72,10 @@ export default function Layout() {
     // GUEST LAYOUT: Top landing header for guests (since guests don't have a sidebar)
     if (!isLoggedIn) {
         return (
-            <div className="min-h-screen flex flex-col font-sans bg-[#f7f9fb]" style={{ fontFamily: "Inter, sans-serif" }}>
+            <div className="h-screen max-h-screen flex flex-col font-sans bg-[#f7f9fb] overflow-hidden" style={{ fontFamily: "Inter, sans-serif" }}>
                 <LandingHeader isScrolled={isScrolled} isLoggedIn={false} />
                 <div className="h-16 w-full shrink-0" aria-hidden="true" />
-                <main className="w-full flex-1">
+                <main className="w-full flex-1 overflow-y-auto min-h-0 flex flex-col">
                     <Outlet />
                 </main>
             </div>

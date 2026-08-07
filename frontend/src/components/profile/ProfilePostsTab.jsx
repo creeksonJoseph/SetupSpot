@@ -22,7 +22,7 @@ export const ProfilePostsTab = ({ setups = [], loading = false }) => {
   }
 
   return (
-    <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
+    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
       {setups.map((setup) => (
         <Link
           key={setup.id}

@@ -112,11 +112,11 @@ const PostDetailPage = () => {
 
   return (
     <div
-      className={isLoggedIn ? "lg:-m-8" : "p-4 sm:p-6"}
+      className={isLoggedIn ? "xl:-m-8 h-full max-h-full overflow-hidden flex flex-col flex-1" : "p-2 sm:p-4 h-full max-h-full overflow-hidden flex flex-col flex-1"}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/* ══════════════════════════════════════════════════════════
-          MOBILE & TABLET LAYOUT  (hidden on lg+)
+          MOBILE & TABLET LAYOUT  (hidden on lg+, < 1024px)
       ══════════════════════════════════════════════════════════ */}
       <div className="lg:hidden min-h-screen px-3 sm:px-4 pt-1 pb-24" style={{ backgroundColor: "#F7F9FB" }}>
         {!setup ? (
@@ -139,38 +139,15 @@ const PostDetailPage = () => {
                 {/* Back pill */}
                 <button
                   onClick={() => navigate(-1)}
-                  className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.88)",
-                    color: "#0F172A",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255,255,255,0.6)",
-                    boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
-                  }}
+                  className="absolute top-3 left-3 flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-lg backdrop-blur-md cursor-pointer z-10"
+                  style={{ backgroundColor: "rgba(15,23,42,0.65)" }}
                 >
-                  <ArrowLeft size={14} />
-                  Back
+                  <ArrowLeft size={14} className="mr-1" /> Back
                 </button>
 
-                {/* Expand pill */}
-                <button
-                  onClick={() => setMobileLightboxOpen(true)}
-                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.88)",
-                    color: "#0F172A",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255,255,255,0.6)",
-                    boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
-                  }}
-                >
-                  <Expand size={13} />
-                  Expand
-                </button>
-
-                {/* Numbered hotspot pins — 44px touch target wrapper around refined 26px dot */}
-                {allItems.map((item, index) => {
-                  const isFlashed = flashedPinId === item.id;
+                {/* Hotspot Pins */}
+                {displayedItems.map((item, index) => {
+                  const isHovered = item.id === hoveredItemId;
                   return (
                     <div
                       key={item.id}
@@ -180,20 +157,21 @@ const PostDetailPage = () => {
                         left: `${item.x}%`,
                         transform: "translate(-50%, -50%)",
                       }}
-                      onClick={() => flashItem(item.id)}
+                      onClick={() => setHoveredItemId(isHovered ? null : item.id)}
                     >
-                      <div
-                        className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
-                          isFlashed ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
-                        }`}
+                      <span
+                        className="w-6.5 h-6.5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-md transition-transform duration-200"
                         style={{
-                          backgroundColor: "#0066ff",
-                          border: "2px solid rgba(255,255,255,0.9)",
-                          boxShadow: isFlashed ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.35)",
+                          backgroundColor: isHovered ? "#0066ff" : "rgba(255,255,255,0.9)",
+                          color: isHovered ? "#ffffff" : "#0F172A",
+                          transform: isHovered ? "scale(1.25)" : "scale(1)",
+                          boxShadow: isHovered
+                            ? "0 0 0 3px rgba(0,102,255,0.35)"
+                            : "0 2px 6px rgba(0,0,0,0.2)",
                         }}
                       >
                         {index + 1}
-                      </div>
+                      </span>
                     </div>
                   );
                 })}
@@ -489,14 +467,14 @@ const PostDetailPage = () => {
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          DESKTOP LAYOUT  (hidden below lg, 3-column grid)
+          DESKTOP & MID-LEVEL SCREEN LAYOUT  (hidden below lg [1024px], fluid 3-column grid)
       ══════════════════════════════════════════════════════════ */}
-      <div className="hidden lg:flex h-screen max-h-screen overflow-hidden">
+      <div className="hidden lg:flex h-full w-full max-h-screen overflow-hidden">
         <div
-          className="flex flex-1 gap-4 p-4 lg:p-5 h-full w-full overflow-hidden"
+          className="flex flex-1 gap-3 lg:gap-4 p-3 lg:p-4 h-full w-full overflow-hidden"
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 260px 300px",
+            gridTemplateColumns: "minmax(0, 1fr) clamp(200px, 22vw, 280px) clamp(220px, 24vw, 320px)",
             alignItems: "stretch",
           }}
         >
