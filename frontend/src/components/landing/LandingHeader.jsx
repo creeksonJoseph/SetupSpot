@@ -121,14 +121,6 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
           <div className="fixed top-16 right-4 z-50 w-48 bg-white rounded-2xl p-2 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
             <div className="flex flex-col gap-1">
               <Link
-                to="/search"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors flex items-center justify-between"
-              >
-                <span>Search Setups</span>
-                <Search size={16} className="text-slate-400" />
-              </Link>
-              <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors"
