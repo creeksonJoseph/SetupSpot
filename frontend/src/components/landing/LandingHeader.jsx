@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 
 export default function LandingHeader({ isScrolled, isLoggedIn }) {
   const location = useLocation();
@@ -75,7 +75,18 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
           </div>
 
           {/* Mobile Actions (< md) */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1.5">
+            {!isLoggedIn && isExploreActive && (
+              <Link
+                to="/search"
+                className="flex items-center justify-center w-9 h-9 rounded-full text-slate-700 hover:text-[#0066ff] hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Search setups"
+                title="Search setups"
+              >
+                <Search size={20} />
+              </Link>
+            )}
+
             {isLoggedIn ? (
               <Link
                 to="/explore"
@@ -86,7 +97,7 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
             ) : (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 text-[#0F172A] hover:text-[#0066ff] rounded-lg transition-colors focus:outline-none"
+                className="p-1.5 text-[#0F172A] hover:text-[#0066ff] rounded-lg transition-colors focus:outline-none cursor-pointer"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -107,8 +118,16 @@ export default function LandingHeader({ isScrolled, isLoggedIn }) {
           />
 
           {/* Compact Popup Card positioned top right below navbar */}
-          <div className="fixed top-16 right-4 z-50 w-44 bg-white rounded-2xl p-2 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
+          <div className="fixed top-16 right-4 z-50 w-48 bg-white rounded-2xl p-2 shadow-2xl border border-[#E2E8F0] md:hidden animate-fade-in-up">
             <div className="flex flex-col gap-1">
+              <Link
+                to="/search"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-[#0F172A] hover:text-[#0066ff] py-2.5 px-3 rounded-xl hover:bg-[#f7f9fb] transition-colors flex items-center justify-between"
+              >
+                <span>Search Setups</span>
+                <Search size={16} className="text-slate-400" />
+              </Link>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
