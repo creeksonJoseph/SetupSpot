@@ -63,19 +63,19 @@ const ExplorePage = () => {
   }, [isSearching, hasMore, loadMore]);
 
   return (
-    <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
+    <div className="w-full flex-1 py-2 sm:py-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 px-2 flex items-start justify-between gap-6 flex-wrap">
+        <div className="mb-4 sm:mb-8 px-1 flex items-start justify-between gap-4 sm:gap-6 flex-wrap">
           {/* Left: title + subtitle */}
           <div>
-            <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em] min-h-[38px] sm:min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
               <TypewriterText text="Explore Setups" />
             </h1>
-            <p className="text-base font-normal leading-normal mt-2" style={{ color: '#475569' }}>
+            <p className="text-xs sm:text-sm md:text-base font-normal leading-normal mt-1 sm:mt-2" style={{ color: '#475569' }}>
               Discover and get inspired by amazing computer setups from around the world.
             </p>
             {isSearching && (
-              <p className="mt-2 text-sm font-semibold" style={{ color: '#0066ff' }}>
+              <p className="mt-2 text-xs sm:text-sm font-semibold" style={{ color: '#0066ff' }}>
                 {displayedSetups.length > 0
                   ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
                   : <>No results found</>}
@@ -102,7 +102,7 @@ const ExplorePage = () => {
           </div>
         ) : (
           <div>
-            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2.5 sm:gap-4">
               {displayedSetups.map((setup) => (
                 <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
               ))}
@@ -128,7 +128,7 @@ const ExplorePage = () => {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 };
 

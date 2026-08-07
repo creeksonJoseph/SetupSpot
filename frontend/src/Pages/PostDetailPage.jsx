@@ -26,6 +26,13 @@ const PostDetailPage = () => {
   const [searchParams] = useSearchParams();
   const [mobileImageLoaded, setMobileImageLoaded] = useState(false);
 
+  // Scroll to top immediately when viewing a setup detail page
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, [id]);
+
   const { auth } = useAuth();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Settings, UserCheck, ShieldCheck, MessageSquarePlus, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -29,6 +29,8 @@ export default function Layout() {
 
     const isAccountPage = location.pathname.startsWith('/account')
 
+    const mainRef = useRef(null)
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20)
@@ -37,6 +39,16 @@ export default function Layout() {
         handleScroll()
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
+
+    // Automatic scroll restoration to top when navigating to a new route
+    useEffect(() => {
+        window.scrollTo(0, 0)
+        document.body.scrollTop = 0
+        document.documentElement.scrollTop = 0
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0
+        }
+    }, [location.pathname])
 
     const getActiveTab = () => {
         const path = location.pathname
@@ -75,7 +87,7 @@ export default function Layout() {
             <div className="h-screen max-h-screen flex flex-col font-sans bg-[#f7f9fb] overflow-hidden" style={{ fontFamily: "Inter, sans-serif" }}>
                 <LandingHeader isScrolled={isScrolled} isLoggedIn={false} />
                 <div className="h-16 w-full shrink-0" aria-hidden="true" />
-                <main className="w-full flex-1 overflow-y-auto min-h-0 flex flex-col">
+                <main ref={mainRef} className="w-full flex-1 overflow-y-auto min-h-0 flex flex-col max-w-full overflow-x-hidden">
                     <Outlet />
                 </main>
             </div>
@@ -333,7 +345,7 @@ export default function Layout() {
             </nav>
 
             {/* Main Content Area */}
-            <main className="flex-1 min-h-0 pt-16 lg:pt-4 pb-20 lg:pb-4 lg:ml-20 p-4 lg:p-6 overflow-y-auto flex flex-col">
+            <main ref={mainRef} className="flex-1 min-h-0 pt-14 lg:pt-4 pb-16 lg:pb-4 lg:ml-20 px-2 sm:px-4 lg:px-6 overflow-y-auto flex flex-col max-w-full overflow-x-hidden">
                 <Outlet />
             </main>
         </div>
