@@ -50,16 +50,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
 
   return (
     <>
-      <div
-        className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl"
-        style={{
-          // Skip rendering off-screen cards entirely — browser skips layout + paint
-          // until they enter the viewport. containIntrinsicSize gives an estimated
-          // height so the masonry column heights stay accurate before paint.
-          contentVisibility: 'auto',
-          containIntrinsicSize: 'auto 300px',
-        }}
-      >
+      <div className="break-inside-avoid mb-4 relative group transition-transform duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl">
         <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
           <OptimizedImage
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"

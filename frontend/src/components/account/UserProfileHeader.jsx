@@ -5,8 +5,8 @@ import { SuggestFeatureModal } from "../feedback/SuggestFeatureModal";
 import ConfirmSignOutModal from "../auth/ConfirmSignOutModal";
 
 export const UserProfileHeader = ({ user, handleLogout }) => {
-  const setupCount = user?.post_count ?? user?.setups?.length ?? 0;
-  const totalLikes = user?.total_likes ?? user?.setups?.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) ?? 0;
+  const setupCount = user?.post_count ?? user?.setups?.length;
+  const totalLikes = user?.total_likes ?? (user?.setups ? user.setups.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) : undefined);
   const avatarUrl = user?.avatar_url || user?.avatar || user?.profile_picture;
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -120,7 +120,11 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
       <div className="flex items-center justify-start gap-6 sm:gap-8 mt-1 sm:mt-2">
         <div className="flex flex-col items-start">
           <span className="font-extrabold text-lg sm:text-2xl" style={{ color: "#0F172A" }}>
-            {setupCount}
+            {setupCount !== undefined ? (
+              setupCount
+            ) : (
+              <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md mt-0.5" />
+            )}
           </span>
           <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
             Setups
@@ -129,7 +133,11 @@ export const UserProfileHeader = ({ user, handleLogout }) => {
 
         <div className="flex flex-col items-start">
           <span className="font-extrabold text-lg sm:text-2xl text-[#0F172A]">
-            {totalLikes}
+            {totalLikes !== undefined ? (
+              totalLikes
+            ) : (
+              <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md mt-0.5" />
+            )}
           </span>
           <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: "#727687" }}>
             Total Likes

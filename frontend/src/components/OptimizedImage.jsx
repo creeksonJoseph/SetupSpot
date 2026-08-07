@@ -5,7 +5,8 @@ import { getOptimizedImageUrl, getBlurPlaceholderUrl } from '../utils/imageOptim
  * OptimizedImage
  * 
  * Performance-tuned image component featuring:
- * - Automatic Cloudinary / Unsplash width downsizing (e.g. w_450 for grid tiles)
+ * - Fixed aspect ratio container reservation to eliminate layout shift (CLS = 0)
+ * - Automatic Cloudinary / Unsplash width downsizing
  * - Ultra-lightweight blurred placeholder blur-up animation
  * - Native browser lazy loading
  */
@@ -13,6 +14,7 @@ export const OptimizedImage = ({
   src,
   alt = '',
   width = 450,
+  aspectRatio,
   className = '',
   style = {},
   loading = 'lazy',
@@ -23,15 +25,25 @@ export const OptimizedImage = ({
   const optimizedSrc = getOptimizedImageUrl(src, { width });
   const blurSrc = getBlurPlaceholderUrl(src);
 
+  const containerStyle = {
+    ...style,
+    ...(aspectRatio ? { aspectRatio } : {}),
+  };
+
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ ...style }}>
+    <div
+      className={`relative overflow-hidden bg-slate-100/90 ${className}`}
+      style={containerStyle}
+    >
       {/* Low-res blurred background placeholder */}
-      {blurSrc && !loaded && (
+      {blurSrc && (
         <img
           src={blurSrc}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300"
+          className={`absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0 ${
+            loaded ? 'opacity-0' : 'opacity-100'
+          }`}
         />
       )}
 
@@ -41,7 +53,7 @@ export const OptimizedImage = ({
         alt={alt}
         loading={loading}
         onLoad={() => setLoaded(true)}
-        className={`w-full h-auto object-cover transition-opacity duration-300 ${
+        className={`w-full h-full object-cover relative z-1 transition-opacity duration-300 ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
         {...props}

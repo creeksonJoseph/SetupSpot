@@ -64,9 +64,9 @@ const UserProfilePage = () => {
 
   const avatarUrl = profile?.avatar_url;
   const initials = profile?.username?.charAt(0)?.toUpperCase() ?? "U";
-  const setupCount = profile?.post_count ?? profile?.setups?.length ?? 0;
-  const totalLikes = profile?.total_likes ?? profile?.setups?.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) ?? 0;
-  const collectionCount = profile?.collection_count ?? 0;
+  const setupCount = profile?.post_count ?? profile?.setups?.length;
+  const totalLikes = profile?.total_likes ?? (profile?.setups ? profile.setups.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) : undefined);
+  const collectionCount = profile?.collection_count;
   const profileUrl = `${window.location.origin}/user/${username}`;
 
   return (
@@ -149,7 +149,11 @@ const UserProfilePage = () => {
             <div className="flex items-center gap-6 mt-4 pt-4 border-t" style={{ borderColor: "#F1F5F9" }}>
               <div>
                 <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {setupCount}
+                  {setupCount !== undefined ? (
+                    setupCount
+                  ) : (
+                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
+                  )}
                 </span>
                 <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
                   {setupCount === 1 ? "Setup" : "Setups"}
@@ -157,7 +161,11 @@ const UserProfilePage = () => {
               </div>
               <div>
                 <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {totalLikes}
+                  {totalLikes !== undefined ? (
+                    totalLikes
+                  ) : (
+                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
+                  )}
                 </span>
                 <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
                   {totalLikes === 1 ? "Like Received" : "Likes Received"}
@@ -165,7 +173,11 @@ const UserProfilePage = () => {
               </div>
               <div>
                 <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {collectionCount}
+                  {collectionCount !== undefined ? (
+                    collectionCount
+                  ) : (
+                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
+                  )}
                 </span>
                 <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
                   {collectionCount === 1 ? "Collection" : "Collections"}
