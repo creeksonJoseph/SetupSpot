@@ -49,6 +49,7 @@ if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.setupspot\.tech|https://.*\.vercel\.app|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,28 +76,30 @@ app.include_router(feedback.router)
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request, exc: HTTPException):
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin")
+    headers = {}
+    if origin and origin != "*":
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-        },
+        headers=headers if headers else None,
     )
 
 
 @app.exception_handler(Exception)
 async def custom_general_exception_handler(request, exc: Exception):
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin")
     print(f"Unhandled Server Exception: {exc}")
+    headers = {}
+    if origin and origin != "*":
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error"},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-        },
+        headers=headers if headers else None,
     )
 
 

@@ -46,6 +46,11 @@ export function useAccount() {
     setError(null);
     try {
       const res = await authFetch('/users/me');
+      if (res.status === 401) {
+        logout();
+        navigate('/login', { replace: true });
+        return;
+      }
       if (!res.ok) throw new Error('Failed to fetch user data');
       const data = await res.json();
       accountCache = { data, timestamp: Date.now() };

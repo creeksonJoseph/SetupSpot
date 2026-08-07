@@ -72,7 +72,13 @@ export function AuthProvider({ children }) {
       fetchWithFallback("/users/me", {
         headers: { Authorization: `Bearer ${auth.access_token}` },
       })
-        .then((res) => (res.ok ? res.json() : null))
+        .then((res) => {
+          if (res.status === 401) {
+            logout();
+            return null;
+          }
+          return res.ok ? res.json() : null;
+        })
         .then((userData) => {
           if (userData) {
             setAuth((prev) => {
