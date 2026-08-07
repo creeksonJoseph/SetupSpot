@@ -10,7 +10,6 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.config import settings
@@ -55,9 +54,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# GZip compression — automatically compresses responses ≥ 500 bytes (60-80% size reduction).
-# Free win: browsers and HTTP clients all support gzip natively.
-app.add_middleware(GZipMiddleware, minimum_size=500)
+# NOTE: GZipMiddleware was removed. Cloudflare (which proxies all Render traffic)
+# already applies brotli/gzip compression at the edge. Running GZipMiddleware in
+# Uvicorn on top of that caused HTTP/2 connection resets (ERR_CONNECTION_CLOSED)
+# for responses > ~2 items when served through Cloudflare's CDN.
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
