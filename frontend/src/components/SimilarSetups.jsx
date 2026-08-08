@@ -39,7 +39,7 @@ const SimilarSetups = ({ currentSetupId, mobileMode = false }) => {
           <>
             <div className="columns-2 gap-2 space-y-2">
               {recommendedSetups.map((setup) => (
-                <SetupCard key={setup.id} setup={setup} />
+                <SetupCard key={setup.id} setup={setup} compact />
               ))}
             </div>
 

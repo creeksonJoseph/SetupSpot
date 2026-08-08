@@ -1,44 +1,36 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MoreVertical, Share2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "../../context/ToastContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
 import OptimizedImage from "../OptimizedImage";
 import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
 
-export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
+export const SetupCard = React.memo(({ setup, toggleFavorite, compact = false }) => {
   const { auth } = useAuth();
-  const { showToast } = useToast();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);
   const [titleExpanded, setTitleExpanded] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setMobileMenuOpen(false);
     if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
     }
-    // Spring-bounce pulse animation
     setSaveAnimating(true);
     setTimeout(() => setSaveAnimating(false), 350);
     if (toggleFavorite) {
       toggleFavorite(setup.id, setup.isFavorited);
     }
-    showToast(setup.isFavorited ? "Removed from favourites" : "Saved to favourites!", "success");
   };
 
   const handleShare = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setMobileMenuOpen(false);
 
     const shareUrl = `${window.location.origin}/setup/${setup.id}`;
     const shareData = {
@@ -66,7 +58,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
             alt={setup.title || "Setup"}
             src={setup.image || setup.image_url}
-            width={450}
+            width={compact ? 220 : 450}
             loading="lazy"
           />
 
@@ -76,7 +68,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
           {/* Save button — top right (desktop only) */}
           <button
             onClick={handleSave}
-            className="hidden sm:flex absolute top-3 right-3 items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 cursor-pointer"
+            className={`hidden sm:flex absolute top-2 right-2 items-center justify-center rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 cursor-pointer ${compact ? "w-7 h-7" : "w-9 h-9"}`}
             style={{
               backgroundColor: setup.isFavorited ? "#e11d48" : "#ffffff",
               color: setup.isFavorited ? "#ffffff" : "#0F172A",
@@ -86,7 +78,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
             }}
             aria-label={setup.isFavorited ? "Remove from saved" : "Save"}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: compact ? "14px" : "18px" }}>
               {setup.isFavorited ? "favorite" : "bookmark"}
             </span>
           </button>
@@ -94,34 +86,38 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
           {/* Share button — bottom right (desktop only) */}
           <button
             onClick={handleShare}
-            className="hidden sm:flex absolute bottom-3 right-3 items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10 cursor-pointer"
+            className={`hidden sm:flex absolute bottom-2 right-2 items-center justify-center rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10 cursor-pointer ${compact ? "w-7 h-7" : "w-9 h-9"}`}
             style={{ backgroundColor: "rgba(255,255,255,0.95)", color: "#0F172A" }}
             aria-label="Share"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: compact ? "14px" : "18px" }}>
               share
             </span>
           </button>
 
           {/* Gradient overlay with setup title & author — hover only (desktop) */}
-          <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <p className="text-white font-semibold text-base leading-tight drop-shadow">
+          <div className={`hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${compact ? "pt-8 pb-2 pl-2 pr-8" : "pt-14 pb-4 pl-4 pr-14"}`}>
+            <p className={`text-white font-semibold leading-tight drop-shadow ${compact ? "text-xs" : "text-base"}`}>
               {setup.title}
             </p>
-            <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
+            <p className={`text-white/80 mt-0.5 drop-shadow ${compact ? "text-[10px]" : "text-sm"}`}>by {setup.author}</p>
           </div>
         </Link>
 
-        {/* Mobile caption & Pinterest-style 3 dots menu — only on phones */}
-        <div className="sm:hidden mt-1.5 px-0.5 flex items-start justify-between gap-1.5 relative">
+        {/* Mobile caption & 3 dots menu — only on phones */}
+        <div className={`sm:hidden mt-1.5 px-0.5 flex items-start justify-between gap-1 relative`}>
           <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setTitleExpanded((prev) => !prev)}>
-            <p className={`text-xs font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"}`}>
+            <p className={`font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"} ${compact ? "text-[10px]" : "text-xs"}`}>
               {setup.title}
             </p>
-            <p className="text-[10px] text-[#727687] mt-0.5 truncate">by {setup.author}</p>
+            <p className={`text-[#727687] mt-0.5 truncate ${compact ? "text-[9px]" : "text-[10px]"}`}>by {setup.author}</p>
           </div>
 
-          <SetupOptionsMenu setup={setup} onToggleFavorite={toggleFavorite} />
+          <SetupOptionsMenu
+            setup={setup}
+            onToggleFavorite={toggleFavorite}
+            size={compact ? "sm" : "md"}
+          />
         </div>
       </div>
 
@@ -137,4 +133,3 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
     </>
   );
 });
-

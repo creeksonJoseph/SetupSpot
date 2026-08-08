@@ -75,6 +75,25 @@ const PostDetailPage = () => {
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileShareOpen, setMobileShareOpen] = useState(false);
   const [mobileDeleteConfirm, setMobileDeleteConfirm] = useState(false);
+  const [localFavorited, setLocalFavorited] = useState(false);
+  const mobileMoreRef = useRef(null);
+
+  // Sync localFavorited with setup data once loaded
+  React.useEffect(() => { if (setup) setLocalFavorited(Boolean(setup.isFavorited)); }, [setup?.isFavorited]);
+
+  // Close mobile 3-dot popup when user clicks anywhere else on the screen
+  React.useEffect(() => {
+    if (!mobileMoreOpen) return;
+    const handleClickOutside = (e) => {
+      if (mobileMoreRef.current && !mobileMoreRef.current.contains(e.target)) {
+        setMobileMoreOpen(false);
+        setMobileDeleteConfirm(false);
+      }
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [mobileMoreOpen]);
+
   const itemRefs = useRef({});
 
   const handleRowTap = (item) => {
@@ -313,7 +332,7 @@ const PostDetailPage = () => {
                 </button>
 
                 {/* More options */}
-                <div className="relative">
+                <div className="relative" ref={mobileMoreRef}>
                   <button
                     onClick={() => {
                       setMobileMoreOpen((o) => !o);
@@ -327,13 +346,36 @@ const PostDetailPage = () => {
 
                   {mobileMoreOpen && (
                     <div
-                      className="absolute top-11 right-0 z-30 w-44 bg-white rounded-2xl shadow-xl border overflow-hidden"
+                      className="absolute bottom-11 right-0 z-30 w-44 bg-white rounded-2xl shadow-xl border overflow-hidden"
                       style={{ borderColor: "#E2E8F0" }}
                     >
+                      {/* Save to Favourites — optimistic */}
+                      {isLoggedIn && (
+                        <button
+                          onClick={async () => {
+                            const prev = localFavorited;
+                            const next = !prev;
+                            setLocalFavorited(next);
+                            setMobileMoreOpen(false);
+                            try {
+                              await toggleFavorite?.(setup.id, prev);
+                            } catch {
+                              setLocalFavorited(prev);
+                            }
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-left cursor-pointer"
+                          style={{ color: localFavorited ? "#e11d48" : "#0F172A", borderBottom: "1px solid #E2E8F0" }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: "18px", color: localFavorited ? "#e11d48" : "#64748B" }}>
+                            {localFavorited ? "favorite" : "bookmark"}
+                          </span>
+                          {localFavorited ? "Saved" : "Save"}
+                        </button>
+                      )}
                       <button
                         onClick={() => { setMobileMoreOpen(false); setMobileShareOpen(true); }}
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-left cursor-pointer"
-                        style={{ color: "#0F172A", borderBottom: "1px solid #E2E8F0" }}
+                        style={{ color: "#0F172A", borderBottom: isOwner ? "1px solid #E2E8F0" : "none" }}
                       >
                         <Share2 size={16} style={{ color: "#64748B" }} />
                         Share Setup

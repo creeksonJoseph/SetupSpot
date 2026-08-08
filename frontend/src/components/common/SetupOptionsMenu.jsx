@@ -10,9 +10,15 @@ export const SetupOptionsMenu = ({
   onToggleFavorite,
   onRemove,
   onShare,
+  size = "md",
   positionClass = "right-0 bottom-7",
-  buttonClassName = "p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer",
+  buttonClassName,
 }) => {
+  const isCompact = size === "sm";
+  const resolvedButtonClass = buttonClassName ??
+    (isCompact
+      ? "p-1 rounded-full hover:bg-slate-100 transition-colors text-slate-400 cursor-pointer"
+      : "p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer");
   const { auth } = useAuth();
   const { showToast } = useToast();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
@@ -130,15 +136,15 @@ export const SetupOptionsMenu = ({
             e.stopPropagation();
             setMenuOpen((prev) => !prev);
           }}
-          className={buttonClassName}
+          className={resolvedButtonClass}
           aria-label="More options"
         >
-          <MoreVertical size={15} />
+          <MoreVertical size={isCompact ? 13 : 15} />
         </button>
 
         {menuOpen && (
           <div
-            className={`absolute z-30 w-36 bg-white rounded-2xl p-1 shadow-xl border overflow-hidden animate-in zoom-in-95 duration-150 ${positionClass}`}
+            className={`absolute z-30 bg-white rounded-2xl p-1 shadow-xl border overflow-hidden animate-in zoom-in-95 duration-150 ${positionClass} ${isCompact ? "w-28" : "w-36"}`}
             style={{ borderColor: "#E2E8F0" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -146,21 +152,21 @@ export const SetupOptionsMenu = ({
             {onRemove ? (
               <button
                 onClick={handleRemoveClick}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
+                className={`flex items-center w-full text-left rounded-xl hover:bg-red-50 text-red-600 transition-colors cursor-pointer font-semibold ${isCompact ? "gap-1.5 px-2 py-1.5 text-[10px]" : "gap-2.5 px-3 py-2 text-xs"}`}
               >
-                <Trash2 size={14} />
+                <Trash2 size={isCompact ? 11 : 14} />
                 <span>Remove</span>
               </button>
             ) : (
               /* Standard Save / Favorite button — red when saved, normal when not */
               <button
                 onClick={handleToggleSave}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                className={`flex items-center w-full text-left rounded-xl hover:bg-slate-50 transition-colors cursor-pointer font-semibold ${isCompact ? "gap-1.5 px-2 py-1.5 text-[10px]" : "gap-2.5 px-3 py-2 text-xs"}`}
                 style={{ color: localFavorited ? "#e11d48" : "#0F172A" }}
               >
                 <span
-                  className="material-symbols-outlined text-[16px]"
-                  style={{ color: localFavorited ? "#e11d48" : "inherit" }}
+                  className="material-symbols-outlined"
+                  style={{ fontSize: isCompact ? "13px" : "16px", color: localFavorited ? "#e11d48" : "inherit" }}
                 >
                   {localFavorited ? "favorite" : "bookmark"}
                 </span>
@@ -171,9 +177,9 @@ export const SetupOptionsMenu = ({
             {/* Share option */}
             <button
               onClick={handleShareClick}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-slate-50 transition-colors text-[#0F172A] cursor-pointer"
+              className={`flex items-center w-full text-left rounded-xl hover:bg-slate-50 transition-colors text-[#0F172A] cursor-pointer font-semibold ${isCompact ? "gap-1.5 px-2 py-1.5 text-[10px]" : "gap-2.5 px-3 py-2 text-xs"}`}
             >
-              <Share2 size={14} className="text-slate-500" />
+              <Share2 size={isCompact ? 11 : 14} className="text-slate-500" />
               <span>Share</span>
             </button>
           </div>
