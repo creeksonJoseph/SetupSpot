@@ -495,11 +495,11 @@ const PostDetailPage = () => {
           className="flex flex-1 gap-3 lg:gap-4 p-3 lg:p-4 h-full w-full overflow-hidden"
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) clamp(200px, 22vw, 280px) clamp(220px, 24vw, 320px)",
+            gridTemplateColumns: "minmax(0, 1fr) clamp(220px, 24vw, 290px) clamp(240px, 25vw, 320px)",
             alignItems: "stretch",
           }}
         >
-          {/* LEFT COLUMN — Hero Canvas & Social Actions */}
+          {/* LEFT COLUMN — Hero Canvas & Social Actions & Comments */}
           <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-1">
             <div className="shrink-0">
               <button
@@ -517,7 +517,7 @@ const PostDetailPage = () => {
               <SetupHeroSkeleton />
             ) : (
               <div
-                className="flex flex-col gap-0 rounded-xl border bg-white overflow-hidden shrink-0"
+                className="flex flex-col gap-0 rounded-xl border bg-white overflow-hidden shrink-0 mb-4"
                 style={{ borderColor: "#E2E8F0" }}
               >
                 <SetupImageCanvas
@@ -553,7 +553,7 @@ const PostDetailPage = () => {
           </div>
 
           {/* MIDDLE COLUMN — Equipment Items Breakdown */}
-          <div className="h-full overflow-hidden flex flex-col min-h-0">
+          <div className="h-full overflow-y-auto flex flex-col min-h-0 pr-1">
             {!setup ? (
               <ItemsListSkeleton count={5} />
             ) : (
@@ -597,8 +597,8 @@ const PostDetailPage = () => {
             )}
           </div>
 
-          {/* RIGHT COLUMN — independent Suspense boundary, loads in parallel */}
-          <div className="h-full overflow-hidden flex flex-col min-h-0">
+          {/* RIGHT COLUMN — independent Suspense boundary */}
+          <div className="h-full overflow-y-auto flex flex-col min-h-0 pr-1">
             <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
               <SimilarSetups currentSetupId={id} />
             </Suspense>
