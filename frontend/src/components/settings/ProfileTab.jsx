@@ -105,7 +105,7 @@ export const ProfileTab = ({
               value={profileForm.username}
               onChange={(e) => setProfileForm((prev) => ({ ...prev, username: e.target.value }))}
               placeholder="Enter your username"
-              className="w-full px-3 py-1.5 rounded-xl text-xs outline-none border transition-all"
+              className="w-full max-w-sm sm:max-w-md px-3 py-1.5 rounded-xl text-xs outline-none border transition-all"
               style={{ backgroundColor: '#ffffff', borderColor: '#E2E8F0', color: '#0F172A' }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#0066ff';
@@ -127,7 +127,7 @@ export const ProfileTab = ({
               type="email"
               disabled
               value={user?.email || ''}
-              className="w-full px-3 py-1.5 rounded-xl text-xs border bg-slate-50 cursor-not-allowed opacity-80"
+              className="w-full max-w-sm sm:max-w-md px-3 py-1.5 rounded-xl text-xs border bg-slate-50 cursor-not-allowed opacity-80"
               style={{ borderColor: '#E2E8F0', color: '#727687' }}
             />
             <p className="text-[10px]" style={{ color: '#727687' }}>

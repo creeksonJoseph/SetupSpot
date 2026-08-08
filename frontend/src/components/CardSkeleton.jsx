@@ -307,21 +307,59 @@ export const ItemsListSkeleton = ({ count = 5 }) => {
 };
 
 /**
- * 1:1 Match Animated Skeleton Loader for Settings Page
+ * 1:1 Match Animated Skeleton Loader for Settings Page (Desktop & Mobile)
  */
 export const SettingsSkeleton = () => {
   return (
-    <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 max-w-7xl mx-auto space-y-6 animate-pulse">
-      <div className="space-y-2">
-        <div className="h-6 w-48 bg-slate-200 rounded-md" />
-        <div className="h-4 w-72 bg-slate-100 rounded-md" />
-      </div>
-      <div className="h-10 w-64 bg-slate-200 rounded-xl" />
-      <div className="p-6 border bg-white rounded-2xl space-y-4" style={{ borderColor: "#E2E8F0" }}>
-        <div className="h-4 w-32 bg-slate-200 rounded-md" />
-        <div className="h-10 w-full bg-slate-100 rounded-xl" />
-        <div className="h-4 w-32 bg-slate-200 rounded-md pt-2" />
-        <div className="h-20 w-full bg-slate-100 rounded-xl" />
+    <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 animate-pulse">
+      <div className="mx-auto max-w-7xl">
+        {/* Page Header Skeleton */}
+        <div className="mb-5 px-1 flex flex-col gap-2">
+          <div className="h-7 w-20 bg-slate-200 rounded-lg" />
+          <div className="space-y-1.5 pt-1">
+            <div className="h-8 w-64 md:w-80 bg-slate-200 rounded-md" />
+            <div className="h-4 w-72 md:w-96 bg-slate-100 rounded-md" />
+          </div>
+        </div>
+
+        {/* Tab Selector Skeleton (Desktop & Mobile) */}
+        <div className="hidden sm:flex items-center gap-2 mb-6 border-b border-slate-200 pb-2.5">
+          <div className="h-9 w-32 bg-slate-200 rounded-xl" />
+          <div className="h-9 w-40 bg-slate-100 rounded-xl" />
+        </div>
+
+        {/* Settings Form Card Container */}
+        <div className="p-5 sm:p-7 border bg-white rounded-2xl shadow-xs space-y-6" style={{ borderColor: "#E2E8F0" }}>
+          {/* Avatar Upload Header */}
+          <div className="flex items-center gap-4 pb-4 border-b border-slate-100">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-200 shrink-0" />
+            <div className="space-y-2">
+              <div className="h-8 w-32 bg-slate-200 rounded-xl" />
+              <div className="h-3.5 w-48 bg-slate-100 rounded-md" />
+            </div>
+          </div>
+
+          {/* Form Fields Grid — 2 columns on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-slate-200 rounded-md" />
+              <div className="h-11 w-full bg-slate-100 rounded-xl border border-slate-200/60" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-slate-200 rounded-md" />
+              <div className="h-11 w-full bg-slate-100 rounded-xl border border-slate-200/60" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <div className="h-4 w-24 bg-slate-200 rounded-md" />
+              <div className="h-24 w-full bg-slate-100 rounded-xl border border-slate-200/60" />
+            </div>
+          </div>
+
+          {/* Bottom Save Action Button */}
+          <div className="flex items-center justify-end pt-4 border-t border-slate-100">
+            <div className="h-10 w-36 bg-blue-200 rounded-xl" />
+          </div>
+        </div>
       </div>
     </main>
   );

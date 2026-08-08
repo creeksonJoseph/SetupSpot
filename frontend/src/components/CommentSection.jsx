@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Send, Loader2, Trash2, MoreVertical, ShieldAlert, Heart, CornerDownRight, X } from "lucide-react";
+import { Send, Loader2, Trash2, MoreVertical, ShieldAlert, Heart, CornerDownRight, X, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
@@ -45,48 +45,52 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     if (fetched) onCommentCountChange?.(comments.length);
   }, [comments.length, fetched, onCommentCountChange]);
 
+  // Close admin/owner comment menu on outside click anywhere
+  useEffect(() => {
+    if (!activeMenuId) return;
+    const handleClickOutside = () => setActiveMenuId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [activeMenuId]);
+
   const handleStartReply = (comment) => {
     if (!auth?.token && !auth?.user) {
       setAuthModalOpen(true);
       return;
     }
     setReplyTarget({ id: comment.id, author: comment.author });
-    inputRef.current?.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
-  const handleLike = (commentId) => {
+  const handleSendComment = async (e) => {
+    e.preventDefault();
+    if (!draft.trim() || submitting) return;
+
     if (!auth?.token && !auth?.user) {
       setAuthModalOpen(true);
       return;
     }
-    toggleLikeComment(commentId);
-  };
 
-  const handleSend = async () => {
-    if (!auth?.token && !auth?.user) {
-      setAuthModalOpen(true);
-      return;
-    }
-    if (!draft.trim()) return;
-    const parentId = replyTarget ? replyTarget.id : null;
-    await addComment(draft.trim(), parentId);
+    const text = draft.trim();
+    const parentId = replyTarget?.id || null;
+
     setDraft("");
     setReplyTarget(null);
-    setTimeout(() => {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }
-    }, 100);
+
+    await addComment(text, parentId);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendComment(e);
     }
   };
 
   const formatDate = (iso) => {
+    if (!iso) return "Just now";
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
@@ -123,7 +127,14 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     const childReplies = repliesByParent[c.id] || [];
 
     return (
-      <div key={c.id} className={`flex flex-col gap-1 ${isReply ? "ml-6 pl-3 border-l-2 border-slate-200/80 my-1" : "py-1.5"}`}>
+      <div
+        key={c.id}
+        className={`flex flex-col gap-1 ${
+          isReply
+            ? "ml-5 pl-3 border-l-2 border-slate-300/80 my-1 pt-1"
+            : "py-2.5 border-b border-slate-200/60 last:border-b-0"
+        }`}
+      >
         <div className="flex gap-2.5 relative group">
           <Link to={`/user/${c.author}`} className="shrink-0 mt-0.5 group/avatar">
             {c.author_avatar ? (
@@ -158,7 +169,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
               </div>
 
               <div className="flex items-center gap-1.5 relative">
-                {/* Admin Controls */}
+                {/* Admin or Owner Controls */}
                 {isAdmin ? (
                   <div className="relative">
                     <button
@@ -178,30 +189,40 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
                         style={{ borderColor: "#E2E8F0" }}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {isOwn && (
+                          <button
+                            onClick={() =>
+                              setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: false })
+                            }
+                            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 text-left transition-colors"
+                          >
+                            <Trash2 size={13} />
+                            <span>Delete</span>
+                          </button>
+                        )}
                         <button
-                          onClick={() => {
-                            setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: true });
-                            setActiveMenuId(null);
-                          }}
-                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                          onClick={() =>
+                            setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: true })
+                          }
+                          className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-red-700 font-semibold hover:bg-red-50 text-left transition-colors"
                         >
                           <ShieldAlert size={13} />
-                          <span>Delete Comment</span>
+                          <span>Admin Delete</span>
                         </button>
                       </div>
                     )}
                   </div>
-                ) : (
-                  isOwn && (
-                    <button
-                      onClick={() => setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: false })}
-                      className="transition-colors cursor-pointer p-0.5 hover:text-red-600 opacity-0 group-hover:opacity-100"
-                      title="Delete comment"
-                    >
-                      <Trash2 size={12} style={{ color: "#cbd5e1" }} />
-                    </button>
-                  )
-                )}
+                ) : isOwn ? (
+                  <button
+                    onClick={() =>
+                      setDeleteModal({ isOpen: true, commentId: c.id, isAdmin: false })
+                    }
+                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                    title="Delete comment"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                ) : null}
               </div>
             </div>
 
@@ -212,7 +233,13 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
             {/* Comment Actions Row: Heart Like + Reply Button */}
             <div className="flex items-center gap-3 mt-1 pt-0.5">
               <button
-                onClick={() => handleLike(c.id)}
+                onClick={() => {
+                  if (!auth?.token && !auth?.user) {
+                    setAuthModalOpen(true);
+                    return;
+                  }
+                  toggleLikeComment(c.id);
+                }}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors cursor-pointer hover:text-rose-600"
                 style={{ color: c.is_liked ? "#e11d48" : "#94A3B8" }}
               >
@@ -243,9 +270,16 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
 
   return (
     <div
-      className="flex flex-col border-t"
-      style={{ borderColor: "#E2E8F0", backgroundColor: "#F8FAFC", maxHeight: "380px" }}
+      className="flex flex-col border-t shadow-xs"
+      style={{ borderColor: "#CBD5E1", backgroundColor: "#F1F5F9", maxHeight: "420px" }}
     >
+      {/* Visual Hierarchy Section Header Bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-200/70 border-b border-slate-300/80 shrink-0">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+          <MessageCircle size={14} className="text-blue-600 fill-blue-600/20" />
+          Comments ({comments.length})
+        </span>
+      </div>
       {/* Comments list */}
       <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2">
         {loading && <CommentsSkeleton count={3} />}
@@ -304,7 +338,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
           style={{ color: "#0F172A" }}
         />
         <button
-          onClick={handleSend}
+          onClick={handleSendComment}
           disabled={!draft.trim() || submitting || !auth}
           className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
           style={{ backgroundColor: "#0066ff" }}

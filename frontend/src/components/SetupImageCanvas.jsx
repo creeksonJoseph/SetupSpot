@@ -19,8 +19,8 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
   return (
     <>
       <div
-        className="w-full rounded-xl border overflow-hidden relative group"
-        style={{ backgroundColor: "#0F172A", borderColor: "#E2E8F0" }}
+        className="w-full overflow-hidden relative group"
+        style={{ backgroundColor: "#0F172A" }}
       >
         <div
           className="relative w-full max-h-[68vh] aspect-[4/5] cursor-zoom-in overflow-hidden flex items-center justify-center mx-auto"
