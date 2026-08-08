@@ -14,7 +14,16 @@ import { getBlurPlaceholderUrl } from "../utils/imageOptimizer";
 const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemId }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState(null);
   const blurSrc = getBlurPlaceholderUrl(imageUrl);
+
+  const handleImageLoad = (e) => {
+    setLoaded(true);
+    const { naturalWidth, naturalHeight } = e.target;
+    if (naturalWidth && naturalHeight) {
+      setAspectRatio(naturalWidth / naturalHeight);
+    }
+  };
 
   return (
     <>
@@ -23,7 +32,8 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
         style={{ backgroundColor: "#0F172A" }}
       >
         <div
-          className="relative w-full max-h-[68vh] aspect-[4/5] cursor-zoom-in overflow-hidden flex items-center justify-center mx-auto"
+          className="relative w-full max-h-[68vh] cursor-zoom-in overflow-hidden flex items-center justify-center mx-auto transition-all duration-300"
+          style={{ aspectRatio: aspectRatio ? `${aspectRatio}` : "16/9" }}
           onClick={() => setLightboxOpen(true)}
           title="Click to expand"
         >
@@ -33,7 +43,7 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
               src={blurSrc}
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+              className="absolute inset-0 w-full h-full object-contain filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
             />
           )}
 
@@ -41,8 +51,8 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
           <img
             src={imageUrl}
             alt="Setup"
-            onLoad={() => setLoaded(true)}
-            className={`w-full h-full max-h-[68vh] object-cover block relative z-1 transition-opacity duration-300 ${
+            onLoad={handleImageLoad}
+            className={`w-full h-full max-h-[68vh] object-contain block relative z-1 transition-opacity duration-300 ${
               loaded ? "opacity-100" : "opacity-0"
             }`}
             draggable={false}

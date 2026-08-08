@@ -25,6 +25,7 @@ const PostDetailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mobileImageLoaded, setMobileImageLoaded] = useState(false);
+  const [mobileAspectRatio, setMobileAspectRatio] = useState(null);
 
   // Scroll to top immediately when viewing a setup detail page
   React.useEffect(() => {
@@ -76,13 +77,6 @@ const PostDetailPage = () => {
   const [mobileDeleteConfirm, setMobileDeleteConfirm] = useState(false);
   const itemRefs = useRef({});
 
-  const flashItem = (itemId) => {
-    setFlashedPinId(itemId);
-    const el = itemRefs.current[itemId];
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => setFlashedPinId(null), 1200);
-  };
-
   const handleRowTap = (item) => {
     setFlashedPinId(item.id);
     setTimeout(() => setFlashedPinId(null), 1200);
@@ -118,6 +112,10 @@ const PostDetailPage = () => {
   const isFocusMode = initialFocusedItem && !showAllItems;
   const displayedItems = isFocusMode ? [initialFocusedItem] : allItems;
   const hasOtherItems = initialFocusedItem && allItems.length > 1;
+  const totalSetupPrice = allItems.reduce((sum, item) => {
+    const p = typeof item.price === "number" ? item.price : parseFloat(item.price);
+    return sum + (isNaN(p) ? 0 : p);
+  }, 0);
 
   return (
     <div
@@ -135,24 +133,70 @@ const PostDetailPage = () => {
           </div>
         ) : (
           <>
+            {/* Focused Item Banner on Mobile */}
+            {initialFocusedItem && (
+              <div
+                className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-2xs mb-3 shrink-0"
+                style={{
+                  backgroundColor: "rgba(0,102,255,0.06)",
+                  borderColor: "rgba(0,102,255,0.2)",
+                }}
+              >
+                <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
+                  {isFocusMode ? "Focused item pin" : "All setup pins"}
+                </span>
+                {hasOtherItems && (
+                  <button
+                    onClick={() => setShowAllItems((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer shrink-0 shadow-xs"
+                    style={{ backgroundColor: "#0066ff" }}
+                  >
+                    {isFocusMode ? (
+                      <>
+                        <Eye size={12} />
+                        Show all items ({allItems.length})
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff size={12} />
+                        Show focused item only
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Unified Card Container (Photo + Author Row attached) */}
             <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
-              {/* Hero image with pins */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ backgroundColor: "#0F172A" }}>
+              {/* Hero image with pins — uncropped dynamic aspect ratio */}
+              <div
+                className="relative w-full max-h-[65vh] overflow-hidden flex items-center justify-center transition-all duration-300"
+                style={{
+                  backgroundColor: "#0F172A",
+                  aspectRatio: mobileAspectRatio ? `${mobileAspectRatio}` : "16/9",
+                }}
+              >
                 {setup.image_url && !mobileImageLoaded && (
                   <img
                     src={getBlurPlaceholderUrl(setup.image_url)}
                     alt=""
                     aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+                    className="absolute inset-0 w-full h-full object-contain filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
                   />
                 )}
 
                 <img
                   src={setup.image_url}
                   alt={setup.title || "Setup"}
-                  onLoad={() => setMobileImageLoaded(true)}
-                  className={`w-full h-full object-cover block relative z-1 transition-opacity duration-300 ${
+                  onLoad={(e) => {
+                    setMobileImageLoaded(true);
+                    const { naturalWidth, naturalHeight } = e.target;
+                    if (naturalWidth && naturalHeight) {
+                      setMobileAspectRatio(naturalWidth / naturalHeight);
+                    }
+                  }}
+                  className={`w-full h-full max-h-[65vh] object-contain block relative z-1 transition-opacity duration-300 ${
                     mobileImageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -345,18 +389,36 @@ const PostDetailPage = () => {
             </div>
 
             {/* Items in Setup */}
-            {allItems.length > 0 && (
+            {displayedItems.length > 0 && (
               <div className="px-1 pt-5 pb-2">
-                <h2 className="text-[15px] font-bold mb-3" style={{ color: "#0F172A" }}>
-                  Items in Setup{" "}
-                  <span style={{ color: "#64748B", fontWeight: 600 }}>({allItems.length})</span>
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-[15px] font-bold" style={{ color: "#0F172A" }}>
+                    {isFocusMode ? "Focused Item" : "Items in Setup"}{" "}
+                    <span style={{ color: "#64748B", fontWeight: 600 }}>({displayedItems.length})</span>
+                  </h2>
+                  {totalSetupPrice > 0 && (
+                    <div
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-bold shadow-2xs"
+                      style={{
+                        backgroundColor: "rgba(0,102,255,0.06)",
+                        borderColor: "rgba(0,102,255,0.2)",
+                        color: "#0066ff",
+                      }}
+                    >
+                      <span>Est. Total:</span>
+                      <span className="font-extrabold">
+                        ${totalSetupPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 <div
                   className="rounded-2xl overflow-hidden border"
                   style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
                 >
-                  {allItems.map((item, index) => {
+                  {displayedItems.map((item) => {
+                    const itemPinNumber = allItems.findIndex((it) => it.id === item.id) + 1;
                     const isFlashed = flashedPinId === item.id;
                     const isExpanded = mobileExpandedItemId === item.id;
                     return (
@@ -387,7 +449,7 @@ const PostDetailPage = () => {
                               color: isFlashed ? "#ffffff" : "#475569",
                             }}
                           >
-                            {index + 1}
+                            {itemPinNumber}
                           </span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate" style={{ color: "#0F172A" }}>
@@ -447,19 +509,19 @@ const PostDetailPage = () => {
                                 href={item.link.startsWith("http") ? item.link : `https://${item.link}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold text-white"
+                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold text-white self-end transition-all shadow-2xs active:scale-95 cursor-pointer"
                                 style={{ backgroundColor: "#0066ff" }}
                               >
-                                <ShoppingBag size={14} />
-                                Buy on Merchant Site
-                                <ExternalLink size={12} className="ml-auto opacity-80" />
+                                <ShoppingBag size={13} />
+                                <span>Buy on Merchant Site</span>
+                                <ExternalLink size={11} className="opacity-80" />
                               </a>
                             ) : (
                               <div
-                                className="flex items-center justify-center gap-1 py-1.5 px-3 rounded-xl text-xs"
+                                className="inline-flex items-center gap-1 py-1 px-2.5 rounded-lg text-[11px] font-medium self-end"
                                 style={{ backgroundColor: "#F1F5F9", color: "#94A3B8" }}
                               >
-                                No merchant link available
+                                <span>No merchant link available</span>
                               </div>
                             )}
                           </div>

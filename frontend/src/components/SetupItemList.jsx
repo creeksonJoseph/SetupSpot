@@ -13,11 +13,33 @@ const SetupItemList = ({
     setExpandedItemId((prev) => (prev === itemId ? null : itemId));
   };
 
+  const totalPrice = items.reduce((sum, item) => {
+    const p = typeof item.price === "number" ? item.price : parseFloat(item.price);
+    return sum + (isNaN(p) ? 0 : p);
+  }, 0);
+
   return (
     <div className="flex flex-col h-full min-h-0 flex-1">
-      <h2 className="text-sm font-bold pb-3 shrink-0" style={{ color: "#0F172A" }}>
-        Items in Setup ({items.length})
-      </h2>
+      <div className="flex items-center justify-between pb-3 shrink-0">
+        <h2 className="text-sm font-bold" style={{ color: "#0F172A" }}>
+          Items in Setup ({items.length})
+        </h2>
+        {totalPrice > 0 && (
+          <div
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-bold shadow-2xs"
+            style={{
+              backgroundColor: "rgba(0,102,255,0.06)",
+              borderColor: "rgba(0,102,255,0.2)",
+              color: "#0066ff",
+            }}
+          >
+            <span>Est. Total:</span>
+            <span className="font-extrabold">
+              ${totalPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        )}
+      </div>
       <div
         className="flex flex-col overflow-y-auto min-h-0 flex-1 border rounded-xl"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
@@ -129,18 +151,18 @@ const SetupItemList = ({
                           href={item.link.startsWith("http") ? item.link : `https://${item.link}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold text-white transition-colors shadow-sm"
+                          className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white self-end transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                           style={{ backgroundColor: "#0066ff" }}
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
                         >
-                          <ShoppingBag size={14} />
+                          <ShoppingBag size={13} />
                           <span>Buy on Merchant Site</span>
-                          <ExternalLink size={12} className="ml-auto opacity-80" />
+                          <ExternalLink size={11} className="opacity-80" />
                         </a>
                       ) : (
                         <div
-                          className="flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg text-[11px] font-medium bg-slate-100"
+                          className="inline-flex items-center gap-1 py-1 px-2.5 rounded-lg text-[11px] font-medium bg-slate-100 self-end"
                           style={{ color: "#94A3B8" }}
                         >
                           <span>No merchant link available</span>

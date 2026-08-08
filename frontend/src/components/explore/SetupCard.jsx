@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { MoreVertical, Share2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
 import OptimizedImage from "../OptimizedImage";
+import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
 
 export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
   const { auth } = useAuth();
+  const { showToast } = useToast();
   const isLoggedIn = Boolean(auth?.token || auth?.user);
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -26,7 +29,10 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
     // Spring-bounce pulse animation
     setSaveAnimating(true);
     setTimeout(() => setSaveAnimating(false), 350);
-    toggleFavorite(setup.id, setup.isFavorited);
+    if (toggleFavorite) {
+      toggleFavorite(setup.id, setup.isFavorited);
+    }
+    showToast(setup.isFavorited ? "Removed from favourites" : "Saved to favourites!", "success");
   };
 
   const handleShare = async (e) => {
@@ -58,8 +64,8 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
         <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
           <OptimizedImage
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-            alt={setup.title}
-            src={setup.image}
+            alt={setup.title || "Setup"}
+            src={setup.image || setup.image_url}
             width={450}
             loading="lazy"
           />
@@ -115,45 +121,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
             <p className="text-[10px] text-[#727687] mt-0.5 truncate">by {setup.author}</p>
           </div>
 
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setMobileMenuOpen((prev) => !prev);
-              }}
-              className="p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer"
-              aria-label="More options"
-            >
-              <MoreVertical size={15} />
-            </button>
-
-            {mobileMenuOpen && (
-              <div
-                className="absolute right-0 bottom-7 z-30 w-36 bg-white rounded-2xl p-1 shadow-xl border overflow-hidden animate-in zoom-in-95 duration-150"
-                style={{ borderColor: "#E2E8F0" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-slate-50 transition-colors"
-                  style={{ color: setup.isFavorited ? "#e11d48" : "#0F172A" }}
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {setup.isFavorited ? "favorite" : "bookmark"}
-                  </span>
-                  <span>{setup.isFavorited ? "Saved" : "Save"}</span>
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-slate-50 transition-colors text-[#0F172A]"
-                >
-                  <Share2 size={14} className="text-slate-500" />
-                  <span>Share</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <SetupOptionsMenu setup={setup} onToggleFavorite={toggleFavorite} />
         </div>
       </div>
 

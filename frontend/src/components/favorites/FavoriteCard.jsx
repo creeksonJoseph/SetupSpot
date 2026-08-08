@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MoreVertical, Share2, Trash2 } from "lucide-react";
 import OptimizedImage from "../OptimizedImage";
+import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
 
 export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }) => {
   const [titleExpanded, setTitleExpanded] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <div
       className={`break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl ${
@@ -70,50 +69,7 @@ export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }
           <p className="text-[10px] text-[#727687] mt-0.5 truncate">by {setup.author}</p>
         </div>
 
-        <div className="relative">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setMobileMenuOpen((prev) => !prev);
-            }}
-            className="p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer"
-            aria-label="More options"
-          >
-            <MoreVertical size={15} />
-          </button>
-
-          {mobileMenuOpen && (
-            <div
-              className="absolute right-0 bottom-7 z-30 w-36 bg-white rounded-2xl p-1 shadow-xl border overflow-hidden animate-in zoom-in-95 duration-150"
-              style={{ borderColor: "#E2E8F0" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setMobileMenuOpen(false);
-                  onRemove(setup.id);
-                }}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-red-50 text-red-600 transition-colors"
-              >
-                <Trash2 size={14} />
-                <span>Remove</span>
-              </button>
-              <button
-                onClick={(e) => {
-                  setMobileMenuOpen(false);
-                  onShare(e, setup);
-                }}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-left rounded-xl hover:bg-slate-50 transition-colors text-[#0F172A]"
-              >
-                <Share2 size={14} className="text-slate-500" />
-                <span>Share</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <SetupOptionsMenu setup={setup} onRemove={onRemove} onShare={onShare} />
       </div>
     </div>
   );
