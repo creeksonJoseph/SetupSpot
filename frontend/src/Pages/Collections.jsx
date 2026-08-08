@@ -77,13 +77,25 @@ const Collections = () => {
     setEditFolderTitle("");
   };
 
-  const handleShareCollection = (e, col) => {
+  const handleShareCollection = async (e, col) => {
     e.preventDefault();
     e.stopPropagation();
     setOpenMenuId(null);
-    const shareUrl = `${window.location.origin}/collections?id=${col.id}`;
+    const shareUrl = `${window.location.origin}/collection/${col.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: col.name,
+          text: `Check out this gear collection: ${col.name} on SetupSpot`,
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // User dismissed native share sheet
+      }
+    }
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(shareUrl);
       showToast("Collection link copied to clipboard!", "success");
     } else {
       showToast(`Collection link: ${shareUrl}`, "info");

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { MoreVertical, Heart, Bookmark, Share2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
@@ -12,6 +13,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);
   const [titleExpanded, setTitleExpanded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -60,13 +62,13 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
             loading="lazy"
           />
 
-          {/* Dark shade overlay — hover only */}
-          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          {/* Dark shade overlay — hover only (desktop) */}
+          <div className="hidden sm:block absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-          {/* Save button — top right */}
+          {/* Save button — top right (desktop only) */}
           <button
             onClick={handleSave}
-            className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 cursor-pointer"
+            className="hidden sm:flex absolute top-3 right-3 items-center justify-center w-9 h-9 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 cursor-pointer"
             style={{
               backgroundColor: setup.isFavorited ? "#e11d48" : "#ffffff",
               color: setup.isFavorited ? "#ffffff" : "#0F172A",
@@ -81,10 +83,10 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
             </span>
           </button>
 
-          {/* Share button — bottom right */}
+          {/* Share button — bottom right (desktop only) */}
           <button
             onClick={handleShare}
-            className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10 cursor-pointer"
+            className="hidden sm:flex absolute bottom-3 right-3 items-center justify-center w-9 h-9 rounded-full shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-95 z-10 cursor-pointer"
             style={{ backgroundColor: "rgba(255,255,255,0.95)", color: "#0F172A" }}
             aria-label="Share"
           >
@@ -102,19 +104,83 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
           </div>
         </Link>
 
-        {/* Mobile caption — only on phones, hidden on sm+ (desktop uses hover overlay) */}
-        <div
-          className="sm:hidden mt-1.5 px-0.5 cursor-pointer"
-          onClick={() => setTitleExpanded((prev) => !prev)}
-        >
-          <p
-            className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"}`}
+        {/* Mobile caption & 3-dots menu — only on phones (< sm) */}
+        <div className="sm:hidden mt-1.5 px-0.5 relative flex items-start justify-between gap-1">
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={() => setTitleExpanded((prev) => !prev)}
           >
-            {setup.title}
-          </p>
-          {titleExpanded && (
-            <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
-          )}
+            <p
+              className={`text-[12px] font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"}`}
+            >
+              {setup.title}
+            </p>
+            <p className="text-[10px] font-medium text-[#727687] mt-0.5">by {setup.author}</p>
+          </div>
+
+          {/* Pinterest-style 3-dots menu button */}
+          <div className="relative shrink-0">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setMobileMenuOpen((prev) => !prev);
+              }}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Options"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {/* Mobile Dropdown Menu */}
+            {mobileMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-30"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMobileMenuOpen(false);
+                  }}
+                />
+                <div
+                  className="absolute right-0 bottom-8 z-40 w-36 bg-white rounded-xl shadow-xl border p-1 text-xs font-semibold space-y-0.5 animate-in zoom-in-95 duration-150"
+                  style={{ borderColor: "#E2E8F0" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleSave(e);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    {setup.isFavorited ? (
+                      <>
+                        <Heart size={14} className="fill-rose-500 text-rose-500" />
+                        <span className="text-rose-600">Saved</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark size={14} className="text-slate-500" />
+                        <span>Save</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleShare(e);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <Share2 size={14} className="text-blue-600" />
+                    <span>Share</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

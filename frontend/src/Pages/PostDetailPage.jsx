@@ -135,16 +135,50 @@ const PostDetailPage = () => {
           </div>
         ) : (
           <>
+            {/* Focused Item Banner on Mobile */}
+            {initialFocusedItem && (
+              <div
+                className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-2xs mb-3"
+                style={{
+                  backgroundColor: "rgba(0,102,255,0.06)",
+                  borderColor: "rgba(0,102,255,0.2)",
+                }}
+              >
+                <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
+                  {isFocusMode ? "Focused item pin" : "All setup pins"}
+                </span>
+                {hasOtherItems && (
+                  <button
+                    onClick={() => setShowAllItems((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer shrink-0 shadow-xs"
+                    style={{ backgroundColor: "#0066ff" }}
+                  >
+                    {isFocusMode ? (
+                      <>
+                        <Eye size={12} />
+                        Show all items ({allItems.length})
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff size={12} />
+                        Show focused item only
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Unified Card Container (Photo + Author Row attached) */}
             <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
-              {/* Hero image with pins */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ backgroundColor: "#0F172A" }}>
+              {/* Hero image with pins — contained without cropping */}
+              <div className="relative w-full max-h-[65vh] min-h-[280px] overflow-hidden flex items-center justify-center" style={{ backgroundColor: "#0F172A" }}>
                 {setup.image_url && !mobileImageLoaded && (
                   <img
                     src={getBlurPlaceholderUrl(setup.image_url)}
                     alt=""
                     aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+                    className="absolute inset-0 w-full h-full object-contain filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
                   />
                 )}
 
@@ -152,7 +186,7 @@ const PostDetailPage = () => {
                   src={setup.image_url}
                   alt={setup.title || "Setup"}
                   onLoad={() => setMobileImageLoaded(true)}
-                  className={`w-full h-full object-cover block relative z-1 transition-opacity duration-300 ${
+                  className={`w-full h-full max-h-[65vh] object-contain block relative z-1 transition-opacity duration-300 ${
                     mobileImageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -167,8 +201,9 @@ const PostDetailPage = () => {
                 </button>
 
                 {/* Hotspot Pins */}
-                {displayedItems.map((item, index) => {
+                {displayedItems.map((item) => {
                   const isHovered = item.id === hoveredItemId;
+                  const pinNumber = allItems.findIndex((it) => it.id === item.id) + 1;
                   return (
                     <div
                       key={item.id}
@@ -191,7 +226,7 @@ const PostDetailPage = () => {
                             : "0 2px 6px rgba(0,0,0,0.2)",
                         }}
                       >
-                        {index + 1}
+                        {pinNumber}
                       </span>
                     </div>
                   );
@@ -356,9 +391,10 @@ const PostDetailPage = () => {
                   className="rounded-2xl overflow-hidden border"
                   style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
                 >
-                  {allItems.map((item, index) => {
+                  {displayedItems.map((item) => {
                     const isFlashed = flashedPinId === item.id;
                     const isExpanded = mobileExpandedItemId === item.id;
+                    const itemNumber = allItems.findIndex((it) => it.id === item.id) + 1;
                     return (
                       <div
                         key={item.id}
@@ -387,7 +423,7 @@ const PostDetailPage = () => {
                               color: isFlashed ? "#ffffff" : "#475569",
                             }}
                           >
-                            {index + 1}
+                            {itemNumber}
                           </span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate" style={{ color: "#0F172A" }}>
