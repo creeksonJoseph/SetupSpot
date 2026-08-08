@@ -1,71 +1,177 @@
 /**
- * useSetups — fetches all setups from the public /setups endpoint.
+ * useSetups — cursor-based paginated fetching from /setups.
  *
- * Works for both authenticated and anonymous users:
- *   - Authenticated: isFavorited flag is populated by the backend
- *   - Anonymous: isFavorited is always false
+ * Pagination model:
+ *   - On mount: fetch the first 48 setups (no cursor)
+ *   - On loadMore(): fetch the next page using the ID of the last visible setup as cursor
+ *   - hasMore: false when the server returns fewer items than the page size
  *
- * The token is included when available so authenticated users still get
- * their favourites — but the request succeeds without a token too.
+ * ETag support:
+ *   - Sends If-None-Match on repeat requests. If the server responds 304,
+ *     the cached data is reused — zero bytes transferred over the wire.
+ *
+ * SWR-style cache (module-level):
+ *   - First-page data is cached in-memory (60s TTL) so re-visiting /explore
+ *     is instant — no skeleton flash.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { API, FALLBACK_API } from './api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
+const PAGE_SIZE = 48;
+
+// ── Module-level cache (survives route changes) ───────────────────────────────
+// Shape: { [cacheKey]: { data: [], etag: string, timestamp: number } }
+const pageCache = {};
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function fetchPage(baseUrl, cursor, token, cachedEtag) {
+  const url = new URL(`${baseUrl}/setups`);
+  url.searchParams.set('limit', String(PAGE_SIZE));
+  if (cursor != null) url.searchParams.set('cursor', String(cursor));
+
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  // ETag conditional request — server returns 304 if nothing changed
+  if (cachedEtag) headers['If-None-Match'] = cachedEtag;
+
+  const res = await fetch(url.toString(), { headers });
+
+  if (res.status === 304) {
+    // Not Modified — return null to signal "use the cached data"
+    return { data: null, etag: cachedEtag, notModified: true };
+  }
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const data = await res.json();
+  const etag = res.headers.get('ETag') ?? null;
+  return { data, etag, notModified: false };
+}
+
+async function fetchWithFallback(cursor, token, cachedEtag) {
+  try {
+    return await fetchPage(API, cursor, token, cachedEtag);
+  } catch {
+    if (API !== FALLBACK_API) {
+      return await fetchPage(FALLBACK_API, cursor, token, cachedEtag);
+    }
+    throw new Error('Failed to fetch setups from all endpoints');
+  }
+}
+
 export function useSetups() {
-  const [setups, setSetups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { auth } = useAuth();
   const { showToast } = useToast();
 
-  const fetchSetups = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const tokenRef = useRef(auth?.access_token);
+  useEffect(() => { tokenRef.current = auth?.access_token; }, [auth?.access_token]);
 
-    const headers = auth?.access_token
-      ? { Authorization: `Bearer ${auth.access_token}` }
-      : {};
+  // Separate cache key for auth vs anon so favorites populate correctly
+  const cacheKey = `page1:${auth?.access_token ? 'auth' : 'anon'}`;
 
-    const tryFetch = async (baseUrl) => {
-      const res = await fetch(`${baseUrl}/setups`, { headers });
-      if (!res.ok) throw new Error('Failed to fetch setups');
-      return res.json();
+  const [setups, setSetups] = useState(() => pageCache[cacheKey]?.data ?? []);
+  const [loading, setLoading] = useState(setups.length === 0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
+
+  // ── Initial / first-page load ───────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadFirstPage = async () => {
+      const cached = pageCache[cacheKey];
+      const isFresh = cached && Date.now() - cached.timestamp < 60_000;
+
+      if (isFresh) {
+        // Use cached data immediately and revalidate silently in background
+        setSetups(cached.data);
+        setLoading(false);
+      } else if (cached) {
+        // Stale — show existing data immediately, then check if changed
+        setSetups(cached.data);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        const { data, etag, notModified } = await fetchWithFallback(
+          null,
+          tokenRef.current,
+          cached?.etag ?? null,
+        );
+
+        if (cancelled) return;
+
+        if (notModified) {
+          // 304 — server confirmed nothing changed, bump timestamp
+          if (cached) pageCache[cacheKey] = { ...cached, timestamp: Date.now() };
+          setLoading(false);
+          return;
+        }
+
+        pageCache[cacheKey] = { data, etag, timestamp: Date.now() };
+        setSetups(data);
+        setHasMore(data.length === PAGE_SIZE);
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[useSetups] Failed to load first page:', err);
+          setError(err.message);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
 
+    loadFirstPage();
+    return () => { cancelled = true; };
+  }, [cacheKey]);
+
+  // ── Load next page ──────────────────────────────────────────────────────────
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    const cursor = setups[setups.length - 1]?.id;
+    if (cursor == null) return;
+
+    setLoadingMore(true);
     try {
-      const data = await tryFetch(API);
-      setSetups(data);
+      const { data, notModified } = await fetchWithFallback(
+        cursor,
+        tokenRef.current,
+        null, // No ETag for paginated pages — content changes as cursor changes
+      );
+      if (notModified || !data) return;
+
+      setSetups(prev => {
+        const existingIds = new Set(prev.map(s => s.id));
+        const newItems = data.filter(s => !existingIds.has(s.id));
+        return [...prev, ...newItems];
+      });
+      setHasMore(data.length === PAGE_SIZE);
     } catch (err) {
-      if (API !== FALLBACK_API) {
-        try {
-          const data = await tryFetch(FALLBACK_API);
-          setSetups(data);
-          return;
-        } catch { /* fall through to error state */ }
-      }
-      console.error('Error fetching setups:', err);
-      setError(err.message);
+      console.error('[useSetups] Failed to load more:', err);
     } finally {
-      setLoading(false);
+      setLoadingMore(false);
     }
-  }, [auth?.access_token]);
+  }, [setups, loadingMore, hasMore]);
 
-  useEffect(() => {
-    fetchSetups();
-  }, [fetchSetups]);
+  // ── Invalidate & refetch ────────────────────────────────────────────────────
+  const invalidate = useCallback(() => {
+    delete pageCache[cacheKey];
+    setSetups([]);
+    setLoading(true);
+    setHasMore(true);
+  }, [cacheKey]);
 
+  // ── Optimistic favorite toggle ──────────────────────────────────────────────
   const toggleFavorite = useCallback(async (setupId, isFavorited) => {
-    if (!auth?.access_token) {
-      return false;
-    }
+    if (!auth?.access_token) return false;
 
-    // Optimistically toggle state immediately (TikTok / Instagram style)
-    setSetups((prev) =>
-      prev.map((s) =>
-        s.id === setupId ? { ...s, isFavorited: !isFavorited } : s,
-      ),
+    setSetups(prev =>
+      prev.map(s => s.id === setupId ? { ...s, isFavorited: !isFavorited } : s),
     );
 
     try {
@@ -77,42 +183,28 @@ export function useSetups() {
 
       const tryToggle = async (baseUrl) => {
         const res = await fetch(`${baseUrl}/favorites`, {
-          method,
-          headers,
+          method, headers,
           body: JSON.stringify({ setup_id: setupId }),
         });
         return res;
       };
 
       let response;
-      try {
-        response = await tryToggle(API);
-      } catch {
-        response = await tryToggle(FALLBACK_API);
-      }
+      try { response = await tryToggle(API); }
+      catch { response = await tryToggle(FALLBACK_API); }
 
-      if (!response.ok) {
-        throw new Error('Failed to toggle favorite');
-      }
+      if (!response.ok) throw new Error('Failed to toggle favorite');
 
       if (method === 'POST') {
         const data = await response.json();
-        if (data?.already_favorited) {
-          showToast('Setup already saved to favourites', 'info');
-        } else {
-          showToast('Setup saved to favourites!', 'success');
-        }
+        showToast(data?.already_favorited ? 'Setup already saved to favourites' : 'Setup saved to favourites!', data?.already_favorited ? 'info' : 'success');
       } else {
         showToast('Removed setup from favourites', 'info');
       }
-
     } catch (err) {
       console.error('Error toggling favorite:', err);
-      // Revert state update on error
-      setSetups((prev) =>
-        prev.map((s) =>
-          s.id === setupId ? { ...s, isFavorited: isFavorited } : s,
-        ),
+      setSetups(prev =>
+        prev.map(s => s.id === setupId ? { ...s, isFavorited } : s),
       );
       showToast('Could not save setup, try again.', 'error');
     }
@@ -121,8 +213,11 @@ export function useSetups() {
   return {
     setups,
     loading,
+    loadingMore,
+    hasMore,
     error,
+    loadMore,
     toggleFavorite,
-    refetch: fetchSetups,
+    refetch: invalidate,
   };
 }

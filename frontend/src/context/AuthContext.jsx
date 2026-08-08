@@ -20,13 +20,29 @@ export function AuthProvider({ children }) {
 
   const [auth, setAuth] = useState(stored);
 
+  const sanitizeUserData = (userObj) => {
+    if (!userObj) return null;
+    const { setups, ...cleanUser } = userObj;
+    return cleanUser;
+  };
+
+  const sanitizeAuth = (data) => {
+    if (!data) return null;
+    const cleanUser = data.user ? sanitizeUserData(data.user) : null;
+    return {
+      ...data,
+      ...(cleanUser ? { user: cleanUser } : {}),
+    };
+  };
+
   const persist = (data) => {
-    if (data) {
-      localStorage.setItem("auth", JSON.stringify(data));
+    const sanitized = sanitizeAuth(data);
+    if (sanitized) {
+      localStorage.setItem("auth", JSON.stringify(sanitized));
     } else {
       localStorage.removeItem("auth");
     }
-    setAuth(data);
+    setAuth(sanitized);
   };
 
   const fetchWithFallback = async (endpoint, options) => {
@@ -54,11 +70,12 @@ export function AuthProvider({ children }) {
           if (userData) {
             setAuth((prev) => {
               if (!prev) return prev;
+              const cleanUser = sanitizeUserData(userData);
               const updated = {
                 ...prev,
-                email: userData.email,
-                is_admin: userData.is_admin,
-                user: userData,
+                email: cleanUser.email,
+                is_admin: cleanUser.is_admin,
+                user: cleanUser,
               };
               localStorage.setItem("auth", JSON.stringify(updated));
               return updated;
@@ -147,11 +164,12 @@ export function AuthProvider({ children }) {
   const updateAuthUser = useCallback((updatedUserData) => {
     setAuth((prev) => {
       if (!prev) return prev;
+      const cleanUpdated = sanitizeUserData(updatedUserData) || {};
       const updated = {
         ...prev,
         user: {
           ...(prev.user || {}),
-          ...updatedUserData,
+          ...cleanUpdated,
         },
       };
       localStorage.setItem("auth", JSON.stringify(updated));

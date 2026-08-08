@@ -17,6 +17,7 @@ class UserOut(BaseModel):
     avatar_url: str | None = None
     is_admin: bool = False
     post_count: int = 0
+    total_likes: int = 0
     setups: list[UserSetupOut] = []
 
 
@@ -45,8 +46,7 @@ class PublicUserOut(BaseModel):
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
     post_count: int = 0
+    total_likes: int = 0
     collection_count: int = 0
     setups: List[UserSetupOut] = []
     collections: List[PublicCollectionOut] = []
-
-

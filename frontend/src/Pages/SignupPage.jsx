@@ -63,11 +63,16 @@ export default function SignupPage() {
       className="min-h-screen flex flex-col items-center justify-center p-4 mb-16 relative overflow-hidden font-sans"
       style={{ backgroundColor: "#f7f9fb" }}
     >
-      {/* Background watermark */}
-      <div className="fixed top-1/2 left-0 -translate-y-1/2 z-0 select-none pointer-events-none w-screen text-center">
+      {/* Background watermark — fluid clamp prevents text spill past screen */}
+      <div className="fixed inset-0 flex items-center justify-center z-0 select-none pointer-events-none overflow-hidden max-w-full">
         <span
-          className="font-black tracking-tight"
-          style={{ fontSize: "14rem", color: "#0050cb", opacity: 0.09, lineHeight: 1 }}
+          className="font-black tracking-tighter text-center whitespace-nowrap block max-w-full"
+          style={{
+            fontSize: "clamp(3.5rem, 15vw, 12rem)",
+            color: "#0050cb",
+            opacity: 0.07,
+            lineHeight: 1,
+          }}
         >
           SetupSpot
         </span>
@@ -85,8 +90,8 @@ export default function SignupPage() {
 
         {/* Form Card */}
         <div
-          className="w-full rounded-xl p-12 border shadow-xs"
-          style={{ borderColor: "rgba(226,232,240,0.5)", backgroundColor: "rgba(255,255,255,0.85)" }}
+          className="w-full rounded-xl p-12 border relative z-10"
+          style={{ borderColor: "rgba(226,232,240,0.5)", backgroundColor: "rgba(255,255,255,0.25)" }}
         >
           <Steps current={step} />
 

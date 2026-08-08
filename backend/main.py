@@ -10,6 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.config import settings
@@ -52,6 +53,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# GZip compression — automatically compresses responses ≥ 500 bytes (60-80% size reduction).
+# Free win: browsers and HTTP clients all support gzip natively.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)

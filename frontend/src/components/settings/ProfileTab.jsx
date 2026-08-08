@@ -13,17 +13,12 @@ export const ProfileTab = ({
   return (
     <form onSubmit={handleSaveProfile} className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
       {/* Left Column: Avatar & Profile Card */}
-      <div className="flex flex-col items-center text-center">
-        <div className="flex flex-col items-center text-center w-full pt-1">
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#0F172A' }}>
-            Profile Picture
-          </label>
-
-          <label htmlFor="avatar-file-input" className="relative group mb-2 cursor-pointer block">
+      <div className="flex flex-row lg:flex-col items-center justify-between sm:justify-start lg:justify-center gap-3 text-left lg:text-center w-full">
+        <div className="flex items-center lg:flex-col gap-3 lg:gap-1.5 shrink-0">
+          <label htmlFor="avatar-file-input" className="relative group cursor-pointer block shrink-0">
             <div
-              className="w-20 h-20 rounded-full border-4 shadow-md overflow-hidden flex items-center justify-center text-white text-2xl font-black relative"
+              className="w-14 h-14 sm:w-18 sm:h-18 rounded-full border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-white text-lg sm:text-xl font-black relative"
               style={{
-                borderColor: '#ffffff',
                 background: 'linear-gradient(135deg, #0066ff 0%, #5a27f1 100%)',
               }}
             >
@@ -39,57 +34,56 @@ export const ProfileTab = ({
 
               {/* Hover Overlay Icon */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                <Camera size={20} />
+                <Camera size={16} />
               </div>
             </div>
             {uploadingAvatar && (
               <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               </div>
             )}
           </label>
 
-
-          <h3 className="font-extrabold text-sm" style={{ color: '#0F172A' }}>
-            @{profileForm.username || 'username'}
-          </h3>
-          <p className="text-[11px] mt-0.5" style={{ color: '#727687' }}>
-            {user?.email}
-          </p>
-
-          <div className="w-full pt-3 mt-3 border-t" style={{ borderColor: '#E2E8F0' }}>
-            <label
-              htmlFor="avatar-file-input"
-              className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:bg-blue-50 shadow-sm"
-              style={{ borderColor: 'rgba(0,102,255,0.3)', color: '#0066ff', backgroundColor: 'rgba(0,102,255,0.04)' }}
-            >
-              <Camera size={14} />
-              {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
-            </label>
-
-            <input
-              id="avatar-file-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleAvatarUpload(e.target.files[0]);
-                }
-              }}
-            />
-            <p className="text-[10px] mt-1" style={{ color: '#727687' }}>
-              JPG, PNG or WEBP. Max size 5MB.
+          <div className="min-w-0">
+            <h3 className="font-extrabold text-xs sm:text-sm truncate" style={{ color: '#0F172A' }}>
+              @{profileForm.username || 'username'}
+            </h3>
+            <p className="text-[11px] truncate mt-0.5" style={{ color: '#727687' }}>
+              {user?.email}
             </p>
           </div>
+        </div>
+
+        <div className="pt-0 lg:pt-3 lg:mt-2 lg:border-t w-auto lg:w-full flex flex-col items-end lg:items-center shrink-0" style={{ borderColor: '#E2E8F0' }}>
+          <label
+            htmlFor="avatar-file-input"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:bg-blue-50 shadow-2xs"
+            style={{ borderColor: 'rgba(0,102,255,0.3)', color: '#0066ff', backgroundColor: 'rgba(0,102,255,0.04)' }}
+          >
+            <Camera size={13} />
+            <span className="hidden sm:inline">{uploadingAvatar ? 'Uploading...' : 'Change Photo'}</span>
+            <span className="sm:hidden">{uploadingAvatar ? '...' : 'Change'}</span>
+          </label>
+
+          <input
+            id="avatar-file-input"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleAvatarUpload(e.target.files[0]);
+              }
+            }}
+          />
+          <p className="text-[10px] mt-1 hidden lg:block" style={{ color: '#727687' }}>
+            JPG, PNG or WEBP. Max size 5MB.
+          </p>
         </div>
       </div>
 
       {/* Right Column: Account Details Form */}
-      <div
-        className="lg:col-span-2 bg-white rounded-2xl border p-3.5 md:p-4 shadow-sm flex flex-col justify-between"
-        style={{ borderColor: '#E2E8F0' }}
-      >
+      <div className="lg:col-span-2 flex flex-col justify-between">
         <div className="space-y-2.5">
           <div>
             <h2 className="text-base font-bold" style={{ color: '#0F172A' }}>

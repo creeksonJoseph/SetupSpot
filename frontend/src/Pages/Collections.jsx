@@ -10,7 +10,6 @@ import { CollectionItemCard } from "../components/collections/CollectionItemCard
 import { DeletePostModal } from "../components/account/DeletePostModal";
 import { CollectionGridSkeleton } from "../components/CardSkeleton";
 import { useToast } from "../context/ToastContext";
-import { ShareMenu } from "../components/ShareMenu";
 
 
 const Collections = () => {
@@ -37,7 +36,6 @@ const Collections = () => {
   const [editFolderTitle, setEditFolderTitle] = useState("");
   const [pendingDeleteCollection, setPendingDeleteCollection] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [shareCollection, setShareCollection] = useState(null);
 
 
   useEffect(() => {
@@ -83,7 +81,13 @@ const Collections = () => {
     e.preventDefault();
     e.stopPropagation();
     setOpenMenuId(null);
-    setShareCollection(col);
+    const shareUrl = `${window.location.origin}/collections?id=${col.id}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      showToast("Collection link copied to clipboard!", "success");
+    } else {
+      showToast(`Collection link: ${shareUrl}`, "info");
+    }
   };
 
   return (
@@ -106,15 +110,6 @@ const Collections = () => {
         setTitle={setEditFolderTitle}
         onSubmit={handleRenameSubmit}
       />
-
-      {/* Share Collection Modal */}
-      {shareCollection && (
-        <ShareMenu
-          customUrl={`${window.location.origin}/collection/${shareCollection.id}`}
-          title={`Check out my collection: ${shareCollection.name} on SetupSpot!`}
-          onClose={() => setShareCollection(null)}
-        />
-      )}
 
       {/* Delete Collection Folder Modal */}
       <DeletePostModal

@@ -1,12 +1,14 @@
 """Setups router — one endpoint per HTTP method."""
 import json
+from hashlib import md5
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Query, Response, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user
 from api.schemas.setup import SetupDetailOut, SetupListItemOut
+from core.config import settings
 from core.database import get_db
 from models.user import User
 from services import setup_service
@@ -28,26 +30,63 @@ def get_optional_user(
         return None
 
 
+def _etag_headers(response: Response, data: list | dict, public: bool, max_age: int, swr: int) -> None:
+    """Attach Cache-Control and ETag headers to a response.
+
+    ETag is a hash of the serialized payload. On repeat requests the client
+    sends If-None-Match; FastAPI/Starlette will return 304 Not Modified if
+    the ETag matches — zero body bytes sent over the wire.
+    """
+    payload_bytes = json.dumps(data, default=str).encode()
+    etag = f'"{md5(payload_bytes).hexdigest()}"'
+    response.headers["ETag"] = etag
+    if public:
+        response.headers["Cache-Control"] = f"public, max-age={max_age}, stale-while-revalidate={swr}"
+    else:
+        response.headers["Cache-Control"] = f"private, max-age={max_age}"
+
+
 @router.get("", response_model=list[SetupListItemOut])
 def list_setups(
+    response: Response,
+    cursor: int | None = Query(None, description="ID of the last seen setup for cursor-based pagination"),
+    limit: int = Query(48, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
-    """Return all setups. Authenticated users get their favourite flag; anonymous users get isFavorited=false."""
+    """Return setups, newest-first, with optional cursor pagination.
+
+    Cursor pagination:
+    - First page: omit `cursor`. Returns the `limit` newest setups.
+    - Subsequent pages: pass `cursor=<id of last item in previous page>`.
+      Returns the next `limit` setups older than that ID. O(log n) index
+      seek regardless of how deep into the feed the user scrolls.
+
+    Authenticated users get their isFavorited flag populated.
+    """
     user_id = current_user.id if current_user else None
-    return setup_service.list_setups_for_user(db, user_id)
+    data = setup_service.list_setups_for_user(db, user_id, cursor=cursor, limit=limit)
+
+    is_public = user_id is None
+    _etag_headers(response, data, public=is_public, max_age=60 if is_public else 30, swr=300)
+    return data
 
 
 @router.get("/{setup_id}", response_model=SetupDetailOut)
 def get_setup(
     setup_id: int,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
     """Return a single setup with annotated items and social counts."""
     setup = setup_service.get_setup_detail(db, setup_id)
     requesting_user_id = current_user.id if current_user else None
-    return setup_service.serialize_setup_detail(setup, requesting_user_id)
+    data = setup_service.serialize_setup_detail(setup, requesting_user_id, db)
+
+    is_public = requesting_user_id is None
+    _etag_headers(response, data, public=is_public, max_age=300 if is_public else 60, swr=600)
+    return data
 
 
 @router.get("/{setup_id}/similar", response_model=list[SetupListItemOut])
@@ -69,6 +108,7 @@ def get_similar_setups(
 
 @router.post("", response_model=SetupDetailOut, status_code=201)
 def create_setup(
+    background_tasks: BackgroundTasks,
     data: str = Form(...),
     file: UploadFile | None = File(None),
     image_url: str | None = Form(None),
@@ -76,7 +116,11 @@ def create_setup(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Create a setup with annotated items.
+    Create a setup with annotated items. Responds immediately after DB write.
+
+    Post-response background tasks (fired after HTTP 201 is sent):
+    - Algolia: index the new setup for search
+    - pgvector: generate and store the embedding for similarity search
 
     Supports two image paths:
     - Early Upload (preferred): pass ``image_url`` (the Cloudinary URL returned
@@ -94,15 +138,28 @@ def create_setup(
         file_obj=file.file if file else None,
         pre_uploaded_url=image_url or None,
     )
-    return setup_service.serialize_setup_detail(setup, requesting_user_id=current_user.id)
+
+    # Dispatch background tasks — these run after the 201 response is sent.
+    background_tasks.add_task(
+        setup_service.background_index_setup,
+        setup_id=setup.id,
+        db_url=settings.DATABASE_URL,
+    )
+
+    return setup_service.serialize_setup_detail(setup, requesting_user_id=current_user.id, db=db)
 
 
 @router.delete("/{setup_id}", status_code=200)
 def delete_setup(
     setup_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Delete a setup owned by the current user."""
+    """Delete a setup owned by the current user. Algolia removal is async."""
     setup_service.delete_setup(db, setup_id=setup_id, user_id=current_user.id)
+
+    # Remove from Algolia search index after the DB delete commits
+    background_tasks.add_task(setup_service.background_delete_from_algolia, setup_id)
+
     return {"message": "Setup deleted"}

@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MoreVertical, Share2, Trash2 } from "lucide-react";
 import { DeletePostModal } from "./DeletePostModal";
 import { ShareMenu } from "../ShareMenu";
+import { SetupGridSkeleton } from "../CardSkeleton";
 
-export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
+export const UserSetupsGrid = ({ setups = [], loading = false, deleteSetup }) => {
   const [pendingDeleteSetup, setPendingDeleteSetup] = useState(null);
   const [shareSetup, setShareSetup] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [expandedTitleId, setExpandedTitleId] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
 
@@ -19,7 +21,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
 
   // Automatic Infinite Scroll Handler
   useEffect(() => {
-    if (visibleLimit >= setups.length || !sentinelRef.current) return;
+    if (visibleLimit >= (setups?.length || 0) || !sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -35,14 +37,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
     return () => {
       if (currentSentinel) observer.unobserve(currentSentinel);
     };
-  }, [visibleLimit, setups.length]);
-
-  const handleSharePost = (e, setup) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setOpenMenuId(null);
-    setShareSetup(setup);
-  };
+  }, [visibleLimit, setups?.length]);
 
   return (
     <section className="mb-16">
@@ -51,7 +46,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
         <ShareMenu setup={shareSetup} onClose={() => setShareSetup(null)} />
       )}
 
-      {/* Delete Confirmation Modal with Progress Bar */}
+      {/* Delete Confirmation Modal */}
       <DeletePostModal
         isOpen={!!pendingDeleteSetup}
         onClose={() => setPendingDeleteSetup(null)}
@@ -65,14 +60,17 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
-          Your Posts ({setups.length})
+      <div className="flex items-center justify-between mb-4 sm:mb-8">
+        <h2 className="text-xl md:text-3xl font-black tracking-[-0.033em]" style={{ color: "#0F172A" }}>
+          Your Setups
         </h2>
       </div>
 
-      {/* Empty State */}
-      {setups.length === 0 ? (
+      {/* Loading Skeleton state — NEVER flash empty state during data loading */}
+      {loading || !setups ? (
+        <SetupGridSkeleton count={10} />
+      ) : setups.length === 0 ? (
+        /* Empty State — Only shown after loading completes and setups count is genuinely 0 */
         <div
           className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-dashed text-center"
           style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
@@ -84,7 +82,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
             <span className="material-symbols-outlined text-3xl">photo_camera</span>
           </div>
           <h3 className="text-lg font-bold" style={{ color: "#0F172A" }}>
-            No setups posted yet
+            No setups created yet
           </h3>
           <p className="text-sm mt-1 max-w-sm" style={{ color: "#727687" }}>
             Share your workspace setup with the community and get inspired by others.
@@ -117,7 +115,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                     loading="lazy"
                   />
 
-                  {/* Dark shade overlay on hover */}
+                  {/* Dark shade overlay — hover only */}
                   <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   {/* 3-Dots Menu Button — top right */}
@@ -129,7 +127,7 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                         setOpenMenuId((prev) => (prev === setup.id ? null : setup.id));
                       }}
                       className="flex items-center justify-center w-8 h-8 rounded-full shadow-md bg-white/90 backdrop-blur-xs text-slate-700 hover:text-slate-900 opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-200 cursor-pointer hover:bg-white"
-                      title="Post options"
+                      title="Setup options"
                     >
                       <MoreVertical size={16} />
                     </button>
@@ -157,19 +155,32 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
                           className="flex items-center gap-2 w-full px-3 py-2 text-left rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} className="text-red-500" />
-                          <span>Delete Post</span>
+                          <span>Delete Setup</span>
                         </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Gradient overlay with setup title — Matches Explore Page */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  {/* Gradient overlay with setup title — hover only (desktop) */}
+                  <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                     <p className="text-white font-semibold text-base leading-tight drop-shadow truncate">
                       {setup.title}
                     </p>
                   </div>
                 </Link>
+
+                {/* Mobile caption — only on phones */}
+                <div
+                  className="sm:hidden mt-1.5 px-0.5 cursor-pointer"
+                  onClick={() => setExpandedTitleId((prev) => prev === setup.id ? null : setup.id)}
+                >
+                  <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${expandedTitleId === setup.id ? "" : "truncate"}`}>
+                    {setup.title}
+                  </p>
+                  {expandedTitleId === setup.id && (
+                    <p className="text-[10px] text-[#727687] mt-0.5">@{setup.author || setup.username}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -177,13 +188,11 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
           {/* Automatic Infinite Scroll Sentinel */}
           {visibleLimit < setups.length && (
             <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
-              <span className="text-xs font-medium text-slate-400">Loading more posts...</span>
+              <span className="text-xs font-medium text-slate-400">Loading more setups...</span>
             </div>
           )}
         </div>
       )}
-
-
 
       {/* Explore More Collections Footer Button */}
       {setups.length > 0 && (
@@ -205,8 +214,3 @@ export const UserSetupsGrid = ({ setups = [], deleteSetup }) => {
     </section>
   );
 };
-
-
-
-
-

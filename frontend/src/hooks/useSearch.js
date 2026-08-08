@@ -4,8 +4,7 @@
  * Handles: debounced querying, suggestion state, keyboard nav index,
  * dropdown open/close, and outside-click detection.
  *
- * Returns everything SearchBar needs to render; SearchBar itself
- * stays pure JSX with no search logic.
+ * Supports controlled (externalQuery, externalSetQuery) or uncontrolled state.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
@@ -25,8 +24,8 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-export function useSearch({ onResults }) {
-  const [query, setQuery]           = useState('');
+export function useSearch({ onResults, externalQuery, externalSetQuery }) {
+  const [internalQuery, setInternalQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [focused, setFocused]       = useState(false);
   const [loading, setLoading]       = useState(false);
@@ -34,6 +33,16 @@ export function useSearch({ onResults }) {
 
   const inputRef     = useRef(null);
   const containerRef = useRef(null);
+
+  const query = externalQuery !== undefined ? externalQuery : internalQuery;
+
+  const setQuery = useCallback((val) => {
+    if (typeof externalSetQuery === 'function') {
+      externalSetQuery(val);
+    } else {
+      setInternalQuery(val);
+    }
+  }, [externalSetQuery]);
 
   const debouncedQuery = useDebounce(query, 220);
 
@@ -52,7 +61,7 @@ export function useSearch({ onResults }) {
           {
             indexName: INDEX_NAME,
             query: debouncedQuery,
-            hitsPerPage: 6,
+            hitsPerPage: 12,
             attributesToRetrieve: ['name', 'author', 'image_url', 'items', 'objectID'],
             attributesToHighlight: ['name', 'author', 'items'],
           },
@@ -84,7 +93,7 @@ export function useSearch({ onResults }) {
     setSuggestions([]);
     onResults(null);
     setActiveIdx(-1);
-  }, [onResults]);
+  }, [onResults, setQuery]);
 
   const selectSuggestion = useCallback((hit) => {
     setQuery(hit.name);
@@ -92,7 +101,7 @@ export function useSearch({ onResults }) {
     setSuggestions([]);
     setFocused(false);
     setActiveIdx(-1);
-  }, [onResults]);
+  }, [onResults, setQuery]);
 
   const handleKeyDown = useCallback((e) => {
     if (!suggestions.length) return;

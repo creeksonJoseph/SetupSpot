@@ -5,6 +5,8 @@ import SearchBar from '../components/SearchBar';
 import { SetupCard } from '../components/explore/SetupCard';
 import { SetupGridSkeleton } from '../components/CardSkeleton';
 
+import { useLocation } from 'react-router-dom';
+
 // Convert an Algolia hit to the same shape as a setup from the REST API
 const hitToSetup = (hit) => ({
   id: parseInt(hit.objectID, 10),
@@ -14,12 +16,12 @@ const hitToSetup = (hit) => ({
   isFavorited: false,
 });
 
-
 const ExplorePage = () => {
-  const { setups, loading, toggleFavorite } = useSetups();
+  const location = useLocation();
+  const { setups, loading, loadingMore, hasMore, loadMore, toggleFavorite } = useSetups();
+
   // null = no active search; array = Algolia hits (may be empty)
   const [searchHits, setSearchHits] = useState(null);
-  const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
 
   const handleSearchResults = useCallback((hits) => {
@@ -29,17 +31,28 @@ const ExplorePage = () => {
   const isSearching = searchHits !== null;
   const displayedSetups = isSearching ? searchHits.map(hitToSetup) : setups;
 
-  // Automatic Infinite Scroll Handler
   useEffect(() => {
-    if (visibleLimit >= displayedSetups.length || !sentinelRef.current) return;
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('search') === 'true') {
+      const inputEl = document.getElementById('explore-search-input');
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [location.search]);
+
+  // Infinite scroll — triggers real server-side cursor pagination via loadMore()
+  useEffect(() => {
+    if (isSearching || !hasMore || !sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleLimit((prev) => prev + 24);
+          loadMore();
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: '400px' } // Start fetching 400px before the sentinel is visible
     );
 
     const currentSentinel = sentinelRef.current;
@@ -47,22 +60,22 @@ const ExplorePage = () => {
     return () => {
       if (currentSentinel) observer.unobserve(currentSentinel);
     };
-  }, [visibleLimit, displayedSetups.length]);
+  }, [isSearching, hasMore, loadMore]);
 
   return (
-    <main className="flex-1 px-4 py-8 sm:px-6 md:px-8">
+    <div className="w-full flex-1 py-2 sm:py-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 px-2 flex items-start justify-between gap-6 flex-wrap">
+        <div className="mb-4 sm:mb-8 px-1 flex items-start justify-between gap-4 sm:gap-6 flex-wrap">
           {/* Left: title + subtitle */}
           <div>
-            <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em] min-h-[38px] sm:min-h-[48px] flex items-center" style={{ color: '#0F172A' }}>
               <TypewriterText text="Explore Setups" />
             </h1>
-            <p className="text-base font-normal leading-normal mt-2" style={{ color: '#475569' }}>
+            <p className="text-xs sm:text-sm md:text-base font-normal leading-normal mt-1 sm:mt-2" style={{ color: '#475569' }}>
               Discover and get inspired by amazing computer setups from around the world.
             </p>
             {isSearching && (
-              <p className="mt-2 text-sm font-semibold" style={{ color: '#0066ff' }}>
+              <p className="mt-2 text-xs sm:text-sm font-semibold" style={{ color: '#0066ff' }}>
                 {displayedSetups.length > 0
                   ? <><strong>{displayedSetups.length}</strong> result{displayedSetups.length !== 1 ? 's' : ''} found</>
                   : <>No results found</>}
@@ -70,14 +83,14 @@ const ExplorePage = () => {
             )}
           </div>
 
-          {/* Right: search bar */}
-          <div style={{ flex: '0 1 420px', minWidth: '240px' }}>
+          {/* Right: search bar (Desktop only — mobile uses dedicated /search page) */}
+          <div className="hidden md:block" style={{ flex: '0 1 420px', minWidth: '240px' }}>
             <SearchBar onResults={handleSearchResults} />
           </div>
         </div>
 
         {loading && !isSearching ? (
-          <SetupGridSkeleton count={8} />
+          <SetupGridSkeleton count={10} />
         ) : displayedSetups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>
@@ -89,25 +102,34 @@ const ExplorePage = () => {
           </div>
         ) : (
           <div>
-            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-              {displayedSetups.slice(0, visibleLimit).map((setup) => (
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2.5 sm:gap-4">
+              {displayedSetups.map((setup) => (
                 <SetupCard key={setup.id} setup={setup} toggleFavorite={toggleFavorite} />
               ))}
             </div>
 
-            {/* Automatic Infinite Scroll Sentinel */}
-            {visibleLimit < displayedSetups.length && (
-              <div ref={sentinelRef} className="h-12 w-full flex items-center justify-center my-4">
-                <span className="text-xs font-medium text-slate-400">Loading more setups...</span>
+            {/* Infinite scroll sentinel — triggers loadMore() when entering viewport */}
+            {!isSearching && (
+              <div
+                ref={sentinelRef}
+                className="h-16 w-full flex items-center justify-center my-4"
+              >
+                {loadingMore && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
+                    <span className="text-xs font-medium text-slate-400">Loading more setups…</span>
+                  </div>
+                )}
+                {!hasMore && setups.length > 0 && (
+                  <p className="text-xs text-slate-300 font-medium">You've seen all setups ✓</p>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 };
 
 export default ExplorePage;
-
-

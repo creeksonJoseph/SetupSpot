@@ -14,12 +14,12 @@ const SetupItemList = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 flex-1">
       <h2 className="text-sm font-bold pb-3 shrink-0" style={{ color: "#0F172A" }}>
         Items in Setup ({items.length})
       </h2>
       <div
-        className="flex flex-col overflow-y-auto flex-1 border "
+        className="flex flex-col overflow-y-auto min-h-0 flex-1 border rounded-xl"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {items.length === 0 ? (

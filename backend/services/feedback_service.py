@@ -10,7 +10,7 @@ ADMIN_EMAIL = "charanajoseph@gmail.com"
 logger = logging.getLogger("setupspot.feedback")
 
 
-def send_feedback_email(user_email: str, username: str, message: str, category: str):
+def send_feedback_email(user_email: str, username: str, message: str, category: str, feedback_id: int = None):
     """Dispatch real Resend email notification to charanajoseph@gmail.com."""
     import resend
     from core.config import settings
@@ -26,25 +26,114 @@ def send_feedback_email(user_email: str, username: str, message: str, category: 
     if settings.RESEND_API_KEY:
         try:
             resend.api_key = settings.RESEND_API_KEY
+            initial_letter = username[0].upper() if username else "?"
+            formatted_cat = category.replace('_', ' ').title()
+            admin_reply_url = f"https://setupspot.tech/admin?tab=feedback&id={feedback_id}" if feedback_id else "https://setupspot.tech/admin?tab=feedback"
+
+            is_bug = "bug" in category.lower()
+            heading_title = "New Bug Report" if is_bug else "New User Feedback"
+
             resend.Emails.send({
-                "from": "noreply@setupspot.tech",
+                "from": "SetupSpot <admin@setupspot.tech>",
                 "to": ADMIN_EMAIL,
-                "subject": f"💡 New SetupSpot Feedback from @{username}",
-                "html": f"""
-                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #0F172A; max-width: 600px; border: 1px solid #E2E8F0; border-radius: 16px;">
-                        <h2 style="color: #0066ff; margin-bottom: 4px;">New User Feedback</h2>
-                        <p style="font-size: 13px; color: #64748B; margin-top: 0;">Sent directly from SetupSpot</p>
-                        <hr style="border: none; border-top: 1px solid #F1F5F9; margin: 16px 0;" />
-                        <p style="font-size: 14px;"><strong>From:</strong> @{username} (<code>{user_email}</code>)</p>
-                        <p style="font-size: 14px;"><strong>Category:</strong> <span style="background-color: #EFF6FF; color: #1E40AF; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 12px;">{category.replace('_', ' ').title()}</span></p>
-                        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; margin-top: 12px; color: #334155;">
-                            "{message}"
-                        </div>
-                        <p style="margin-top: 20px; font-size: 13px; color: #64748B;">
-                            Reply to user: <a href="mailto:{user_email}" style="color: #0066ff; font-weight: bold; text-decoration: none;">{user_email}</a>
-                        </p>
+                "subject": "New Message from SetupSpot",
+                "html": f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{heading_title} - SetupSpot</title>
+</head>
+<body style="margin:0; padding:24px 12px; background-color:#F7F9FB; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#0F172A; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center">
+        <div style="max-width: 600px; width: 100%; text-align: left;">
+          
+          <!-- Header -->
+          <div style="margin-bottom: 24px; text-align: center;">
+            <a href="https://setupspot.tech" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              <img src="https://setupspot.tech/Logo.png" alt="SetupSpot Logo" style="width: 38px; height: 38px; border-radius: 10px; object-fit: contain; vertical-align: middle;" />
+              <span style="font-size: 22px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; vertical-align: middle; margin-left: 8px;">SetupSpot</span>
+            </a>
+          </div>
+
+          <!-- Main Card -->
+          <div style="background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);">
+            <!-- Top Blue Accent Line -->
+            <div style="height: 4px; width: 100%; background: linear-gradient(90deg, #0066ff 0%, #0050cb 100%);"></div>
+
+            <div style="padding: 24px;">
+              <!-- Title & Category Badge -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px; border-bottom: 1px solid #E2E8F0; padding-bottom: 20px;">
+                <tr>
+                  <td style="vertical-align: top;">
+                    <h2 style="font-size: 20px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">{heading_title}</h2>
+                    <p style="font-size: 13px; color: #64748B; margin: 0;">Sent directly from SetupSpot</p>
+                  </td>
+                  <td align="right" style="vertical-align: top;">
+                    <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: rgba(0,102,255,0.08); color: #0066ff; border: 1px solid rgba(0,102,255,0.2); font-size: 12px; font-weight: 700;">
+                      {formatted_cat}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- User Info Box -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px; background-color: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                <tr>
+                  <td width="40" style="vertical-align: middle;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #0066ff; color: #ffffff; font-weight: 700; font-size: 14px; text-align: center; line-height: 36px;">
+                      {initial_letter}
                     </div>
-                """,
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 10px;">
+                    <p style="font-size: 14px; font-weight: 700; color: #0F172A; margin: 0;">@{username}</p>
+                    <p style="font-size: 13px; color: #64748B; margin: 2px 0 0 0;">{user_email}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Message Content -->
+              <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 8px 0;">Message</h3>
+                <div style="background-color: #F8FAFC; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
+                  "{message}"
+                </div>
+              </div>
+
+              <!-- Action / Reply Footer -->
+              <div style="padding-top: 20px; border-top: 1px solid #E2E8F0;">
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td style="font-size: 13px; color: #64748B;">
+                      User email: <strong style="color: #0F172A;">{user_email}</strong>
+                    </td>
+                    <td align="right">
+                      <a href="{admin_reply_url}" style="display: inline-block; padding: 10px 20px; border-radius: 10px; background-color: #0066ff; color: #ffffff; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">
+                        Reply via Admin Portal &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #94A3B8;">
+            <p style="margin: 0 0 8px 0;">&copy; 2026 SetupSpot. All rights reserved.</p>
+            <p style="margin: 0;">
+              <a href="https://setupspot.tech" style="color: #64748B; text-decoration: none;">SetupSpot.tech</a>
+            </p>
+          </div>
+
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>""",
             })
             logger.info(f"[FEEDBACK EMAIL SENT VIA RESEND TO {ADMIN_EMAIL}]")
         except Exception as err:
@@ -74,6 +163,7 @@ def submit_feedback(db: Session, current_user: User, message: str, category: str
         username=current_user.username,
         message=message,
         category=category,
+        feedback_id=item.id,
     )
     return format_feedback_out(item, current_user)
 
@@ -95,22 +185,66 @@ def send_reply_email(user_email: str, username: str, reply_message: str) -> None
         try:
             resend.api_key = settings.RESEND_API_KEY
             resend.Emails.send({
-                "from": "SetupSpot Product Team <noreply@setupspot.tech>",
+                "from": "SetupSpot Product Team <productteam@setupspot.tech>",
                 "to": user_email,
                 "subject": "Re: Your SetupSpot Feedback",
-                "html": f"""
-                    <div style="font-family: Arial, sans-serif; padding: 24px; color: #0F172A; max-width: 600px; border: 1px solid #E2E8F0; border-radius: 16px;">
-                        
-                        <p style="font-size: 14px; color: #334155;">Hi @{username},</p>
-                        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #1E293B; margin: 16px 0;">
-                            {reply_message}
-                        </div>
-                        <p style="font-size: 12px; color: #64748B; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; line-height: 1.5;">
-                            <em>Please note: You cannot reply directly to this automated email. If you need to speak to a live support agent, please use the contact details provided in our Contact section on <a href="https://setupspot.tech/" style="color: #0066ff; font-weight: bold; text-decoration: none;">SetupSpot.tech</a>.</em>
-                        </p>
+                "html": f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SetupSpot Product Team Response</title>
+</head>
+<body style="margin:0; padding:24px 12px; background-color:#F7F9FB; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#0F172A; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center">
+        <div style="max-width: 600px; width: 100%; text-align: left;">
+          
+          <!-- Header -->
+          <div style="margin-bottom: 24px; text-align: center;">
+            <a href="https://setupspot.tech" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              <img src="https://setupspot.tech/Logo.png" alt="SetupSpot Logo" style="width: 38px; height: 38px; border-radius: 10px; object-fit: contain; vertical-align: middle;" />
+              <span style="font-size: 22px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; vertical-align: middle; margin-left: 8px;">SetupSpot</span>
+            </a>
+          </div>
 
-                    </div>
-                """,
+          <!-- Main Card -->
+          <div style="background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);">
+            <!-- Top Blue Accent Line -->
+            <div style="height: 4px; width: 100%; background: linear-gradient(90deg, #0066ff 0%, #0050cb 100%);"></div>
+
+            <div style="padding: 24px;">
+              <p style="font-size: 15px; font-weight: 700; color: #0F172A; margin: 0 0 12px 0;">Hi @{username},</p>
+              
+              <p style="font-size: 13px; color: #64748B; margin: 0 0 16px 0;">The SetupSpot Product Team responded to your feedback:</p>
+
+              <!-- Reply Message Content -->
+              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #1E293B; margin-bottom: 24px; white-space: pre-wrap;">
+                {reply_message}
+              </div>
+
+              <!-- Disclaimer -->
+              <p style="font-size: 12px; color: #64748B; margin: 0; padding-top: 16px; border-top: 1px solid #E2E8F0; line-height: 1.5;">
+                <em>Please note: You cannot reply directly to this automated email. If you need to speak to live support, please visit <a href="https://setupspot.tech" style="color: #0066ff; font-weight: 700; text-decoration: none;">SetupSpot.tech</a>.</em>
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #94A3B8;">
+            <p style="margin: 0 0 8px 0;">&copy; 2026 SetupSpot. All rights reserved.</p>
+            <p style="margin: 0;">
+              <a href="https://setupspot.tech" style="color: #64748B; text-decoration: none;">SetupSpot.tech</a>
+            </p>
+          </div>
+
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>""",
             })
             logger.info(f"[REPLY EMAIL SENT VIA RESEND TO {user_email}]")
         except Exception as err:

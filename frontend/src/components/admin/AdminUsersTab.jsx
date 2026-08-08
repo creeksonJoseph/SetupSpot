@@ -39,7 +39,7 @@ export const AdminUsersTab = ({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
+          <thead className="bg-slate-50 text-slate-500 font-bold">
             <tr>
               <th className="p-3.5 w-10 text-center">
                 <input
@@ -71,7 +71,7 @@ export const AdminUsersTab = ({
               <th className="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
+          <tbody>
             {filteredUsers.slice(0, visibleLimits.users).map((u) => (
               <tr
                 key={u.id}

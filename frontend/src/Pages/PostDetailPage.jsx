@@ -1,8 +1,13 @@
-import React, { useCallback, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import React, { useCallback, useRef, useState, Suspense } from "react";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
-import { Eye, EyeOff } from "lucide-react";
-import { PostDetailSkeleton } from "../components/CardSkeleton";
+import { useAuth } from "../context/AuthContext";
+import {
+  Eye, EyeOff, Heart, MessageCircle, MoreHorizontal,
+  ArrowLeft, Expand, Plus, ChevronDown, ChevronUp,
+  ShoppingBag, ExternalLink, Info, Trash2, Share2,
+} from "lucide-react";
+import { PostDetailSkeleton, SimilarSetupsSkeleton, SetupHeroSkeleton, ItemsListSkeleton } from "../components/CardSkeleton";
 
 import SetupImageCanvas from "../components/SetupImageCanvas";
 import SetupItemList from "../components/SetupItemList";
@@ -10,18 +15,31 @@ import SimilarSetups from "../components/SimilarSetups";
 import AddToCollectionModal from "../components/AddToCollectionModal";
 import PostSocialBar from "../components/PostSocialBar";
 import CommentSection from "../components/CommentSection";
+import AuthPromptModal from "../components/auth/AuthPromptModal";
+import { ImageLightbox } from "../components/ImageLightbox";
+import { ShareMenu } from "../components/ShareMenu";
+import { getBlurPlaceholderUrl } from "../utils/imageOptimizer";
 
 const PostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [mobileImageLoaded, setMobileImageLoaded] = useState(false);
 
-  // ?itemId=N — when arriving from a collection item click, focus this single item
+  // Scroll to top immediately when viewing a setup detail page
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, [id]);
+
+  const { auth } = useAuth();
+  const isLoggedIn = Boolean(auth?.token || auth?.user);
+
   const initialFocusedItemId = searchParams.get("itemId")
     ? parseInt(searchParams.get("itemId"), 10)
     : null;
 
-  // Toggle state: when true, shows all items and pins; when false, shows focused item/pin only
   const [showAllItems, setShowAllItems] = useState(false);
 
   const {
@@ -36,24 +54,44 @@ const PostDetailPage = () => {
     handleCloseModal,
     toggleLike,
     toggleFavorite,
+    deleteSetup,
+    isOwner,
     commentsOpen,
     setCommentsOpen,
+    authModalState,
+    closeAuthModal,
   } = usePostDetail(id);
 
-  // Track live comment count from CommentSection (lazy-updated)
   const [liveCommentCount, setLiveCommentCount] = useState(null);
-
   const handleCommentCountChange = useCallback((count) => {
     setLiveCommentCount(count);
   }, []);
 
-  if (loading) {
-    return <PostDetailSkeleton />;
-  }
+  // ── Mobile-only state ────────────────────────────────────────────
+  const [flashedPinId, setFlashedPinId] = useState(null);
+  const [mobileLightboxOpen, setMobileLightboxOpen] = useState(false);
+  const [mobileExpandedItemId, setMobileExpandedItemId] = useState(initialFocusedItemId || null);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+  const [mobileShareOpen, setMobileShareOpen] = useState(false);
+  const [mobileDeleteConfirm, setMobileDeleteConfirm] = useState(false);
+  const itemRefs = useRef({});
 
-  if (error || !setup) {
+  const flashItem = (itemId) => {
+    setFlashedPinId(itemId);
+    const el = itemRefs.current[itemId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => setFlashedPinId(null), 1200);
+  };
+
+  const handleRowTap = (item) => {
+    setFlashedPinId(item.id);
+    setTimeout(() => setFlashedPinId(null), 1200);
+  };
+  // ────────────────────────────────────────────────────────────────
+
+  if (!loading && (error || !setup)) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] flex-col" style={{ backgroundColor: "#f7f9fb" }}>
+      <div className="flex items-center justify-center h-screen -m-8 flex-col" style={{ backgroundColor: "#f7f9fb" }}>
         <p className="text-xl mb-2" style={{ color: "#0F172A" }}>
           {error || "Setup not found"}
         </p>
@@ -70,22 +108,20 @@ const PostDetailPage = () => {
     );
   }
 
-  const allItems = setup.items || [];
-  const commentCount = liveCommentCount ?? setup.comment_count;
+  const allItems = setup?.items || [];
+  const commentCount = liveCommentCount ?? setup?.comment_count ?? 0;
 
-  // Focused item logic
   const initialFocusedItem = initialFocusedItemId
     ? allItems.find((it) => it.id === initialFocusedItemId)
     : null;
 
-  // In focus mode, only show the clicked item (and its pin). When showAllItems is true, show all.
   const isFocusMode = initialFocusedItem && !showAllItems;
   const displayedItems = isFocusMode ? [initialFocusedItem] : allItems;
   const hasOtherItems = initialFocusedItem && allItems.length > 1;
 
   return (
     <div
-      className="min-h-screen overflow-y-auto"
+      className={isLoggedIn ? "lg:-m-6 lg:-my-6 h-full max-h-full min-h-0 overflow-hidden flex flex-col flex-1" : "p-2 sm:p-4 h-full max-h-full min-h-0 overflow-hidden flex flex-col flex-1"}
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
       {/* ══════════════════════════════════════════════════════════
@@ -99,50 +135,16 @@ const PostDetailPage = () => {
           </div>
         ) : (
           <>
-            {/* Focused Item Banner on Mobile */}
-            {initialFocusedItem && (
-              <div
-                className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-semibold shadow-2xs mb-3"
-                style={{
-                  backgroundColor: "rgba(0,102,255,0.06)",
-                  borderColor: "rgba(0,102,255,0.2)",
-                }}
-              >
-                <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
-                  {isFocusMode ? "Focused item pin" : "All setup pins"}
-                </span>
-                {hasOtherItems && (
-                  <button
-                    onClick={() => setShowAllItems((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer shrink-0 shadow-xs"
-                    style={{ backgroundColor: "#0066ff" }}
-                  >
-                    {isFocusMode ? (
-                      <>
-                        <Eye size={12} />
-                        Show all items ({allItems.length})
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff size={12} />
-                        Show focused item only
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-
             {/* Unified Card Container (Photo + Author Row attached) */}
             <div className="rounded-2xl border bg-white shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
-              {/* Hero image with pins — contained without cropping */}
-              <div className="relative w-full max-h-[65vh] min-h-[280px] overflow-hidden flex items-center justify-center" style={{ backgroundColor: "#0F172A" }}>
+              {/* Hero image with pins */}
+              <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ backgroundColor: "#0F172A" }}>
                 {setup.image_url && !mobileImageLoaded && (
                   <img
                     src={getBlurPlaceholderUrl(setup.image_url)}
                     alt=""
                     aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-contain filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 pointer-events-none transition-opacity duration-300 z-0"
                   />
                 )}
 
@@ -150,7 +152,7 @@ const PostDetailPage = () => {
                   src={setup.image_url}
                   alt={setup.title || "Setup"}
                   onLoad={() => setMobileImageLoaded(true)}
-                  className={`w-full h-full max-h-[65vh] object-contain block relative z-1 transition-opacity duration-300 ${
+                  className={`w-full h-full object-cover block relative z-1 transition-opacity duration-300 ${
                     mobileImageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -165,9 +167,8 @@ const PostDetailPage = () => {
                 </button>
 
                 {/* Hotspot Pins */}
-                {displayedItems.map((item) => {
+                {displayedItems.map((item, index) => {
                   const isHovered = item.id === hoveredItemId;
-                  const pinNumber = allItems.findIndex((it) => it.id === item.id) + 1;
                   return (
                     <div
                       key={item.id}
@@ -190,7 +191,7 @@ const PostDetailPage = () => {
                             : "0 2px 6px rgba(0,0,0,0.2)",
                         }}
                       >
-                        {pinNumber}
+                        {index + 1}
                       </span>
                     </div>
                   );
@@ -355,10 +356,9 @@ const PostDetailPage = () => {
                   className="rounded-2xl overflow-hidden border"
                   style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
                 >
-                  {displayedItems.map((item) => {
+                  {allItems.map((item, index) => {
                     const isFlashed = flashedPinId === item.id;
                     const isExpanded = mobileExpandedItemId === item.id;
-                    const itemNumber = allItems.findIndex((it) => it.id === item.id) + 1;
                     return (
                       <div
                         key={item.id}
@@ -387,7 +387,7 @@ const PostDetailPage = () => {
                               color: isFlashed ? "#ffffff" : "#475569",
                             }}
                           >
-                            {itemNumber}
+                            {index + 1}
                           </span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate" style={{ color: "#0F172A" }}>
@@ -492,35 +492,34 @@ const PostDetailPage = () => {
       ══════════════════════════════════════════════════════════ */}
       <div className="hidden lg:flex h-full w-full max-h-screen overflow-hidden">
         <div
-          className="flex gap-4 w-full items-start"
+          className="flex flex-1 gap-3 lg:gap-4 p-3 lg:p-4 h-full w-full overflow-hidden"
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr)",
+            gridTemplateColumns: "minmax(0, 1fr) clamp(200px, 22vw, 280px) clamp(220px, 24vw, 320px)",
+            alignItems: "stretch",
           }}
         >
-          {/* lg+ : 3 columns. Below lg: single column, stacked in order */}
-          <div
-            className="contents lg:grid"
-            style={{ gridTemplateColumns: "minmax(0, 1fr) 260px 300px", gap: "1rem" }}
-          >
-            {/* ── LEFT COLUMN (image + social bar + comments) ────────── */}
-            <div className={`flex flex-col gap-2.5 lg:max-h-[calc(100vh-2.5rem)] lg:pr-1 ${
-              commentsOpen ? "lg:overflow-y-auto" : "lg:overflow-hidden"
-            }`}>
-              {/* Back button */}
-              <div className="shrink-0">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-colors shadow-sm cursor-pointer"
-                  style={{ backgroundColor: "#0066ff" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
-                >
-                  Back
-                </button>
-              </div>
+          {/* LEFT COLUMN — Hero Canvas & Social Actions */}
+          <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-1">
+            <div className="shrink-0">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-colors shadow-sm cursor-pointer"
+                style={{ backgroundColor: "#0066ff" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+              >
+                Back
+              </button>
+            </div>
 
-              <div className="flex flex-col gap-0 rounded-xl border bg-white overflow-hidden shrink-0" style={{ borderColor: "#E2E8F0" }}>
+            {!setup ? (
+              <SetupHeroSkeleton />
+            ) : (
+              <div
+                className="flex flex-col gap-0 rounded-xl border bg-white overflow-hidden shrink-0"
+                style={{ borderColor: "#E2E8F0" }}
+              >
                 <SetupImageCanvas
                   imageUrl={setup.image_url}
                   items={displayedItems}
@@ -539,6 +538,8 @@ const PostDetailPage = () => {
                   onToggleLike={toggleLike}
                   onToggleComments={() => setCommentsOpen((o) => !o)}
                   onToggleFavorite={toggleFavorite}
+                  isOwner={isOwner}
+                  onDeleteSetup={deleteSetup}
                 />
 
                 {commentsOpen && (
@@ -548,70 +549,89 @@ const PostDetailPage = () => {
                   />
                 )}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* ── MIDDLE COLUMN — item list (focused or all) ───────── */}
-            <div className="flex flex-col gap-2 mt-4 lg:mt-0 lg:h-full lg:overflow-hidden">
-              {/* Focused-item banner + persistent toggle button */}
-              {initialFocusedItem && (
-                <div
-                  className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs"
-                  style={{
-                    backgroundColor: "rgba(0,102,255,0.06)",
-                    borderColor: "rgba(0,102,255,0.2)",
-                  }}
-                >
-                  <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
-                    {isFocusMode ? "Focused item" : "All items"}
-                  </span>
-                  {hasOtherItems && (
-                    <button
-                      onClick={() => setShowAllItems((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer shrink-0 shadow-xs"
-                      style={{ backgroundColor: "#0066ff" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
-                    >
-                      {isFocusMode ? (
-                        <>
-                          <Eye size={13} />
-                          <span>Show all ({allItems.length})</span>
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff size={13} />
-                          <span>Focus only</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              )}
+          {/* MIDDLE COLUMN — Equipment Items Breakdown */}
+          <div className="h-full overflow-hidden flex flex-col min-h-0">
+            {!setup ? (
+              <ItemsListSkeleton count={5} />
+            ) : (
+              <>
+                {initialFocusedItem && (
+                  <div
+                    className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold shadow-2xs mb-2"
+                    style={{
+                      backgroundColor: "rgba(0,102,255,0.06)",
+                      borderColor: "rgba(0,102,255,0.2)",
+                    }}
+                  >
+                    <span className="text-[11px] font-semibold shrink-0" style={{ color: "#0066ff" }}>
+                      {isFocusMode ? "Focused item" : "All items"}
+                    </span>
+                    {hasOtherItems && (
+                      <button
+                        onClick={() => setShowAllItems((prev) => !prev)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer shrink-0 shadow-xs"
+                        style={{ backgroundColor: "#0066ff" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0050cb")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0066ff")}
+                      >
+                        {isFocusMode ? (
+                          <><Eye size={13} /><span>Show all ({allItems.length})</span></>
+                        ) : (
+                          <><EyeOff size={13} /><span>Focus only</span></>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
 
-              <SetupItemList
-                items={displayedItems}
-                hoveredItemId={hoveredItemId}
-                setHoveredItemId={setHoveredItemId}
-                onOpenModal={handleOpenModal}
-              />
-            </div>
+                <SetupItemList
+                  items={displayedItems}
+                  hoveredItemId={hoveredItemId}
+                  setHoveredItemId={setHoveredItemId}
+                  onOpenModal={handleOpenModal}
+                />
+              </>
+            )}
+          </div>
 
-            {/* ── RIGHT COLUMN — similar setups ───── */}
-            <div className="mt-4 lg:mt-0 lg:h-full lg:overflow-hidden">
+          {/* RIGHT COLUMN — independent Suspense boundary, loads in parallel */}
+          <div className="h-full overflow-hidden flex flex-col min-h-0">
+            <Suspense fallback={<SimilarSetupsSkeleton count={6} />}>
               <SimilarSetups currentSetupId={id} />
-            </div>
+            </Suspense>
           </div>
         </div>
       </div>
 
-      {/* Add to Collection modal (portal-style) */}
+      {/* Shared modals */}
       <AddToCollectionModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         item={selectedItemForCollection}
       />
+      <AuthPromptModal
+        isOpen={authModalState.isOpen}
+        onClose={closeAuthModal}
+        actionName={authModalState.actionName}
+      />
+      {mobileLightboxOpen && (
+        <ImageLightbox
+          imageUrl={setup.image_url}
+          alt="Setup image"
+          onClose={() => setMobileLightboxOpen(false)}
+        />
+      )}
+      {mobileShareOpen && (
+        <ShareMenu setup={setup} onClose={() => setMobileShareOpen(false)} />
+      )}
     </div>
   );
 };
 
 export default PostDetailPage;
+
+
+

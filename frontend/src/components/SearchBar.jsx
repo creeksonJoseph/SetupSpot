@@ -4,11 +4,12 @@
  *
  * Props:
  *   onResults(hits | null) — called with Algolia hits when searching, null when cleared
+ *   query, setQuery — optional controlled query state
  */
 import React from 'react';
 import { useSearch } from '../hooks/useSearch';
 
-export default function SearchBar({ onResults }) {
+export default function SearchBar({ onResults, query: externalQuery, setQuery: externalSetQuery }) {
   const {
     query, setQuery,
     suggestions,
@@ -21,7 +22,7 @@ export default function SearchBar({ onResults }) {
     clearSearch,
     selectSuggestion,
     handleKeyDown,
-  } = useSearch({ onResults });
+  } = useSearch({ onResults, externalQuery, externalSetQuery });
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%', maxWidth: '560px' }}>
@@ -72,10 +73,12 @@ export default function SearchBar({ onResults }) {
           onKeyDown={handleKeyDown}
           placeholder="Search setups, authors, items…"
           autoComplete="off"
+          className="w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none shadow-none text-slate-900 placeholder:text-slate-400 text-sm font-sans"
           style={{
             flex: 1,
             border: 'none',
             outline: 'none',
+            boxShadow: 'none',
             fontSize: '15px',
             fontFamily: 'Inter, sans-serif',
             color: '#0F172A',
