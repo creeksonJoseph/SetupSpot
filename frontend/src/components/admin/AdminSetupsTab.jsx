@@ -42,7 +42,7 @@ export const AdminSetupsTab = ({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-bold">
+            <thead className="bg-slate-50 text-slate-500 font-bold border-b" style={{ borderColor: "#E2E8F0" }}>
               <tr>
                 <th className="p-3.5 w-10 text-center">
                   <input
@@ -68,7 +68,7 @@ export const AdminSetupsTab = ({
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y" style={{ borderColor: "#F1F5F9" }}>
               {filteredSetups.slice(0, visibleLimits.setups).map((s) => (
                 <tr
                   key={s.id}

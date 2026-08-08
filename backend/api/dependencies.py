@@ -46,19 +46,3 @@ def get_current_user_from_token(token: str, db: Session) -> User:
             detail="User not found",
         )
     return user
-
-
-_bearer_optional = HTTPBearer(auto_error=False)
-
-
-def get_optional_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_optional),
-    db: Session = Depends(get_db),
-) -> User | None:
-    if not credentials:
-        return None
-    user_id = decode_access_token(credentials.credentials)
-    if user_id is None:
-        return None
-    return user_repo.get_by_id(db, user_id)
-

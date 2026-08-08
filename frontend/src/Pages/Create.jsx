@@ -34,26 +34,26 @@ const Create = () => {
   } = useCreateSetup();
 
   return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto font-sans">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden font-sans">
       {/* Header bar */}
       <div className="flex justify-between items-center pb-4 shrink-0">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Create Setup</h1>
-          <p className="text-xs sm:text-sm text-slate-500">Share your desk setup and tag your gear.</p>
+          <h1 className="text-lg font-bold text-slate-900">Create Setup</h1>
+          <p className="text-xs text-slate-500">Share your desk setup and tag your gear.</p>
         </div>
 
         {isAnnotating && (
           <button
             onClick={resetState}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
           >
-            <ArrowLeft size={15} /> Restart Upload
+            <ArrowLeft size={14} /> Restart Upload
           </button>
         )}
       </div>
 
       {/* Main Viewport Content */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 flex items-center justify-center overflow-hidden">
         {isAnnotating ? (
           <AnnotationView
             cardBg={cardBg}

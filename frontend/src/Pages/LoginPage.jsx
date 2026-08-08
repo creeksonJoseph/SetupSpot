@@ -47,14 +47,14 @@ export default function LoginPage() {
       className="min-h-screen flex flex-col items-center justify-center p-4 mb-16 relative overflow-hidden"
       style={{ backgroundColor: "#f7f9fb", fontFamily: "Inter, sans-serif" }}
     >
-      {/* Background watermark — fluid clamp prevents text spill past screen */}
-      <div className="fixed inset-0 flex items-center justify-center z-0 select-none pointer-events-none overflow-hidden max-w-full">
+      {/* Background watermark */}
+      <div className="fixed top-1/2 left-0 -translate-y-1/2 z-0 select-none pointer-events-none w-screen text-center">
         <span
-          className="font-black tracking-tighter text-center whitespace-nowrap block max-w-full"
+          className="font-black tracking-tight"
           style={{
-            fontSize: "clamp(3.5rem, 15vw, 12rem)",
+            fontSize: "14rem",
             color: "#0050cb",
-            opacity: 0.07,
+            opacity: 0.09,
             lineHeight: 1,
           }}
         >

@@ -10,6 +10,7 @@ import { CollectionItemCard } from "../components/collections/CollectionItemCard
 import { DeletePostModal } from "../components/account/DeletePostModal";
 import { CollectionGridSkeleton } from "../components/CardSkeleton";
 import { useToast } from "../context/ToastContext";
+import { ShareMenu } from "../components/ShareMenu";
 
 
 const Collections = () => {
@@ -36,6 +37,7 @@ const Collections = () => {
   const [editFolderTitle, setEditFolderTitle] = useState("");
   const [pendingDeleteCollection, setPendingDeleteCollection] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shareCollection, setShareCollection] = useState(null);
 
 
   useEffect(() => {
@@ -77,29 +79,11 @@ const Collections = () => {
     setEditFolderTitle("");
   };
 
-  const handleShareCollection = async (e, col) => {
+  const handleShareCollection = (e, col) => {
     e.preventDefault();
     e.stopPropagation();
     setOpenMenuId(null);
-    const shareUrl = `${window.location.origin}/collection/${col.id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: col.name,
-          text: `Check out this gear collection: ${col.name} on SetupSpot`,
-          url: shareUrl,
-        });
-        return;
-      } catch {
-        // User dismissed native share sheet
-      }
-    }
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shareUrl);
-      showToast("Collection link copied to clipboard!", "success");
-    } else {
-      showToast(`Collection link: ${shareUrl}`, "info");
-    }
+    setShareCollection(col);
   };
 
   return (
@@ -122,6 +106,15 @@ const Collections = () => {
         setTitle={setEditFolderTitle}
         onSubmit={handleRenameSubmit}
       />
+
+      {/* Share Collection Modal */}
+      {shareCollection && (
+        <ShareMenu
+          customUrl={`${window.location.origin}/collection/${shareCollection.id}`}
+          title={`Check out my collection: ${shareCollection.name} on SetupSpot!`}
+          onClose={() => setShareCollection(null)}
+        />
+      )}
 
       {/* Delete Collection Folder Modal */}
       <DeletePostModal

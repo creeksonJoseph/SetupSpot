@@ -19,40 +19,17 @@ def _build_record(setup: Setup) -> dict:
     """Build an Algolia record from a Setup ORM object."""
     item_names = [item.name for item in (setup.items or [])]
     item_descriptions = [item.description for item in (setup.items or []) if item.description]
-    author_name = setup.user.username if setup.user else ""
 
     return {
         "objectID": str(setup.id),
         "name": setup.name,
-        "author": author_name,
-        "username": author_name,
+        "author": setup.user.username if setup.user else "",
         "image_url": setup.image_url or "",
         "items": item_names,
         "item_descriptions": item_descriptions,
-        # _tags enables searching by item name or username without extra Algolia config
-        "_tags": item_names + [author_name, f"@{author_name}"],
+        # _tags enables facet-filtering by item name without extra Algolia config
+        "_tags": item_names,
     }
-
-
-def index_user(user) -> None:
-    """Upsert a user record into the Algolia index upon creation so users are searchable by username."""
-    try:
-        client = get_client()
-        username = getattr(user, "username", "")
-        record = {
-            "objectID": f"user_{getattr(user, 'id', 0)}",
-            "name": f"@{username}",
-            "author": username,
-            "username": username,
-            "image_url": getattr(user, "avatar_url", "") or "",
-            "items": [],
-            "item_descriptions": [],
-            "_tags": [username, f"@{username}"],
-        }
-        client.save_object(index_name=settings.ALGOLIA_INDEX_NAME, body=record)
-        logger.info("Algolia: indexed user %s (@%s)", getattr(user, "id", 0), username)
-    except Exception as exc:
-        logger.error("Algolia: failed to index user — %s", exc)
 
 
 def index_setup(setup: Setup) -> None:

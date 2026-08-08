@@ -90,57 +90,21 @@ def create_setup(
     db.commit()
     setup = setup_repo.update_annotations(db, setup, annotation_metadata)
 
-    # Invalidate explore feed cache so the new setup appears on next request
+    # Sync to Algolia (non-blocking — errors are logged, not raised)
+    algolia_service.index_setup(setup)
+
+    # Generate pgvector embedding (fastembed BAAI/bge-small model)
+    try:
+        from services import recommendation_service
+        recommendation_service.embed_and_save_setup(db, setup.id)
+    except Exception as exc:
+        print(f"Error generating embedding for setup {setup.id}: {exc}")
+
+    # Invalidate explore feed cache
     from core import redis_client
     redis_client.invalidate_explore_setups()
 
-    # ↓ Algolia indexing and pgvector embedding are intentionally NOT called here.
-    # They are dispatched as FastAPI BackgroundTasks in the router so the HTTP
-    # response returns the moment the DB write commits (≈100ms faster on cold start).
     return setup
-
-
-def background_index_setup(setup_id: int, db_url: str) -> None:
-    """Background task: index a newly created setup into Algolia and generate its
-    pgvector embedding. Runs *after* the HTTP response has been sent.
-
-    We recreate a fresh DB session here because the request session is closed
-    by the time this task executes.
-    """
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-
-    engine = create_engine(db_url, pool_pre_ping=True)
-    Session = sessionmaker(bind=engine)
-    db = Session()
-    try:
-        setup = setup_repo.get_by_id(db, setup_id)
-        if not setup:
-            return
-
-        # 1. Algolia (search index)
-        try:
-            algolia_service.index_setup(setup)
-        except Exception as exc:
-            print(f"[BG] Algolia indexing failed for setup {setup_id}: {exc}")
-
-        # 2. pgvector embedding (BAAI/bge-small-en-v1.5, 384 dims)
-        try:
-            from services import recommendation_service
-            recommendation_service.embed_and_save_setup(db, setup_id)
-        except Exception as exc:
-            print(f"[BG] Embedding failed for setup {setup_id}: {exc}")
-    finally:
-        db.close()
-        engine.dispose()
-
-
-def background_delete_from_algolia(setup_id: int) -> None:
-    """Background task: remove a deleted setup from the Algolia index."""
-    try:
-        algolia_service.delete_setup(setup_id)
-    except Exception as exc:
-        print(f"[BG] Algolia delete failed for setup {setup_id}: {exc}")
 
 
 def get_setup_detail(db: Session, setup_id: int) -> Setup:
@@ -152,16 +116,13 @@ def get_setup_detail(db: Session, setup_id: int) -> Setup:
 
 
 def delete_setup(db: Session, setup_id: int, user_id: int) -> None:
-    """Delete a setup if it belongs to the requesting user.
-
-    Algolia removal happens in a background task in the router — the DB delete
-    commits immediately so the setup disappears from the feed instantly.
-    """
+    """Delete a setup if it belongs to the requesting user."""
     setup = setup_repo.get_by_id(db, setup_id)
     if not setup:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Setup not found")
     if setup.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your setup")
+    algolia_service.delete_setup(setup_id)
     setup_repo.delete(db, setup)
 
     # Invalidate caches
@@ -170,31 +131,13 @@ def delete_setup(db: Session, setup_id: int, user_id: int) -> None:
     redis_client.invalidate_setup_detail(setup_id)
 
 
-def list_setups_for_user(
-    db: Session,
-    requesting_user_id: int | None = None,
-    cursor: int | None = None,
-    limit: int = 48,
-) -> list[dict]:
-    """Return setups enriched with favourite flag, with cursor-based pagination.
-
-    Cursor pagination — O(log n) index seek:
-      cursor=None  → first page (newest `limit` setups)
-      cursor=<id>  → next page (setups with id < cursor, newest-first)
-
-    The first page is cached in Upstash Redis (10m TTL, key: explore_setups_feed).
-    Subsequent pages are cached per-cursor (2m TTL) since they're less common.
-    Works for anonymous users (no favourites) and authenticated users.
-    """
+def list_setups_for_user(db: Session, requesting_user_id: int | None = None) -> list[dict]:
+    """Return all setups enriched with favourite flag. Works for anonymous users (no favourites). Caches in Upstash Redis (10m TTL)."""
     from transactions.favorite_repo import get_by_user as get_favorites
     from core import redis_client
 
-    is_first_page = cursor is None
-    redis_key = "explore_setups_feed" if is_first_page else f"explore_setups_cursor:{cursor}:limit:{limit}"
-    ttl = 600 if is_first_page else 120  # 10m for first page, 2m for paginated pages
-
     # 1. Check Upstash Redis cache
-    cached_feed = redis_client.get_json(redis_key)
+    cached_feed = redis_client.get_cached_explore_setups()
     if cached_feed is not None and isinstance(cached_feed, list):
         favorited_ids: set[int] = set()
         if requesting_user_id is not None:
@@ -210,20 +153,19 @@ def list_setups_for_user(
         ]
 
     # 2. Database query on cache miss
-    page_setups = setup_repo.get_page(db, cursor=cursor, limit=limit)
-    raw_feed = [
-        {
+    all_setups = setup_repo.get_all(db)
+    raw_feed = []
+    for s in all_setups:
+        raw_feed.append({
             "id": s.id,
             "title": s.name,
             "image": s.image_url,
             "author": f"@{s.user.username}",
             "isFavorited": False,
-        }
-        for s in page_setups
-    ]
+        })
 
-    # Cache this page
-    redis_client.set_json(redis_key, raw_feed, ttl_seconds=ttl)
+    # Cache for 10 minutes (600s)
+    redis_client.set_cached_explore_setups(raw_feed, ttl=600)
 
     # Enrich with user favorites
     if requesting_user_id is not None:
@@ -235,9 +177,9 @@ def list_setups_for_user(
     return raw_feed
 
 
-def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None, db: Session | None = None) -> dict:
+def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None) -> dict:
     """Build the detailed setup response. Caches in Upstash Redis (15m TTL)."""
-    from transactions import like_repo, comment_repo, favorite_repo
+    from transactions import like_repo, comment_repo
     from core import redis_client
 
     # 1. Check Upstash Redis cache
@@ -245,12 +187,7 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None, 
     if cached_detail is not None and isinstance(cached_detail, dict):
         is_liked = False
         is_favorited = False
-        if requesting_user_id is not None and db is not None:
-            from transactions import like_repo, favorite_repo
-            is_liked = like_repo.get_by_user_and_setup(db, requesting_user_id, setup.id) is not None
-            is_favorited = favorite_repo.get_by_user_and_setup(db, requesting_user_id, setup.id) is not None
-        elif requesting_user_id is not None:
-            # Fallback: in-memory check if db not provided
+        if requesting_user_id is not None:
             is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
             is_favorited = any(f.user_id == requesting_user_id for f in setup.favorites)
         return {**cached_detail, "is_liked": is_liked, "is_favorited": is_favorited}
@@ -276,15 +213,11 @@ def serialize_setup_detail(setup: Setup, requesting_user_id: int | None = None, 
                 "y": ann["y"],
             })
 
-    like_count = setup_repo.count_likes(db, setup.id) if db is not None else len(setup.likes)
-    comment_count = setup_repo.count_comments(db, setup.id) if db is not None else len(setup.comments)
+    like_count = len(setup.likes)
+    comment_count = len(setup.comments)
     is_liked = False
     is_favorited = False
-    if requesting_user_id is not None and db is not None:
-        from transactions import like_repo, favorite_repo
-        is_liked = like_repo.get_by_user_and_setup(db, requesting_user_id, setup.id) is not None
-        is_favorited = favorite_repo.get_by_user_and_setup(db, requesting_user_id, setup.id) is not None
-    elif requesting_user_id is not None:
+    if requesting_user_id is not None:
         is_liked = any(l.user_id == requesting_user_id for l in setup.likes)
         is_favorited = any(f.user_id == requesting_user_id for f in setup.favorites)
 

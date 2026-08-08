@@ -5,12 +5,11 @@ from transactions import user_repo
 
 
 def get_user_profile(user: User) -> UserOut:
-    """Construct and return the user profile representation containing username, email, bio, avatar_url, post_count, total_likes, and setups."""
+    """Construct and return the user profile representation containing username, email, bio, avatar_url, post_count, and setups."""
     user_setups = [
         UserSetupOut(id=s.id, title=s.name, image=s.image_url)
         for s in (user.setups or [])
     ]
-    total_likes = sum(len(getattr(s, "likes", [])) for s in (user.setups or []))
     is_admin = bool(
         getattr(user, "is_admin", False)
         or (user.email and user.email.lower() == "charanajoseph@gmail.com")
@@ -23,7 +22,6 @@ def get_user_profile(user: User) -> UserOut:
         avatar_url=user.avatar_url,
         is_admin=is_admin,
         post_count=len(user_setups),
-        total_likes=total_likes,
         setups=user_setups,
     )
 
@@ -43,7 +41,6 @@ def get_public_profile(db: Session, username: str) -> PublicUserOut | None:
         UserSetupOut(id=s.id, title=s.name, image=s.image_url)
         for s in (user.setups or [])
     ]
-    total_likes = sum(len(getattr(s, "likes", [])) for s in (user.setups or []))
 
     # Build lightweight public collection previews (cover_images + item_count)
     from services.collection_service import format_collection_dto
@@ -69,7 +66,6 @@ def get_public_profile(db: Session, username: str) -> PublicUserOut | None:
         bio=user.bio,
         avatar_url=user.avatar_url,
         post_count=len(user_setups),
-        total_likes=total_likes,
         collection_count=len(public_collections),
         setups=user_setups,
         collections=public_collections,

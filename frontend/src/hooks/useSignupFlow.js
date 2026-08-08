@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 
@@ -7,7 +7,6 @@ export function useSignupFlow() {
   const { signupSendOtp, signupVerifyOtp, signupComplete, googleLogin } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -102,33 +101,31 @@ export function useSignupFlow() {
     setLoading(true);
     setError("");
     try {
-      const targetPath = location.state?.from?.pathname || location.state?.from || "/explore";
       await signupComplete(signupToken, form.username.trim(), form.password);
       showToast("Account created successfully!", "success");
-      navigate(targetPath, { replace: true });
+      navigate("/explore", { replace: true });
     } catch (err) {
       setError(err.message);
       showToast(err.message || "Registration failed", "error");
     } finally {
       setLoading(false);
     }
-  }, [form, signupToken, signupComplete, showToast, navigate, location]);
+  }, [form, signupToken, signupComplete, showToast, navigate]);
 
   const handleGoogleSuccess = useCallback(async (credential) => {
     setLoading(true);
     setError("");
     try {
-      const targetPath = location.state?.from?.pathname || location.state?.from || "/explore";
       await googleLogin(credential);
       showToast("Logged in successfully!", "success");
-      navigate(targetPath, { replace: true });
+      navigate("/explore", { replace: true });
     } catch (err) {
       setError(err.message);
       showToast(err.message || "Google sign-in failed", "error");
     } finally {
       setLoading(false);
     }
-  }, [googleLogin, showToast, navigate, location]);
+  }, [googleLogin, showToast, navigate]);
 
   const resetToEmail = useCallback(() => {
     setStep(1);

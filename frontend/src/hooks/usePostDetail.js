@@ -1,23 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-
-// Module-level cache for setup details (0ms revisiting)
-const setupDetailCache = {};
 
 export function usePostDetail(id) {
   const authFetch = useAuthFetch();
-  const { auth } = useAuth();
   const { showToast } = useToast();
-  const navigate = useNavigate();
 
-  const cachedEntry = setupDetailCache[id];
-  const isFresh = cachedEntry && Date.now() - cachedEntry.timestamp < 60_000;
-
-  const [setup, setSetup] = useState(cachedEntry?.data ?? null);
-  const [loading, setLoading] = useState(!cachedEntry);
+  const [setup, setSetup] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,33 +17,9 @@ export function usePostDetail(id) {
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
-  const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
-
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
-  const currentUsername = auth?.username || auth?.user?.username;
-
-  const triggerAuthModal = useCallback((actionName = 'continue') => {
-    setAuthModalState({ isOpen: true, actionName });
-  }, []);
-
-  const closeAuthModal = useCallback(() => {
-    setAuthModalState({ isOpen: false, actionName: '' });
-  }, []);
-
-  const checkAuth = useCallback(() => {
-    if (!auth?.token && !auth?.user) {
-      showToast('Please log in or sign up to interact', 'info');
-      navigate('/login');
-      return false;
-    }
-    return true;
-  }, [auth, navigate, showToast]);
-
   const fetchSetup = useCallback(async () => {
     if (!id) return;
-    if (!setupDetailCache[id]) {
-      setLoading(true);
-    }
+    setLoading(true);
     setError(null);
     try {
       const response = await authFetch(`/setups/${id}`);
@@ -73,14 +39,11 @@ export function usePostDetail(id) {
         items: data.items || [],
       };
 
-      setupDetailCache[id] = { data: transformedData, timestamp: Date.now() };
+
       setSetup(transformedData);
     } catch (err) {
       console.error('Fetch Error:', err);
-      if (!setupDetailCache[id]) {
-        const isStarting = err?.message?.includes('starting') || err?.message?.includes('fetch') || err?.name === 'TypeError';
-        setError(isStarting ? 'Server is starting up... Please wait a few seconds and refresh.' : 'Failed to load setup data.');
-      }
+      setError('Failed to load setup data.');
     } finally {
       setLoading(false);
     }
@@ -101,13 +64,9 @@ export function usePostDetail(id) {
   }, []);
 
   const handleOpenModal = useCallback((item) => {
-    if (!isLoggedIn) {
-      triggerAuthModal('add gear to collections');
-      return;
-    }
     setSelectedItemForCollection(item);
     setIsModalOpen(true);
-  }, [isLoggedIn, triggerAuthModal]);
+  }, []);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
@@ -116,10 +75,6 @@ export function usePostDetail(id) {
 
   /** Toggle setup-level like (separate from Favorites). */
   const toggleLike = useCallback(async () => {
-    if (!isLoggedIn) {
-      triggerAuthModal('like setups');
-      return;
-    }
     if (!setup) return;
 
     // Optimistic update
@@ -148,14 +103,10 @@ export function usePostDetail(id) {
       } : null);
       showToast('Could not update like, try again.', 'error');
     }
-  }, [isLoggedIn, triggerAuthModal, setup, authFetch, showToast]);
+  }, [setup, authFetch, showToast]);
 
   /** Save setup to Favourites (separate from Like). */
   const toggleFavorite = useCallback(async () => {
-    if (!isLoggedIn) {
-      triggerAuthModal('save setups to favourites');
-      return;
-    }
     if (!setup) return;
 
     const isFavorited = setup.is_favorited ?? false;
@@ -187,25 +138,6 @@ export function usePostDetail(id) {
     }
   }, [setup, authFetch, showToast]);
 
-  /** Delete this setup (owner only). Navigates back on success. */
-  const deleteSetup = useCallback(async () => {
-    if (!setup) return;
-    try {
-      const res = await authFetch(`/setups/${setup.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        showToast('Setup deleted successfully.', 'success');
-        navigate(-1);
-      } else {
-        showToast('Failed to delete setup.', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to delete setup.', 'error');
-    }
-  }, [setup, authFetch, showToast, navigate]);
-
-  /** Whether the currently logged-in user is the author of this setup. */
-  const isOwner = Boolean(currentUsername && setup?.author && currentUsername === setup.author);
 
 
   return {
@@ -224,13 +156,8 @@ export function usePostDetail(id) {
     handleCloseModal,
     toggleLike,
     toggleFavorite,
-    deleteSetup,
-    isOwner,
     commentsOpen,
     setCommentsOpen,
-    authModalState,
-    triggerAuthModal,
-    closeAuthModal,
     refetch: fetchSetup,
   };
 }
