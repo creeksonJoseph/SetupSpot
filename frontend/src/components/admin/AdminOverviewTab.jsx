@@ -11,13 +11,13 @@ export const AdminOverviewTab = ({ stats, feedbackList, setActiveTab }) => {
           System Health & Metrics
         </h3>
         <div className="flex flex-col gap-3 text-xs">
-          <div className="flex items-center justify-between py-2">
+          <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
             <span className="text-slate-500 font-medium">Database Status</span>
             <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
               {stats?.db_status || "Connected & Healthy"}
             </span>
           </div>
-          <div className="flex items-center justify-between py-2">
+          <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: "#F1F5F9" }}>
             <span className="text-slate-500 font-medium">Admin Notification Target</span>
             <span className="font-mono font-semibold" style={{ color: "#0066ff" }}>
               {stats?.admin_email || "charanajoseph@gmail.com"}

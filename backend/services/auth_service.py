@@ -70,8 +70,6 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     hashed = hash_password(password)
     user = user_repo.create(db, email=normalized_email, username=username, password_hash=hashed)
     token = create_access_token(subject=user.id)
-    from services import algolia_service
-    algolia_service.index_user(user)
     return _auth_response(token, user)
 
 
@@ -177,8 +175,6 @@ def signup_complete(db: Session, signup_token: str, username: str, password: str
     hashed = hash_password(password)
     user = user_repo.create(db, email=email, username=username, password_hash=hashed)
     token = create_access_token(subject=user.id)
-    from services import algolia_service
-    algolia_service.index_user(user)
     logger.info(f"[SIGNUP] User created | user_id={user.id} email={email}")
     return _auth_response(token, user)
 
@@ -228,8 +224,6 @@ def google_login(db: Session, credential: str) -> dict:
             username=username,
             password_hash=hash_password("google-oauth-" + email),
         )
-        from services import algolia_service
-        algolia_service.index_user(user)
 
     token = create_access_token(subject=user.id)
     return _auth_response(token, user)

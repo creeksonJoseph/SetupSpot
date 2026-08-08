@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import OptimizedImage from "../OptimizedImage";
 
-export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }) => {
-  const [titleExpanded, setTitleExpanded] = useState(false);
+export const FavoriteCard = ({ setup, isRemoving, onRemove, onShare }) => {
   return (
     <div
       className={`break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl ${
@@ -11,15 +9,14 @@ export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }
       }`}
     >
       <Link to={`/setup/${setup.id}`} className="block relative overflow-hidden rounded-2xl">
-        <OptimizedImage
+        <img
           className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
           alt={setup.title}
           src={setup.image}
-          width={450}
           loading="lazy"
         />
 
-        {/* Subtle shade overlay — hover only */}
+        {/* Subtle shade overlay on hover */}
         <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         {/* Remove Favorite button — top right */}
@@ -50,28 +47,14 @@ export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }
           </span>
         </button>
 
-        {/* Gradient overlay with setup title & author — hover only (desktop) */}
-        <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        {/* Gradient overlay with setup title & author */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-14 pb-4 pl-4 pr-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
           <p className="text-white font-semibold text-base leading-tight drop-shadow">
             {setup.title}
           </p>
           <p className="text-white/80 text-sm mt-0.5 drop-shadow">by {setup.author}</p>
         </div>
       </Link>
-
-      {/* Mobile caption — only on phones */}
-      <div
-        className="sm:hidden mt-1.5 px-0.5 cursor-pointer"
-        onClick={() => setTitleExpanded((prev) => !prev)}
-      >
-        <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${titleExpanded ? "" : "truncate"}`}>
-          {setup.title}
-        </p>
-        {titleExpanded && (
-          <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
-        )}
-      </div>
     </div>
   );
-});
-
+};

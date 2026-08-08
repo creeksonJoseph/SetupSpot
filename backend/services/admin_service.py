@@ -61,14 +61,6 @@ def admin_delete_setup(db: Session, setup_id: int, current_user: User):
     success = admin_repo.delete_setup(db, setup_id)
     if not success:
         raise HTTPException(status_code=404, detail="Setup not found")
-    
-    # Sync with Algolia search index & Redis cache
-    from services import algolia_service
-    from core import redis_client
-    algolia_service.delete_setup(setup_id)
-    redis_client.invalidate_explore_setups()
-    redis_client.invalidate_setup_detail(setup_id)
-
     return {"message": "Setup deleted by admin"}
 
 
@@ -93,8 +85,6 @@ def admin_bulk_delete_users(db: Session, user_ids: list[int], current_user: User
     # Protect self from deletion
     clean_ids = [uid for uid in user_ids if uid != current_user.id]
     count = admin_repo.bulk_delete_users(db, clean_ids)
-    from core import redis_client
-    redis_client.invalidate_explore_setups()
     return {"message": f"Successfully deleted {count} users"}
 
 
@@ -102,14 +92,6 @@ def admin_bulk_delete_setups(db: Session, setup_ids: list[int], current_user: Us
     if not is_admin_user(current_user):
         raise HTTPException(status_code=403, detail="Admin access required")
     count = admin_repo.bulk_delete_setups(db, setup_ids)
-
-    from services import algolia_service
-    from core import redis_client
-    for sid in setup_ids:
-        algolia_service.delete_setup(sid)
-        redis_client.invalidate_setup_detail(sid)
-    redis_client.invalidate_explore_setups()
-
     return {"message": f"Successfully deleted {count} setups"}
 
 

@@ -4,7 +4,7 @@ import { usePublicProfile } from "../hooks/usePublicProfile";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { ProfileCollectionsTab } from "../components/profile/ProfileCollectionsTab";
 import { ArrowLeft, Grid3X3, Layers, Share2 } from "lucide-react";
-import { UserProfileSkeleton, ProfileHeaderSkeleton, SetupGridSkeleton } from "../components/CardSkeleton";
+import { UserProfileSkeleton } from "../components/CardSkeleton";
 import { ShareMenu } from "../components/ShareMenu";
 
 const TABS = ["Setups", "Collections"];
@@ -45,7 +45,11 @@ const UserProfilePage = () => {
     }
   };
 
-  if (!loading && (error || !profile)) {
+  if (loading) {
+    return <UserProfileSkeleton />;
+  }
+
+  if (error || !profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <p className="text-lg font-bold" style={{ color: "#0F172A" }}>
@@ -62,12 +66,11 @@ const UserProfilePage = () => {
     );
   }
 
-  const avatarUrl = profile?.avatar_url;
-  const initials = profile?.username?.charAt(0)?.toUpperCase() ?? "U";
-  const setupCount = profile?.post_count ?? profile?.setups?.length;
-  const totalLikes = profile?.total_likes ?? (profile?.setups ? profile.setups.reduce((acc, s) => acc + (s.like_count ?? s.likes?.length ?? 0), 0) : undefined);
-  const collectionCount = profile?.collection_count;
-  const profileUrl = `${window.location.origin}/user/${username}`;
+  const avatarUrl = profile.avatar_url;
+  const initials = profile.username?.charAt(0)?.toUpperCase() ?? "U";
+  const setupCount = profile.post_count ?? 0;
+  const collectionCount = profile.collection_count ?? 0;
+  const profileUrl = `${window.location.origin}/user/${profile.username}`;
 
   return (
     <main className="px-4 py-8 sm:px-6 md:px-8 max-w-7xl mx-auto">
@@ -97,7 +100,7 @@ const UserProfilePage = () => {
             <div className="absolute right-0 top-full mt-2 z-50">
               <ShareMenu
                 customUrl={profileUrl}
-                title={`Check out ${username}'s setups on SetupSpot`}
+                title={`Check out ${profile.username}'s setups on SetupSpot`}
                 onClose={() => setShareOpen(false)}
               />
             </div>
@@ -105,88 +108,64 @@ const UserProfilePage = () => {
         </div>
       </div>
 
-      {/* Profile Header — loads independently */}
-      {!profile ? (
-        <ProfileHeaderSkeleton />
-      ) : (
-        <section className="flex flex-col sm:flex-row items-start gap-8 mb-8">
-          <div className="shrink-0">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={profile.username}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 shadow-md"
-                style={{ borderColor: "#E2E8F0" }}
-              />
-            ) : (
-              <div
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 flex items-center justify-center text-3xl font-black shadow-md"
-                style={{
-                  borderColor: "rgba(0,102,255,0.3)",
-                  backgroundColor: "rgba(0,102,255,0.08)",
-                  color: "#0066ff",
-                }}
-              >
-                {initials}
-              </div>
-            )}
-          </div>
+      {/* Profile Header */}
+      <section className="flex flex-col sm:flex-row items-start gap-8 mb-8">
+        <div className="shrink-0">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={profile.username}
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 shadow-md"
+              style={{ borderColor: "#E2E8F0" }}
+            />
+          ) : (
+            <div
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 flex items-center justify-center text-3xl font-black shadow-md"
+              style={{
+                borderColor: "rgba(0,102,255,0.3)",
+                backgroundColor: "rgba(0,102,255,0.08)",
+                color: "#0066ff",
+              }}
+            >
+              {initials}
+            </div>
+          )}
+        </div>
 
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-black leading-tight" style={{ color: "#0F172A" }}>
-              {profile.username}
-            </h1>
-            <p className="text-sm font-semibold mt-0.5" style={{ color: "#0066ff" }}>
-              @{profile.username}
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-black leading-tight" style={{ color: "#0F172A" }}>
+            {profile.username}
+          </h1>
+          <p className="text-sm font-semibold mt-0.5" style={{ color: "#0066ff" }}>
+            @{profile.username}
+          </p>
+
+          {profile.bio && (
+            <p className="text-sm mt-3 leading-relaxed max-w-2xl" style={{ color: "#475569" }}>
+              {profile.bio}
             </p>
+          )}
 
-            {profile.bio && (
-              <p className="text-sm mt-3 leading-relaxed max-w-2xl" style={{ color: "#475569" }}>
-                {profile.bio}
-              </p>
-            )}
-
-            <div className="flex items-center gap-6 mt-4 pt-4 border-t" style={{ borderColor: "#F1F5F9" }}>
-              <div>
-                <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {setupCount !== undefined ? (
-                    setupCount
-                  ) : (
-                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
-                  )}
-                </span>
-                <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
-                  {setupCount === 1 ? "Setup" : "Setups"}
-                </span>
-              </div>
-              <div>
-                <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {totalLikes !== undefined ? (
-                    totalLikes
-                  ) : (
-                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
-                  )}
-                </span>
-                <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
-                  {totalLikes === 1 ? "Like Received" : "Likes Received"}
-                </span>
-              </div>
-              <div>
-                <span className="text-lg font-black" style={{ color: "#0F172A" }}>
-                  {collectionCount !== undefined ? (
-                    collectionCount
-                  ) : (
-                    <span className="inline-block w-7 h-5 bg-slate-200 animate-pulse rounded-md mt-0.5" />
-                  )}
-                </span>
-                <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
-                  {collectionCount === 1 ? "Collection" : "Collections"}
-                </span>
-              </div>
+          <div className="flex items-center gap-6 mt-4 pt-4 border-t" style={{ borderColor: "#F1F5F9" }}>
+            <div>
+              <span className="text-lg font-black" style={{ color: "#0F172A" }}>
+                {setupCount}
+              </span>
+              <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
+                {setupCount === 1 ? "Setup" : "Setups"}
+              </span>
+            </div>
+            <div>
+              <span className="text-lg font-black" style={{ color: "#0F172A" }}>
+                {collectionCount}
+              </span>
+              <span className="text-xs font-medium ml-1.5" style={{ color: "#727687" }}>
+                {collectionCount === 1 ? "Collection" : "Collections"}
+              </span>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Tabs */}
       <div className="flex items-center gap-2 mb-6 border-b pb-3" style={{ borderColor: "#E2E8F0" }}>
@@ -206,13 +185,11 @@ const UserProfilePage = () => {
         ))}
       </div>
 
-      {/* Active Tab View — loads independently */}
-      {!profile ? (
-        <SetupGridSkeleton count={10} />
-      ) : activeTab === "Setups" ? (
-        <ProfilePostsTab setups={profile.setups || []} />
+      {/* Active Tab View */}
+      {activeTab === "Setups" ? (
+        <ProfilePostsTab setups={profile.setups} />
       ) : (
-        <ProfileCollectionsTab collections={profile.collections || []} />
+        <ProfileCollectionsTab collections={profile.collections} />
       )}
     </main>
   );

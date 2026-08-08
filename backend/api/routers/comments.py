@@ -1,9 +1,9 @@
-"""Comments router — per-setup comments CRUD, likes, and replies."""
+"""Comments router — per-setup comments CRUD."""
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from api.dependencies import get_current_user, get_optional_current_user
-from api.schemas.comment import CommentIn, CommentLikeOut, CommentOut
+from api.dependencies import get_current_user
+from api.schemas.comment import CommentIn, CommentOut
 from core.database import get_db
 from models.user import User
 from services import comment_service
@@ -12,14 +12,9 @@ router = APIRouter(tags=["comments"])
 
 
 @router.get("/setups/{setup_id}/comments", response_model=list[CommentOut])
-def list_comments(
-    setup_id: int,
-    db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_current_user),
-):
+def list_comments(setup_id: int, db: Session = Depends(get_db)):
     """List all comments for a setup (public)."""
-    current_user_id = current_user.id if current_user else None
-    return comment_service.list_for_setup(db, setup_id, current_user_id=current_user_id)
+    return comment_service.list_for_setup(db, setup_id)
 
 
 @router.post("/setups/{setup_id}/comments", response_model=CommentOut, status_code=201)
@@ -29,24 +24,8 @@ def add_comment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Add a comment or nested reply to a setup (auth required)."""
-    return comment_service.add(
-        db,
-        user_id=current_user.id,
-        setup_id=setup_id,
-        body=body.body,
-        parent_id=body.parent_id,
-    )
-
-
-@router.post("/comments/{comment_id}/like", response_model=CommentLikeOut, status_code=200)
-def toggle_comment_like(
-    comment_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Toggle like on a comment (auth required)."""
-    return comment_service.toggle_like(db, user_id=current_user.id, comment_id=comment_id)
+    """Add a comment to a setup (auth required)."""
+    return comment_service.add(db, user_id=current_user.id, setup_id=setup_id, body=body.body)
 
 
 @router.delete("/comments/{comment_id}", status_code=200)

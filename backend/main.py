@@ -48,16 +48,10 @@ if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.setupspot\.tech|https://.*\.vercel\.app|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# NOTE: GZipMiddleware was removed. Cloudflare (which proxies all Render traffic)
-# already applies brotli/gzip compression at the edge. Running GZipMiddleware in
-# Uvicorn on top of that caused HTTP/2 connection resets (ERR_CONNECTION_CLOSED)
-# for responses > ~2 items when served through Cloudflare's CDN.
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
@@ -76,30 +70,28 @@ app.include_router(feedback.router)
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request, exc: HTTPException):
-    origin = request.headers.get("origin")
-    headers = {}
-    if origin and origin != "*":
-        headers["Access-Control-Allow-Origin"] = origin
-        headers["Access-Control-Allow-Credentials"] = "true"
+    origin = request.headers.get("origin", "*")
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
-        headers=headers if headers else None,
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        },
     )
 
 
 @app.exception_handler(Exception)
 async def custom_general_exception_handler(request, exc: Exception):
-    origin = request.headers.get("origin")
+    origin = request.headers.get("origin", "*")
     print(f"Unhandled Server Exception: {exc}")
-    headers = {}
-    if origin and origin != "*":
-        headers["Access-Control-Allow-Origin"] = origin
-        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error"},
-        headers=headers if headers else None,
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        },
     )
 
 
