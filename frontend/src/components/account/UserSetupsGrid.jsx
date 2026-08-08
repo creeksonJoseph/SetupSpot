@@ -139,7 +139,12 @@ export const UserSetupsGrid = ({ setups = [], loading = false, deleteSetup }) =>
                         style={{ borderColor: "#E2E8F0" }}
                       >
                         <button
-                          onClick={(e) => handleSharePost(e, setup)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            setShareSetup(setup);
+                          }}
                           className="flex items-center gap-2 w-full px-3 py-2 text-left rounded-lg text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
                           <Share2 size={14} className="text-slate-500" />

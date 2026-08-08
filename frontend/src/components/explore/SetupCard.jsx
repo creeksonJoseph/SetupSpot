@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { MoreVertical, Share2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
@@ -12,10 +13,12 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);
   const [titleExpanded, setTitleExpanded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSave = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setMobileMenuOpen(false);
     if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
@@ -29,6 +32,7 @@ export const SetupCard = React.memo(({ setup, toggleFavorite }) => {
   const handleShare = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setMobileMenuOpen(false);
 
     const shareUrl = `${window.location.origin}/setup/${setup.id}`;
     const shareData = {

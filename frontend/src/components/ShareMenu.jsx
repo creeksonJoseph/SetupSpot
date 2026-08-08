@@ -2,11 +2,12 @@ import React from 'react';
 import { useToast } from '../context/ToastContext';
 
 export const ShareMenu = ({ setup, customUrl, title, onClose }) => {
+  const { showToast } = useToast();
+
   if (!setup && !customUrl) return null;
 
   const shareUrl = customUrl || (setup ? `${window.location.origin}/setup/${setup.id}` : window.location.href);
   const shareText = title || (setup ? `Check out this setup: ${setup.title || setup.name} by ${setup.author || 'SetupSpot user'}` : `Check this out on SetupSpot`);
-  const { showToast } = useToast();
 
   const handleNativeShare = async () => {
     if (navigator.share) {

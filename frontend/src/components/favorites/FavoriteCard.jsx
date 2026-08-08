@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { MoreVertical, Share2, Trash2 } from "lucide-react";
 import OptimizedImage from "../OptimizedImage";
 
 export const FavoriteCard = React.memo(({ setup, isRemoving, onRemove, onShare }) => {
   const [titleExpanded, setTitleExpanded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <div
       className={`break-inside-avoid mb-4 relative group transition-all duration-300 ease-out hover:scale-[1.02] hover:drop-shadow-xl ${
