@@ -81,7 +81,7 @@ const Collections = () => {
     e.preventDefault();
     e.stopPropagation();
     setOpenMenuId(null);
-    const shareUrl = `${window.location.origin}/collections?id=${col.id}`;
+    const shareUrl = `${window.location.origin}/collection/${col.id}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl);
       showToast("Collection link copied to clipboard!", "success");
