@@ -288,7 +288,7 @@ export const ItemsListSkeleton = ({ count = 5 }) => {
   return (
     <div className="flex flex-col h-full animate-pulse">
       <div className="h-4 w-36 bg-slate-200 rounded-md mb-3 shrink-0" />
-      <div className="rounded-xl border bg-white divide-y overflow-hidden flex-1 shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
+      <div className="rounded-none border bg-white divide-y divide-slate-100 overflow-hidden flex-1 shadow-2xs" style={{ borderColor: "#E2E8F0" }}>
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="flex items-center justify-between px-3 py-3 gap-2.5">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
