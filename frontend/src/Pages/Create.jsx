@@ -38,7 +38,7 @@ const Create = () => {
   } = useCreateSetup();
 
   return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto font-sans">
+    <div className="flex flex-col w-full max-w-7xl mx-auto font-sans h-full min-h-0">
       {/* Header bar */}
       <div className="flex justify-between items-center pb-4 shrink-0">
         <div>
@@ -72,7 +72,7 @@ const Create = () => {
       </div>
 
       {/* Main Viewport Content */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 w-full min-h-0 flex flex-col">
         {isAnnotating ? (
           <AnnotationView
             cardBg={cardBg}

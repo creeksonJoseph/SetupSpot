@@ -30,7 +30,7 @@ export const AnnotationView = ({
   loading,
   isEditMode = false,
 }) => (
-  <div className="w-full flex-1 flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(220px,24vw,320px)_clamp(220px,24vw,300px)] gap-4 pb-16 lg:pb-0">
+  <div className="w-full flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(220px,24vw,320px)_clamp(220px,24vw,300px)] gap-4 pb-16 lg:pb-0">
     {/* ── Column 1: Setup Title & Interactive Image Canvas ── */}
     <div
       className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden ${cardBg}`}
@@ -165,11 +165,11 @@ export const AnnotationView = ({
 
     {/* ── Column 2: Item Details Input Form ── */}
     <div
-      className={`p-4 rounded-none shadow-sm border flex flex-col h-auto md:h-full overflow-hidden ${cardBg}`}
+      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden ${cardBg}`}
     >
       <div className="flex-1 overflow-y-auto min-h-0">
         {!selectedAnnotation ? (
-          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-none border-0">
+          <div className="min-h-32 py-6 flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
             <Edit3 size={24} className="text-slate-400 mb-2" />
             <p className={`text-xs ${textSecondary}`}>
               Select a pin on the photo to edit item name, store link, and price.
@@ -189,7 +189,7 @@ export const AnnotationView = ({
 
     {/* ── Column 3: Tagged Items List & Constant Footer ── */}
     <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto md:h-full overflow-hidden justify-between ${cardBg}`}
+      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden justify-between ${cardBg}`}
     >
       {/* Card Header */}
       <div
