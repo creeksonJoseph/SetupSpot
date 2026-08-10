@@ -1,57 +1,39 @@
-# SetupSpot System Architecture & Performance Optimizations
+# SetupSpot Developer Documentation — v1.0.0 (First Version)
 
-This directory documents the comprehensive system design and performance optimization overhaul implemented across the **SetupSpot** web application.
+SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace setups with interactive shoppable product hotspots on photos. The application features real-time phone camera photo uploads via WebSockets, AI-powered semantic similarity recommendations using vector embeddings, instant search indexing, and multi-layer caching for high-performance browsing.
 
----
-
-## 🏛️ System Design & Architecture Overview
-
-SetupSpot uses a modern full-stack decoupled architecture designed for high throughput, low latency, and instantaneous user perception of speed.
-
-```
-                  ┌─────────────────────────────────────────────────────────┐
-                  │                    Client / Frontend                    │
-                  │  - React 19 + Vite (Manual Chunking)                    │
-                  │  - Progressive Rendering (<Suspense> + Skeletons)       │
-                  │  - In-Memory SWR Cache + ETag 304 Validation            │
-                  │  - CSS `content-visibility: auto` Off-screen Skipping    │
-                  └────────────────────────────┬────────────────────────────┘
-                                               │
-                                       HTTP / REST API
-                                               │
-                  ┌────────────────────────────▼────────────────────────────┐
-                  │                    FastAPI Backend                      │
-                  │  - GZip Compression Middleware (min 500B)               │
-                  │  - Cache-Control & MD5 ETag Headers                      │
-                  │  - Non-blocking Background Tasks (Algolia + pgvector)   │
-                  └──────┬─────────────────────┬─────────────────────┬──────┘
-                         │                     │                     │
-      ┌──────────────────▼──┐        ┌─────────▼─────────┐  ┌────────▼─────────┐
-      │   Neon Postgres DB  │        │   Upstash Redis   │  │   Cloudinary API│
-      │  - 14 Indexes       │        │  - Feed / Detail  │  │  - Direct / Early│
-      │  - Joined Eager Load│        │    Cache Layer    │  │    Image Upload │
-      │  - Cursor Pagination│        │  - Rate Limiting  │  └─────────────────┘
-      └─────────────────────┘        └───────────────────┘
-```
+> [!NOTE]
+> **Release Version**: `v1.0.0` (First Version). This repository contains the complete full-stack implementation: the **FastAPI backend** (in `backend/`) and the **React Vite frontend** (in `frontend/`).
 
 ---
 
-## 📚 Optimization Documentation Index
+## 🛠️ Verified Technology Stack
 
-| Topic | Description | Documentation |
-|---|---|---|
-| **Frontend Architecture** | Progressive rendering, Suspense boundaries, skeleton screens, in-memory SWR caching, CSS containment (`content-visibility`), manual vendor chunk splitting. | [`frontend-performance.md`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/frontend-performance.md) |
-| **Backend & Database** | 14 B-Tree DB indexes, N+1 query elimination (`joinedload`/`selectinload`), asynchronous background tasks for search indexing and vector embeddings, keyset cursor-based pagination, HTTP ETags, GZip payload compression. | [`backend-performance.md`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/backend-performance.md) |
+| Component Layer | Technology | Primary Package / Version | Source File Reference |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | React 19 + Vite | `react` `^19.1.1`, `vite` `^7.1.7` | [`frontend/package.json`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/package.json#L19-L33) |
+| **Frontend Styling** | Vanilla CSS + Tailwind CSS v4 | `@tailwindcss/vite` `^4.1.17` | [`frontend/package.json`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/package.json#L14-L22) |
+| **Backend Framework** | FastAPI | `fastapi` `>=0.115.0`, `uvicorn` `>=0.32.0` | [`backend/pyproject.toml`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/pyproject.toml#L8-L9) |
+| **Python Environment** | Python 3.13 + `uv` | `requires-python = ">=3.13"` | [`backend/pyproject.toml`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/pyproject.toml#L6) |
+| **Database & ORM** | PostgreSQL + SQLAlchemy 2 | `psycopg2-binary`, `sqlalchemy` `>=2.0.36` | [`backend/core/database.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/database.py#L1-L25) |
+| **Vector Search** | `pgvector` + FastEmbed | `pgvector` `>=0.5.0`, `fastembed` `>=0.8.0` | [`backend/services/recommendation_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/recommendation_service.py#L8-L22) |
+| **Caching Layer** | Upstash Redis (REST API) | `upstash-redis` `>=1.7.0` | [`backend/core/redis_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/redis_client.py#L1-L30) |
+| **Image Management** | Cloudinary API | `cloudinary` `>=1.42.0` | [`backend/core/cloudinary_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/cloudinary_client.py#L1-L15) |
+| **Search Engine** | Algolia Search | `algoliasearch` `>=4.44.4` (Py) / `^5.56.0` (JS) | [`backend/services/algolia_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/algolia_service.py#L1-L20) |
+| **Transactional Email** | Resend API | `resend` `>=2.34.0` | [`backend/core/email.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/email.py#L1-L25) |
+| **Authentication** | JWT Cookies + Google OAuth | `python-jose`, `argon2-cffi`, `bcrypt` | [`backend/core/security.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/security.py#L1-L35) |
 
 ---
 
-## ⚡ Summary of Impact & Metric Improvements
+## 📚 Suggested Reading Order for New Developers
 
-| Metric / Dimension | Before Optimization | After Optimization | Key Mechanism |
-|---|---|---|---|
-| **Post Creation Latency** | ~1.5s – 3.5s (blocking embedding & search sync) | **~100ms - 150ms** | FastAPI `BackgroundTasks` offloading Algolia + `fastembed` |
-| **Revisiting Explore Page** | Skeleton flash + 300ms API fetch | **0ms Instant render** | `useDataCache` (SWR) + ETag 304 Not Modified |
-| **Deep Scroll DB Query Cost** | `O(N)` scan with `OFFSET` | **`O(log N)` index seek** | Keyset / Cursor Pagination (`WHERE id < cursor`) |
-| **Database Query Volume** | `N+1` queries (1 query per setup for author/likes) | **1 JOIN query** | SQLAlchemy `joinedload` & `selectinload` |
-| **JSON Network Payload** | Raw uncompressed text (~50KB feed) | **~10KB (80% smaller)** | `GZipMiddleware` + Slim Pydantic serializers |
-| **Off-screen DOM Render Cost** | Browser paints all cards on mount | **Layout/Paint skipped** | CSS `content-visibility: auto` + `contain-intrinsic-size` |
+1. [**Getting Started**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/getting-started.md) — Local prerequisites, environment variables configuration, external sandbox setup, and running backend/frontend dev servers.
+2. [**Architecture & Design Patterns**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/architecture.md) — System architecture diagram, module map, layered request tracing, caching strategies, and background worker queues.
+3. [**Security Architecture**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/security.md) — Authentication flows (Password, Email OTP, Google OAuth), token handling, HTTP-only cookie lifecycle, CORS, rate-limiting, and code audit findings.
+4. **Third-Party Service Integrations**:
+   - [Upstash Redis Integration](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/redis-upstash.md)
+   - [Google OAuth Integration](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/google-oauth.md)
+   - [Cloudinary Image Service](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/cloudinary.md)
+   - [Algolia Search Engine](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/algolia.md)
+   - [Resend Email Gateway](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/resend.md)
+   - [FastEmbed & pgvector Embeddings](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/fastembed-pgvector.md)
