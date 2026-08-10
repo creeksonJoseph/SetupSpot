@@ -474,7 +474,7 @@ const PostDetailPage = () => {
                 </div>
 
                 <div
-                  className="rounded-2xl overflow-hidden border"
+                  className="rounded-none overflow-hidden border"
                   style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
                 >
                   {displayedItems.map((item) => {

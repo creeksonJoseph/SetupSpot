@@ -41,7 +41,7 @@ const SetupItemList = ({
         )}
       </div>
       <div
-        className="flex flex-col overflow-y-auto min-h-0 flex-1 border rounded-xl"
+        className="flex flex-col overflow-y-auto min-h-0 flex-1 border rounded-none"
         style={{ backgroundColor: "#ffffff", borderColor: "#E2E8F0" }}
       >
         {items.length === 0 ? (

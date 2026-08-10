@@ -165,7 +165,7 @@ export const AnnotationView = ({
 
     {/* ── Column 2: Item Details Input Form ── */}
     <div
-      className={`p-4 rounded-2xl shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden ${cardBg}`}
+      className={`p-4 rounded-none shadow-sm border flex flex-col h-auto lg:h-full overflow-hidden ${cardBg}`}
     >
       <div className="flex-1 overflow-y-auto min-h-0">
         {!selectedAnnotation ? (
