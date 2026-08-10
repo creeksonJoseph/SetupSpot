@@ -1,49 +1,71 @@
-# Integration: FastEmbed & pgvector Semantic Search
+# Integration: FastEmbed & pgvector Embeddings
 
-FastEmbed and `pgvector` power AI semantic recommendations, enabling SetupSpot to recommend visually and semantically similar desk setups based on item annotations and descriptions.
-
----
-
-## 🔌 Connection & Engine Wiring
-
-- **Source File**: [`backend/services/recommendation_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/recommendation_service.py)
-- **Embedding Model**: FastEmbed ONNX runtime using model `BAAI/bge-small-en-v1.5` (384-dimensional dense vectors).
-- **Database Column**: PostgreSQL vector column (`Vector(384)`) enabled via `CREATE EXTENSION IF NOT EXISTS vector;`.
-- **Model Model**: [`SetupEmbedding`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/models/embedding.py) / [`Setup.embedding`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/models/setup.py).
+FastEmbed generates high-dimensional vector embeddings of setup titles, descriptions, and product tags locally in Python. Vectors are stored in PostgreSQL using the `pgvector` extension for cosine similarity recommendations.
 
 ---
 
-## 🔑 Environment Variables & Dependencies Required
+## Connection & Engine Wiring
 
-| Dependency | Purpose | pyproject.toml |
-| :--- | :--- | :--- |
-| `fastembed` | Local CPU embedding generation | `>=0.8.0` |
-| `pgvector` | SQLAlchemy vector types & cosine operators | `>=0.5.0` |
-| `DATABASE_URL` | PostgreSQL connection with `vector` extension | [`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L6) |
+- **Module**: [`recommendation_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/recommendation_service.py)
+- **Model**: `BAAI/bge-small-en-v1.5` (384 dimensions, ONNX runtime)
+- **ORM Extension**: `pgvector.sqlalchemy` (`Vector(384)`)
+- **Initialization**:
+  ```python
+  from fastembed import TextEmbedding
 
----
-
-## 🔄 Data Flow
-
-1. Setup Created/Updated -> `setup_service` triggers `background_index_setup`.
-2. `recommendation_service.embed_and_save_setup(db, setup_id)`:
-   - Formats setup name + item names/descriptions into text prompt.
-   - `FastEmbed.embed([text])` generates 384-dim float vector.
-   - Stores vector in `Setup.embedding` column in PostgreSQL.
-3. User views Setup Detail page -> Frontend fetches `GET /setups/{id}/similar`.
-4. Backend executes `Setup.embedding.cosine_distance(target_setup.embedding)` query in PostgreSQL to rank most similar setups.
-5. Caches each page chunk in Upstash Redis (`similar:{setup_id}:page:{page}`) with 24-hour TTL.
+  # Singleton model instance loaded into memory on demand
+  _embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+  ```
 
 ---
 
-## 🛡️ Failure Behavior & Fallbacks
+## Environment Variables & Dependencies Required
 
-- **Missing Embeddings**: If a target setup does not have a generated vector embedding yet, `get_similar_setups` falls back to fetching the newest setups (`ORDER BY Setup.id DESC`).
-- **Insufficient Similar Matches**: If cosine distance query returns fewer items than the requested limit, `get_similar_setups` automatically pads the results with top liked popular setups ([`recommendation_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/recommendation_service.py#L130)).
+Requires `fastembed` and `pgvector` in `pyproject.toml`:
+
+```toml
+dependencies = [
+    "fastembed>=0.8.0",
+    "pgvector>=0.5.0",
+]
+```
+
+PostgreSQL database MUST have the `pgvector` extension installed:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
 
 ---
 
-## 💡 Gotchas
+## Data Flow
 
-- **Local Inference**: FastEmbed runs ONNX model inference directly on CPU inside the Python backend process (no external API calls or billing costs).
-- **First-Run Warmup**: The ONNX model weights (~130MB) are downloaded automatically on first model load to local cache.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant API as FastAPI Backend
+    participant Worker as BackgroundTasks
+    participant FastEmbed as FastEmbed (ONNX)
+    participant DB as Neon Postgres (pgvector)
+
+    API->>Worker: Add task: generate_setup_embedding(setup_id)
+    Worker->>DB: Fetch setup title, description, and item names
+    Worker->>FastEmbed: text_model.embed(["setup content text"])
+    FastEmbed-->>Worker: 384-dimensional float vector array
+    Worker->>DB: INSERT INTO setup_embeddings (setup_id, embedding)
+
+    Note over DB: Similar Setups Recommendation Query
+    DB->>DB: SELECT * FROM setup_embeddings ORDER BY embedding <=> query_vec LIMIT 6
+```
+
+---
+
+## Failure Behavior & Fallbacks
+
+- **CPU ONNX Runtime**: FastEmbed runs ONNX model inference locally on CPU without requiring an external paid OpenAI/Cohere API or GPU server.
+- **Graceful Fallback**: If vector generation fails or `pgvector` extension is absent, `recommendation_service` falls back to returning recent setups from the same category.
+
+---
+
+## Gotchas
+
+- **First Ingestion Latency**: The ONNX model weights (`~130MB`) are downloaded automatically on first model instantiation. In production, pre-download model weights during Docker build step or cold start to prevent request delays.

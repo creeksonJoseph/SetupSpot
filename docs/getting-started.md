@@ -4,7 +4,7 @@ This guide provides step-by-step instructions for getting SetupSpot up and runni
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Ensure you have the following installed on your local development machine:
 
@@ -16,7 +16,7 @@ Ensure you have the following installed on your local development machine:
 
 ---
 
-## 🛠️ Step-by-Step Installation
+## Step-by-Step Installation
 
 ### 1. Clone Repository & Setup Backend
 
@@ -84,7 +84,7 @@ VITE_ALGOLIA_INDEX_NAME=setups
 
 ---
 
-## 🔑 External Sandbox & Credentials Setup Guide
+## External Sandbox & Credentials Setup Guide
 
 ### 1. Database (PostgreSQL + `pgvector`)
 1. Create a free PostgreSQL instance on [Neon.tech](https://neon.tech).
@@ -119,7 +119,7 @@ VITE_ALGOLIA_INDEX_NAME=setups
 
 ---
 
-## 🚀 Running the Local Stack & Verification
+## Running the Local Stack & Verification
 
 ### 1. Start Backend Dev Server
 

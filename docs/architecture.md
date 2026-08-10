@@ -4,7 +4,7 @@ SetupSpot is engineered using a decoupled, layered architecture prioritizing ult
 
 ---
 
-## 🏛️ System Architecture Overview
+## System Architecture Overview
 
 ```mermaid
 flowchart TD
@@ -63,7 +63,7 @@ flowchart TD
 
 ---
 
-## 📂 Folder & Module Map
+## Folder & Module Map
 
 ### 1. Backend Codebase (`/backend`)
 
@@ -86,7 +86,7 @@ flowchart TD
 
 ---
 
-## 🔄 Trace: Real Request Flow (`POST /setups`)
+## Trace: Real Request Flow (`POST /setups`)
 
 Below is the step-by-step execution path when a user creates a new setup post:
 
@@ -103,7 +103,7 @@ Below is the step-by-step execution path when a user creates a new setup post:
 
 ---
 
-## ⚡ Key Architectural Patterns Implemented
+## Key Architectural Patterns Implemented
 
 ### 1. Keyset / Cursor Pagination (`WHERE id < cursor`)
 - **Location**: [`setup_repo.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/transactions/setup_repo.py#L37-L41)

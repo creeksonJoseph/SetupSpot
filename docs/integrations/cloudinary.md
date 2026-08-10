@@ -1,53 +1,60 @@
-# Integration: Cloudinary Image Management
+# Integration: Cloudinary Image Service
 
-Cloudinary is the cloud image hosting, transformation, and CDN delivery platform used for user setup photos and avatar uploads.
-
----
-
-## 🔌 Connection & Client Wiring
-
-- **Backend Singleton Wiring**: [`backend/core/cloudinary_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/cloudinary_client.py)
-  - `init_cloudinary()` configures global `cloudinary.config(cloud_name, api_key, api_secret, secure=True)`.
-- **Early Upload Endpoint**: [`backend/api/routers/early_upload.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/api/routers/early_upload.py#L25)
-  - Accepts raw image file upload via `POST /api/early-upload`.
-  - Executes `cloudinary.uploader.upload(file, folder="setups", upload_preset=...)`.
-  - Returns HTTPS Cloudinary URL string (`secure_url`).
+Cloudinary hosts, optimizes, and serves all setup images, profile photos, and product item imagery across SetupSpot via CDN.
 
 ---
 
-## 🔑 Environment Variables Required
+## Connection & Client Wiring
 
-| Variable Name | Description | Where Read |
-| :--- | :--- | :--- |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary account Cloud Name | [`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L7) |
-| `CLOUDINARY_API_KEY` | Cloudinary API Key | [`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L8) |
-| `CLOUDINARY_API_SECRET` | Cloudinary API Secret | [`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L9) |
-| `CLOUDINARY_UPLOAD_PRESET` | Upload Preset Name (default: `SetupSpot`) | [`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L10) |
+- **Module**: [`backend/core/cloudinary_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/cloudinary_client.py)
+- **Early Upload Endpoint**: `POST /api/v1/early-upload` ([`early_upload.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/api/routers/early_upload.py))
+- **SDK**: `cloudinary` (`cloudinary.uploader.upload`)
 
 ---
 
-## 🔄 Data Flow & Early Upload Pattern
+## Environment Variables Required
 
-```
-1. User selects image in Create Setup flow
-2. Frontend immediately POSTs image binary to POST /api/early-upload
-3. Backend uploads to Cloudinary API -> receives https://res.cloudinary.com/.../image.jpg
-4. Backend returns { "image_url": "https://..." }
-5. Frontend stores URL string in local draft (useSetupDraft)
-6. User completes gear annotations at their own pace
-7. On final submission POST /setups, frontend sends pre-uploaded URL string (0 re-uploads)
+Configure in `backend/.env`:
+
+```ini
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=aBcDeFgHiJkLmNoPqRsTuVwXyZ
+CLOUDINARY_UPLOAD_PRESET=SetupSpot
 ```
 
 ---
 
-## 🛡️ Failure Behavior & Fallbacks
+## Data Flow & Early Upload Pattern
 
-- **Upload Failures**: If Cloudinary credentials are invalid or network fails during `early_upload.py`, backend returns `HTTP 500 Internal Server Error` with detail `"Image upload failed"`.
-- **File Validation**: `early_upload.py` validates file content types before uploading to Cloudinary.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as React Frontend (Create.jsx)
+    participant API as FastAPI Backend (/early-upload)
+    participant Cloudinary as Cloudinary API
+
+    User->>FE: Select image file to upload
+    FE->>API: POST /api/v1/early-upload (Multipart Form Image)
+    API->>API: Validate file extension & image headers
+    API->>Cloudinary: uploader.upload(file, folder="setupspot_uploads")
+    Cloudinary-->>API: 200 OK { secure_url, public_id }
+    API-->>FE: 200 OK { url: "https://res.cloudinary.com/..." }
+    Note over FE: User annotates hotspots on hosted image URL
+    User->>FE: Click "Publish Setup"
+    FE->>API: POST /api/v1/setups { image_url, items: [...] }
+```
 
 ---
 
-## 💡 Gotchas
+## Failure Behavior & Fallbacks
 
-- **Auto CDN Optimization**: Cloudinary URLs support dynamic transformation parameters. SetupSpot serves all images over HTTPS CDN.
-- **Unsigned Presets**: In development, ensure the preset name specified in `CLOUDINARY_UPLOAD_PRESET` matches the preset created in Cloudinary Console settings.
+- **File Validation**: Backend rejects non-image mime types or files exceeding size limits before attempting Cloudinary upload.
+- **Upload Failures**: If Cloudinary API returns an error or times out, endpoint raises `500 Internal Server Error` with detail `"Image upload failed"`.
+
+---
+
+## Gotchas
+
+- **Early Upload Cleanup**: If a user uploads an image via early-upload but abandons the creation form without saving the post, the uploaded image remains in Cloudinary. Implement a periodic background cleanup script to prune unreferenced Cloudinary images older than 24 hours if storage quota becomes an issue.

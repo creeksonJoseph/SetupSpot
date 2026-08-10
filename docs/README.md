@@ -7,7 +7,7 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
 
 ---
 
-## 🛠️ Verified Technology Stack
+## Verified Technology Stack
 
 | Component Layer | Technology | Primary Package / Version | Source File Reference |
 | :--- | :--- | :--- | :--- |
@@ -25,15 +25,15 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
 
 ---
 
-## 📚 Suggested Reading Order for New Developers
+## Suggested Reading Order for New Developers
 
-1. [**Getting Started**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/getting-started.md) — Local prerequisites, environment variables configuration, external sandbox setup, and running backend/frontend dev servers.
-2. [**Architecture & Design Patterns**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/architecture.md) — System architecture diagram, module map, layered request tracing, caching strategies, and background worker queues.
-3. [**Security Architecture**](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/security.md) — Authentication flows (Password, Email OTP, Google OAuth), token handling, HTTP-only cookie lifecycle, CORS, rate-limiting, and code audit findings.
+1. [**Getting Started**](getting-started.md) — Local prerequisites, environment variables configuration, external sandbox setup, and running backend/frontend dev servers.
+2. [**Architecture & Design Patterns**](architecture.md) — System architecture diagram, module map, layered request tracing, caching strategies, and background worker queues.
+3. [**Security Architecture**](security.md) — Authentication flows (Password, Email OTP, Google OAuth), token handling, HTTP-only cookie lifecycle, CORS, rate-limiting, and code audit findings.
 4. **Third-Party Service Integrations**:
-   - [Upstash Redis Integration](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/redis-upstash.md)
-   - [Google OAuth Integration](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/google-oauth.md)
-   - [Cloudinary Image Service](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/cloudinary.md)
-   - [Algolia Search Engine](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/algolia.md)
-   - [Resend Email Gateway](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/resend.md)
-   - [FastEmbed & pgvector Embeddings](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/docs/integrations/fastembed-pgvector.md)
+   - [Upstash Redis Integration](integrations/redis-upstash.md) — Feed caching, sliding-window rate limits, and token revocation blocklists.
+   - [Google OAuth Integration](integrations/google-oauth.md) — Google One Tap (GSI) authentication & ID token validation.
+   - [Cloudinary Image Service](integrations/cloudinary.md) — Image hosting, early photo uploads, and CDN delivery.
+   - [Algolia Search Engine](integrations/algolia.md) — Instant client-side search & background indexing.
+   - [Resend Email Gateway](integrations/resend.md) — OTP email delivery for signup & password reset.
+   - [FastEmbed & pgvector Embeddings](integrations/fastembed-pgvector.md) — AI vector similarity search for desk setups.

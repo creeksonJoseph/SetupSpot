@@ -4,7 +4,7 @@ This document outlines the security controls, authentication mechanisms, token l
 
 ---
 
-## 🔐 Authentication Architecture
+## Authentication Architecture
 
 SetupSpot supports three distinct authentication pathways:
 
@@ -54,7 +54,7 @@ sequenceDiagram
 
 ---
 
-## 🍪 Session & Token Handling
+## Session & Token Handling
 
 - **Token Storage**: JWT stored inside an **HTTP-only, Secure, SameSite=Lax** cookie named `access_token` ([`security.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/security.py#L24-L32)). JavaScript cannot access the token (XSS protection).
 - **Token Signature**: HMAC-SHA256 (`HS256`) signed with backend `SECRET_KEY`.
@@ -63,7 +63,7 @@ sequenceDiagram
 
 ---
 
-## 🛡️ Authorization & Access Control
+## Authorization & Access Control
 
 - **Resource Ownership Verification**: Write/Delete endpoints verify that resource `user_id` matches the authenticated `current_user.id`:
   - `PUT /setups/{id}`: [`setup_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/setup_service.py#L116) raises `403 Forbidden` if `setup.user_id != user_id`.
@@ -73,7 +73,7 @@ sequenceDiagram
 
 ---
 
-## 🔑 Secrets Management & API Protection
+## Secrets Management & API Protection
 
 - **Environment Variables**: Managed via `pydantic-settings` ([`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L5-L23)). `.env` files are ignored in `.gitignore`.
 - **Rate Limiting**: Sliding window rate limits stored in Upstash Redis ([`redis_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/redis_client.py#L124)):
@@ -85,7 +85,7 @@ sequenceDiagram
 
 ---
 
-## 🔍 Verified Security Checklist
+## Verified Security Checklist
 
 > [!NOTE]
 > 1. **Google OAuth Audience (`aud`) Validation**: Enforced in [`auth_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/auth_service.py#L229) to ensure Google ID tokens match `GOOGLE_CLIENT_ID`.
