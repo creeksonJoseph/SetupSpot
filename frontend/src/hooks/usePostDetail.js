@@ -29,7 +29,7 @@ export function usePostDetail(id) {
 
   const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
 
-  const { auth, isLoggedIn } = useAuth();
+  const isLoggedIn = Boolean(auth?.user_id);
   const currentUsername = auth?.username || auth?.user?.username;
 
   const triggerAuthModal = useCallback((actionName = 'continue') => {
