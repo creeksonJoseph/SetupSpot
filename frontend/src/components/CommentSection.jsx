@@ -3,6 +3,7 @@ import { Send, Loader2, Trash2, MoreVertical, ShieldAlert, Heart, CornerDownRigh
 import { Link } from "react-router-dom";
 import { useComments } from "../hooks/useComments";
 import { useAuth } from "../context/AuthContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useAdmin } from "../hooks/useAdmin";
 import AuthPromptModal from "./auth/AuthPromptModal";
 import { DeletePostModal } from "./account/DeletePostModal";
@@ -22,6 +23,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   } = useComments(setupId);
 
   const { auth } = useAuth();
+  const { isLoggedIn, username, isAdmin } = useCurrentUser();
   const { adminDeleteComment } = useAdmin();
   const [draft, setDraft] = useState("");
   const [replyTarget, setReplyTarget] = useState(null); // { id, author }
@@ -30,10 +32,6 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
-
-  const isAdmin = Boolean(
-    auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
-  );
 
   // Fetch on first mount
   useEffect(() => {
@@ -54,7 +52,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
   }, [activeMenuId]);
 
   const handleStartReply = (comment) => {
-    if (!auth?.token && !auth?.user) {
+    if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
     }
@@ -68,7 +66,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
     e.preventDefault();
     if (!draft.trim() || submitting) return;
 
-    if (!auth?.token && !auth?.user) {
+    if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
     }
@@ -123,7 +121,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
 
   const renderCommentItem = (c, isReply = false) => {
     const initial = c.author ? c.author[0].toUpperCase() : "?";
-    const isOwn = auth?.username === c.author;
+    const isOwn = username === c.author;
     const childReplies = repliesByParent[c.id] || [];
 
     return (
@@ -234,7 +232,7 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
             <div className="flex items-center gap-3 mt-1 pt-0.5">
               <button
                 onClick={() => {
-                  if (!auth?.token && !auth?.user) {
+                  if (!isLoggedIn) {
                     setAuthModalOpen(true);
                     return;
                   }
@@ -312,12 +310,12 @@ const CommentSection = ({ setupId, onCommentCountChange }) => {
         className="flex items-center gap-2 px-3.5 py-2.5 bg-white border-t"
         style={{ borderColor: "#E2E8F0" }}
       >
-        {auth?.username ? (
+        {username ? (
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
             style={{ backgroundColor: "#0066ff" }}
           >
-            {auth.username[0].toUpperCase()}
+            {username[0].toUpperCase()}
           </div>
         ) : null}
         <input

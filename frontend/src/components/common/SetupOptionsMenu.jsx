@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MoreVertical, Share2, Trash2 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useToast } from "../../context/ToastContext";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
@@ -19,7 +19,7 @@ export const SetupOptionsMenu = ({
     (isCompact
       ? "p-1 rounded-full hover:bg-slate-100 transition-colors text-slate-400 cursor-pointer"
       : "p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer");
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useCurrentUser();
   const { showToast } = useToast();
 
   const [menuOpen, setMenuOpen] = useState(false);

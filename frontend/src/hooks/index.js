@@ -1,5 +1,6 @@
 export { API, FALLBACK_API, RENDER_API, LOCAL_API } from './api';
 export { useAuthFetch } from './useAuthFetch';
+export { useCurrentUser } from './useCurrentUser';
 export { useSetups } from './useSetups';
 export { usePostDetail } from './usePostDetail';
 export { useAccount } from './useAccount';

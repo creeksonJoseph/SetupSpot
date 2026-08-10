@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 // Modular Landing Page Components
 import LandingHeader from '../components/landing/LandingHeader';
@@ -31,7 +31,7 @@ import stepTag from '../assets/landing/step-tag.jpg';
 import stepSave from '../assets/landing/step-save.jpg';
 
 export default function LandingPage() {
-  const { auth, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useCurrentUser();
   const [isScrolled, setIsScrolled] = useState(false);
 
   const col1Images = [heroWall1, heroWall2, heroWall3, heroWall7];

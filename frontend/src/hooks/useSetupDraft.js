@@ -9,18 +9,16 @@
  * returned by the Early Upload endpoint.
  */
 import { useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from './useCurrentUser';
 
 const BASE_KEY = 'setupspot_draft';
 
 export function useSetupDraft() {
-  const { auth } = useAuth();
+  const { userId } = useCurrentUser();
 
-  /** Returns the localStorage key scoped to the current user. */
   const getKey = useCallback(() => {
-    const userId = auth?.user_id ?? auth?.id ?? 'anonymous';
-    return `${BASE_KEY}_${userId}`;
-  }, [auth]);
+    return `${BASE_KEY}_${userId ?? 'anonymous'}`;
+  }, [userId]);
 
   /**
    * Persist the draft payload to localStorage.

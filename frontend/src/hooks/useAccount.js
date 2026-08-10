@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from './useCurrentUser';
 import { useAuthFetch } from './useAuthFetch';
 import { useToast } from '../context/ToastContext';
 
@@ -8,13 +9,14 @@ import { useToast } from '../context/ToastContext';
 let accountCache = null;
 
 export function useAccount() {
-  const { auth, logout } = useAuth();
+  const { logout } = useAuth();
+  const { userId } = useCurrentUser();
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
   const { showToast } = useToast();
 
-  const [user, setUser] = useState(() => accountCache?.data ?? (auth?.user?.username ? auth.user : null));
-  const [loading, setLoading] = useState(() => !accountCache && !auth?.user?.username);
+  const [user, setUser] = useState(() => accountCache?.data ?? null);
+  const [loading, setLoading] = useState(() => !accountCache);
   const [error, setError] = useState(null);
 
   const [pwdStep, setPwdStep] = useState(1);
@@ -40,7 +42,7 @@ export function useAccount() {
   useEffect(() => () => clearInterval(pwdTimerRef.current), []);
 
   const fetchUserData = useCallback(async () => {
-    if (!accountCache && !auth?.user) {
+    if (!accountCache) {
       setLoading(true);
     }
     setError(null);
@@ -52,19 +54,19 @@ export function useAccount() {
       setUser(data);
     } catch (err) {
       console.error('Error fetching user data:', err);
-      if (!accountCache && !auth?.user) {
+      if (!accountCache) {
         setError(err.message);
       }
     } finally {
       setLoading(false);
     }
-  }, [authFetch, auth?.user]);
+  }, [authFetch]);
 
   useEffect(() => {
-    if (auth?.access_token) {
+    if (userId) {
       fetchUserData();
     }
-  }, [auth?.access_token, fetchUserData]);
+  }, [userId, fetchUserData]);
 
   const handleRequestChangeOtp = useCallback(async (e) => {
     e.preventDefault();

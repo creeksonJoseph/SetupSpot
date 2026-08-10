@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from './useCurrentUser';
 import { useAuthFetch } from './useAuthFetch';
 import { useToast } from '../context/ToastContext';
 
 export function useSettings() {
-  const { auth, updateAuthUser } = useAuth();
+  const { updateAuthUser } = useAuth();
+  const { userId } = useCurrentUser();
   const authFetch = useAuthFetch();
   const { showToast } = useToast();
 
@@ -65,10 +67,10 @@ export function useSettings() {
   }, [authFetch]);
 
   useEffect(() => {
-    if (auth?.access_token) {
+    if (userId) {
       fetchUserData();
     }
-  }, [auth?.access_token, fetchUserData]);
+  }, [userId, fetchUserData]);
 
   // Handle avatar upload via Cloudinary early upload
   const handleAvatarUpload = async (file) => {

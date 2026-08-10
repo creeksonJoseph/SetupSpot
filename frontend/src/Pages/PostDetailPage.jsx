@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState, Suspense } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useAuth } from "../context/AuthContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 import {
   Eye, EyeOff, Heart, MessageCircle, MoreHorizontal,
   ArrowLeft, Expand, Plus, ChevronDown, ChevronUp,
@@ -34,7 +35,7 @@ const PostDetailPage = () => {
     document.documentElement.scrollTop = 0;
   }, [id]);
 
-  const { auth, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useCurrentUser();
 
   const initialFocusedItemId = searchParams.get("itemId")
     ? parseInt(searchParams.get("itemId"), 10)

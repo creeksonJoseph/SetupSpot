@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAdmin } from "../hooks/useAdmin";
-import { useAuth } from "../context/AuthContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
   ShieldCheck,
@@ -54,7 +54,7 @@ export const AdminPortalPage = () => {
   const initialTab = searchParams.get("tab") || "overview";
   const initialFeedbackId = searchParams.get("id") ? parseInt(searchParams.get("id"), 10) : null;
 
-  const { auth } = useAuth();
+  const { isLoggedIn, isAdmin } = useCurrentUser();
   const {
     stats,
     users,
@@ -119,9 +119,6 @@ export const AdminPortalPage = () => {
     onConfirm: async () => {},
   });
 
-  const isAdmin = Boolean(
-    auth?.is_admin || (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com")
-  );
 
   // Fetch initial dashboard stats
   useEffect(() => {
@@ -283,7 +280,7 @@ export const AdminPortalPage = () => {
   });
 
 
-  if (!auth) {
+  if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
 

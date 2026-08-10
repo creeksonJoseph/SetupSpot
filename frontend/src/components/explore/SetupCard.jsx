@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { ShareMenu } from "../ShareMenu";
 import AuthPromptModal from "../auth/AuthPromptModal";
 import OptimizedImage from "../OptimizedImage";
 import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
 
 export const SetupCard = React.memo(({ setup, toggleFavorite, compact = false }) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useCurrentUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);

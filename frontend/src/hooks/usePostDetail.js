@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
 import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from './useCurrentUser';
 import { useToast } from '../context/ToastContext';
 
 // Module-level cache for setup details (0ms revisiting)
@@ -10,6 +11,7 @@ const setupDetailCache = {};
 export function usePostDetail(id) {
   const authFetch = useAuthFetch();
   const { auth } = useAuth();
+  const { isLoggedIn, username: currentUsername } = useCurrentUser();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -28,9 +30,6 @@ export function usePostDetail(id) {
   const [commentsOpen, setCommentsOpen] = useState(false);
 
   const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
-
-  const isLoggedIn = Boolean(auth?.user_id);
-  const currentUsername = auth?.username || auth?.user?.username;
 
   const triggerAuthModal = useCallback((actionName = 'continue') => {
     setAuthModalState({ isOpen: true, actionName });

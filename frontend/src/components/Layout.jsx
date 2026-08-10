@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Settings, UserCheck, ShieldCheck, MessageSquarePlus, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 import LandingHeader from './landing/LandingHeader'
 import { SuggestFeatureModal } from './feedback/SuggestFeatureModal'
 import ConfirmSignOutModal from './auth/ConfirmSignOutModal'
@@ -9,9 +10,8 @@ import ConfirmSignOutModal from './auth/ConfirmSignOutModal'
 export default function Layout() {
     const location = useLocation()
     const navigate = useNavigate()
-    const { auth, isLoggedIn, logout } = useAuth()
-    const username = auth?.username || auth?.user?.username || auth?.user?.email?.split('@')[0]
-    const avatarUrl = auth?.user?.avatar_url || auth?.avatar_url || auth?.user?.avatar || auth?.user?.profile_picture || auth?.user?.picture
+    const { logout } = useAuth()
+    const { isLoggedIn, username, avatarUrl, isAdmin } = useCurrentUser()
 
     const initialLetter = username ? username[0].toUpperCase() : 'U'
 
@@ -72,12 +72,7 @@ export default function Layout() {
         { key: 'create', icon: 'add_circle', title: 'Create', path: '/create' },
     ]
 
-    const isAdmin = Boolean(
-        auth?.is_admin ||
-        auth?.user?.is_admin ||
-        (auth?.email && auth.email.toLowerCase() === "charanajoseph@gmail.com") ||
-        (auth?.user?.email && auth.user.email.toLowerCase() === "charanajoseph@gmail.com")
-    )
+
 
     // GUEST LAYOUT: Top landing header for guests (since guests don't have a sidebar)
     if (!isLoggedIn) {

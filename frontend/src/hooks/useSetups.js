@@ -17,6 +17,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { API, FALLBACK_API } from './api';
 import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from './useCurrentUser';
 import { useToast } from '../context/ToastContext';
 
 const PAGE_SIZE = 48;
@@ -58,7 +59,7 @@ async function fetchWithFallback(cursor, cachedEtag) {
 }
 
 export function useSetups() {
-  const { auth, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useCurrentUser();
   const { showToast } = useToast();
 
   // Separate cache key for auth vs anon so favorites populate correctly
@@ -198,7 +199,7 @@ export function useSetups() {
       );
       showToast('Could not save setup, try again.', 'error');
     }
-  }, [auth?.access_token, showToast]);
+  }, [isLoggedIn, showToast]);
 
   return {
     setups,
