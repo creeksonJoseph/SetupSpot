@@ -128,6 +128,7 @@ export function usePhoneUploadSocket(onImageReceived) {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        if (data.status === "pong") return;
         if (data.status === "success" && data.image_url) {
           setReceivedSuccess(true);
           setStatusText("Photo received! Loading into editor...");

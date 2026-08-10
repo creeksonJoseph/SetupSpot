@@ -20,7 +20,8 @@ async def websocket_upload_endpoint(websocket: WebSocket, session_id: str):
         while True:
             data = await websocket.receive_text()
             if data == "ping":
-                # Render proxy heartbeat acknowledge
+                # Cloudflare / Render proxy heartbeat acknowledge
+                await websocket.send_json({"status": "pong"})
                 continue
     except WebSocketDisconnect:
         ws_manager.disconnect(session_id)
