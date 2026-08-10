@@ -14,6 +14,15 @@ const META_KEY = "auth_meta";
 export function AuthProvider({ children }) {
   const stored = () => {
     try {
+      // Migrate users who still have the old "auth" key with a token in it
+      const legacy = localStorage.getItem("auth");
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        const { access_token, ...meta } = parsed;
+        localStorage.setItem(META_KEY, JSON.stringify(meta));
+        localStorage.removeItem("auth");
+        return meta;
+      }
       const raw = localStorage.getItem(META_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
