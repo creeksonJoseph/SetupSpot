@@ -4,7 +4,7 @@
  * JS never touches the token, eliminating XSS token theft.
  */
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { API, FALLBACK_API } from "../hooks/api";
+import { API } from "../hooks/api";
 
 const AuthContext = createContext(null);
 
@@ -54,16 +54,7 @@ export function AuthProvider({ children }) {
 
   const fetchWithFallback = async (endpoint, options = {}) => {
     const opts = { ...options, credentials: "include" };
-    const primaryUrl = `${API}${endpoint}`;
-    try {
-      return await fetch(primaryUrl, opts);
-    } catch (err) {
-      const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-      if (isLocal && API !== FALLBACK_API) {
-        return await fetch(`${FALLBACK_API}${endpoint}`, opts);
-      }
-      throw err;
-    }
+    return await fetch(`${API}${endpoint}`, opts);
   };
 
   // Sync latest user profile on mount to keep metadata fresh

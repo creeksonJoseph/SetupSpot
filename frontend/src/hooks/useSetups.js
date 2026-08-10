@@ -15,7 +15,7 @@
  *     is instant — no skeleton flash.
  */
 import { useState, useCallback, useEffect } from 'react';
-import { API, FALLBACK_API } from './api';
+import { API } from './api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrentUser } from './useCurrentUser';
 import { useToast } from '../context/ToastContext';
@@ -48,14 +48,7 @@ async function fetchPage(baseUrl, cursor, cachedEtag) {
 }
 
 async function fetchWithFallback(cursor, cachedEtag) {
-  try {
-    return await fetchPage(API, cursor, cachedEtag);
-  } catch {
-    if (API !== FALLBACK_API) {
-      return await fetchPage(FALLBACK_API, cursor, cachedEtag);
-    }
-    throw new Error('Failed to fetch setups from all endpoints');
-  }
+  return await fetchPage(API, cursor, cachedEtag);
 }
 
 export function useSetups() {
@@ -180,9 +173,7 @@ export function useSetups() {
         return res;
       };
 
-      let response;
-      try { response = await tryToggle(API); }
-      catch { response = await tryToggle(FALLBACK_API); }
+      const response = await tryToggle(API);
 
       if (!response.ok) throw new Error('Failed to toggle favorite');
 

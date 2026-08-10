@@ -38,10 +38,6 @@ cors_origins = [
     "https://www.setupspot.tech",
     "http://www.setupspot.tech",
     "https://api.setupspot.tech",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
 ]
 
 if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:

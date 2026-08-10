@@ -4,7 +4,7 @@
  * No token is read from JS — the browser attaches the cookie on every request.
  */
 import { useCallback } from 'react';
-import { API, FALLBACK_API } from './api';
+import { API } from './api';
 
 export function useAuthFetch() {
   return useCallback(
@@ -20,17 +20,7 @@ export function useAuthFetch() {
 
       const primaryUrl = resolveUrl(API, pathOrUrl);
       const opts = { ...options, credentials: 'include' };
-
-      try {
-        return await fetch(primaryUrl, opts);
-      } catch (err) {
-        const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        if (isLocal && API !== FALLBACK_API) {
-          console.warn(`Primary API (${primaryUrl}) unreachable. Retrying with fallback (${FALLBACK_API})...`, err);
-          return await fetch(resolveUrl(FALLBACK_API, pathOrUrl), opts);
-        }
-        throw err;
-      }
+      return await fetch(primaryUrl, opts);
     },
     []
   );
