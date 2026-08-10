@@ -175,6 +175,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         auth,
+        isLoggedIn: Boolean(auth?.user_id),
         login,
         logout,
         register,

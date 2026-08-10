@@ -34,8 +34,7 @@ const PostDetailPage = () => {
     document.documentElement.scrollTop = 0;
   }, [id]);
 
-  const { auth } = useAuth();
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
+  const { auth, isLoggedIn } = useAuth();
 
   const initialFocusedItemId = searchParams.get("itemId")
     ? parseInt(searchParams.get("itemId"), 10)

@@ -9,8 +9,7 @@ import ConfirmSignOutModal from './auth/ConfirmSignOutModal'
 export default function Layout() {
     const location = useLocation()
     const navigate = useNavigate()
-    const { auth, logout } = useAuth()
-    const isLoggedIn = Boolean(auth?.token || auth?.user)
+    const { auth, isLoggedIn, logout } = useAuth()
     const username = auth?.username || auth?.user?.username || auth?.user?.email?.split('@')[0]
     const avatarUrl = auth?.user?.avatar_url || auth?.avatar_url || auth?.user?.avatar || auth?.user?.profile_picture || auth?.user?.picture
 

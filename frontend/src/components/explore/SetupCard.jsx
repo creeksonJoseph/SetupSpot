@@ -7,8 +7,7 @@ import OptimizedImage from "../OptimizedImage";
 import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
 
 export const SetupCard = React.memo(({ setup, toggleFavorite, compact = false }) => {
-  const { auth } = useAuth();
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
+  const { isLoggedIn } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [saveAnimating, setSaveAnimating] = useState(false);

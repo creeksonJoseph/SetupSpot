@@ -29,7 +29,7 @@ export function usePostDetail(id) {
 
   const [authModalState, setAuthModalState] = useState({ isOpen: false, actionName: '' });
 
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
+  const { auth, isLoggedIn } = useAuth();
   const currentUsername = auth?.username || auth?.user?.username;
 
   const triggerAuthModal = useCallback((actionName = 'continue') => {
@@ -41,13 +41,13 @@ export function usePostDetail(id) {
   }, []);
 
   const checkAuth = useCallback(() => {
-    if (!auth?.token && !auth?.user) {
+    if (!isLoggedIn) {
       showToast('Please log in or sign up to interact', 'info');
       navigate('/login');
       return false;
     }
     return true;
-  }, [auth, navigate, showToast]);
+  }, [isLoggedIn, navigate, showToast]);
 
   const fetchSetup = useCallback(async () => {
     if (!id) return;

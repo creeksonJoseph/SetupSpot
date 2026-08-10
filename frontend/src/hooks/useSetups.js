@@ -14,7 +14,7 @@
  *   - First-page data is cached in-memory (60s TTL) so re-visiting /explore
  *     is instant — no skeleton flash.
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { API, FALLBACK_API } from './api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -26,20 +26,17 @@ const PAGE_SIZE = 48;
 const pageCache = {};
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function fetchPage(baseUrl, cursor, token, cachedEtag) {
+async function fetchPage(baseUrl, cursor, cachedEtag) {
   const url = new URL(`${baseUrl}/setups`);
   url.searchParams.set('limit', String(PAGE_SIZE));
   if (cursor != null) url.searchParams.set('cursor', String(cursor));
 
   const headers = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  // ETag conditional request — server returns 304 if nothing changed
   if (cachedEtag) headers['If-None-Match'] = cachedEtag;
 
-  const res = await fetch(url.toString(), { headers });
+  const res = await fetch(url.toString(), { headers, credentials: 'include' });
 
   if (res.status === 304) {
-    // Not Modified — return null to signal "use the cached data"
     return { data: null, etag: cachedEtag, notModified: true };
   }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -49,26 +46,23 @@ async function fetchPage(baseUrl, cursor, token, cachedEtag) {
   return { data, etag, notModified: false };
 }
 
-async function fetchWithFallback(cursor, token, cachedEtag) {
+async function fetchWithFallback(cursor, cachedEtag) {
   try {
-    return await fetchPage(API, cursor, token, cachedEtag);
+    return await fetchPage(API, cursor, cachedEtag);
   } catch {
     if (API !== FALLBACK_API) {
-      return await fetchPage(FALLBACK_API, cursor, token, cachedEtag);
+      return await fetchPage(FALLBACK_API, cursor, cachedEtag);
     }
     throw new Error('Failed to fetch setups from all endpoints');
   }
 }
 
 export function useSetups() {
-  const { auth } = useAuth();
+  const { auth, isLoggedIn } = useAuth();
   const { showToast } = useToast();
 
-  const tokenRef = useRef(auth?.access_token);
-  useEffect(() => { tokenRef.current = auth?.access_token; }, [auth?.access_token]);
-
   // Separate cache key for auth vs anon so favorites populate correctly
-  const cacheKey = `page1:${auth?.access_token ? 'auth' : 'anon'}`;
+  const cacheKey = `page1:${isLoggedIn ? 'auth' : 'anon'}`;
 
   const [setups, setSetups] = useState(() => pageCache[cacheKey]?.data ?? []);
   const [loading, setLoading] = useState(setups.length === 0);
@@ -99,7 +93,6 @@ export function useSetups() {
       try {
         const { data, etag, notModified } = await fetchWithFallback(
           null,
-          tokenRef.current,
           cached?.etag ?? null,
         );
 
@@ -140,8 +133,7 @@ export function useSetups() {
     try {
       const { data, notModified } = await fetchWithFallback(
         cursor,
-        tokenRef.current,
-        null, // No ETag for paginated pages — content changes as cursor changes
+        null,
       );
       if (notModified || !data) return;
 
@@ -168,22 +160,20 @@ export function useSetups() {
 
   // ── Optimistic favorite toggle ──────────────────────────────────────────────
   const toggleFavorite = useCallback(async (setupId, isFavorited) => {
-    if (!auth?.access_token) return false;
+    if (!isLoggedIn) return false;
 
     setSetups(prev =>
       prev.map(s => s.id === setupId ? { ...s, isFavorited: !isFavorited } : s),
     );
 
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${auth.access_token}`,
-      };
       const method = isFavorited ? 'DELETE' : 'POST';
 
       const tryToggle = async (baseUrl) => {
         const res = await fetch(`${baseUrl}/favorites`, {
-          method, headers,
+          method,
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ setup_id: setupId }),
         });
         return res;

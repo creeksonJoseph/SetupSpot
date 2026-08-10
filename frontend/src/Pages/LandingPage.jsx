@@ -31,8 +31,7 @@ import stepTag from '../assets/landing/step-tag.jpg';
 import stepSave from '../assets/landing/step-save.jpg';
 
 export default function LandingPage() {
-  const { auth } = useAuth();
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
+  const { auth, isLoggedIn } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
   const col1Images = [heroWall1, heroWall2, heroWall3, heroWall7];

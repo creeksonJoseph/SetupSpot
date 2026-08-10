@@ -19,9 +19,8 @@ export const SetupOptionsMenu = ({
     (isCompact
       ? "p-1 rounded-full hover:bg-slate-100 transition-colors text-slate-400 cursor-pointer"
       : "p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer");
-  const { auth } = useAuth();
+  const { isLoggedIn } = useAuth();
   const { showToast } = useToast();
-  const isLoggedIn = Boolean(auth?.token || auth?.user);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
