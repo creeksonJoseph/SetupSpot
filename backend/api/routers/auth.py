@@ -1,5 +1,5 @@
 """Auth router — registration, login, and OTP-based password reset."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user
@@ -16,6 +16,7 @@ from api.schemas.auth import (
     TokenResponse,
 )
 from core.database import get_db
+from core.security import clear_auth_cookie, revoke_token, set_auth_cookie, COOKIE_NAME
 from models.user import User
 from services import auth_service
 
@@ -23,8 +24,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    return auth_service.register(db, email=body.email, username=body.username, password=body.password)
+def register(body: RegisterRequest, response: Response, db: Session = Depends(get_db)):
+    data = auth_service.register(db, email=body.email, username=body.username, password=body.password)
+    set_auth_cookie(response, data["access_token"])
+    return data
 
 
 @router.post("/signup/send-otp", status_code=200)
@@ -40,18 +43,33 @@ def signup_verify_otp(body: SignupVerifyOtpRequest):
 
 
 @router.post("/signup/complete", response_model=TokenResponse, status_code=201)
-def signup_complete(body: SignupCompleteRequest, db: Session = Depends(get_db)):
-    return auth_service.signup_complete(db, signup_token=body.signup_token, username=body.username, password=body.password)
+def signup_complete(body: SignupCompleteRequest, response: Response, db: Session = Depends(get_db)):
+    data = auth_service.signup_complete(db, signup_token=body.signup_token, username=body.username, password=body.password)
+    set_auth_cookie(response, data["access_token"])
+    return data
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
-    return auth_service.login(db, email=body.email, password=body.password)
+def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)):
+    data = auth_service.login(db, email=body.email, password=body.password)
+    set_auth_cookie(response, data["access_token"])
+    return data
 
 
 @router.post("/google", response_model=TokenResponse)
-def google_login(body: GoogleAuthRequest, db: Session = Depends(get_db)):
-    return auth_service.google_login(db, credential=body.credential)
+def google_login(body: GoogleAuthRequest, response: Response, db: Session = Depends(get_db)):
+    data = auth_service.google_login(db, credential=body.credential)
+    set_auth_cookie(response, data["access_token"])
+    return data
+
+
+@router.post("/logout", status_code=200)
+def logout(request: Request, response: Response):
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        revoke_token(token)
+    clear_auth_cookie(response)
+    return {"message": "Logged out"}
 
 
 @router.post("/forgot-password", status_code=200)

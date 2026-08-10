@@ -74,14 +74,18 @@ app.include_router(feedback.router)
 
 
 
+ALLOWED_ORIGINS = set(cors_origins)
+
+
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request, exc: HTTPException):
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin", "")
+    allow_origin = origin if origin in ALLOWED_ORIGINS else cors_origins[0]
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
         headers={
-            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Origin": allow_origin,
             "Access-Control-Allow-Credentials": "true",
         },
     )
@@ -89,13 +93,14 @@ async def custom_http_exception_handler(request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def custom_general_exception_handler(request, exc: Exception):
-    origin = request.headers.get("origin", "*")
+    origin = request.headers.get("origin", "")
+    allow_origin = origin if origin in ALLOWED_ORIGINS else cors_origins[0]
     print(f"Unhandled Server Exception: {exc}")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error"},
         headers={
-            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Origin": allow_origin,
             "Access-Control-Allow-Credentials": "true",
         },
     )

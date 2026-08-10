@@ -3,10 +3,9 @@ import json
 from hashlib import md5
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Query, Response, UploadFile
-from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from api.dependencies import get_current_user
+from api.dependencies import get_current_user, get_optional_current_user
 from api.schemas.setup import SetupDetailOut, SetupListItemOut
 from core.config import settings
 from core.database import get_db
@@ -14,21 +13,6 @@ from models.user import User
 from services import setup_service
 
 router = APIRouter(prefix="/setups", tags=["setups"])
-
-
-def get_optional_user(
-    db: Session = Depends(get_db),
-    token: str | None = Depends(OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)),
-) -> User | None:
-    """Return the current user if a valid token is provided, else None."""
-    if token is None:
-        return None
-    try:
-        from api.dependencies import get_current_user_from_token
-        return get_current_user_from_token(token, db)
-    except Exception:
-        return None
-
 
 def _etag_headers(response: Response, data: list | dict, public: bool, max_age: int, swr: int) -> None:
     """Attach Cache-Control and ETag headers to a response.
@@ -52,7 +36,7 @@ def list_setups(
     cursor: int | None = Query(None, description="ID of the last seen setup for cursor-based pagination"),
     limit: int = Query(48, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ):
     """Return setups, newest-first, with optional cursor pagination.
 
@@ -77,7 +61,7 @@ def get_setup(
     setup_id: int,
     response: Response,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ):
     """Return a single setup with annotated items and social counts."""
     setup = setup_service.get_setup_detail(db, setup_id)
@@ -95,7 +79,7 @@ def get_similar_setups(
     page: int = Query(1, ge=1),
     limit: int = Query(6, ge=1, le=20),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ):
     """Return semantically similar setups computed via pgvector cosine similarity."""
     from services import recommendation_service

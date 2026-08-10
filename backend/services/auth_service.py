@@ -186,6 +186,11 @@ def signup_complete(db: Session, signup_token: str, username: str, password: str
 def login(db: Session, email: str, password: str) -> dict:
     """Verify credentials and return an access token."""
     normalized_email = email.strip().lower()
+    from core import redis_client
+    if not redis_client.check_rate_limit(
+        f"rate_limit:LOGIN:{normalized_email}", max_limit=10, window_seconds=900
+    ):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
     user = user_repo.get_by_email(db, normalized_email)
     if not user or not verify_password(password, user._password_hash):
         raise HTTPException(

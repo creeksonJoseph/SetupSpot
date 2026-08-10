@@ -1,17 +1,20 @@
 /**
- * AuthContext — stores the authenticated user and JWT token.
- * Provides login(), logout(), and register() to the whole app.
- * Token is persisted to localStorage so sessions survive page reload.
+ * AuthContext — stores non-sensitive user metadata in localStorage.
+ * The JWT lives exclusively in an HTTP-only cookie set by the backend.
+ * JS never touches the token, eliminating XSS token theft.
  */
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { API, FALLBACK_API } from "../hooks/api";
 
 const AuthContext = createContext(null);
 
+// Keys stored in localStorage — never includes the token
+const META_KEY = "auth_meta";
+
 export function AuthProvider({ children }) {
   const stored = () => {
     try {
-      const raw = localStorage.getItem("auth");
+      const raw = localStorage.getItem(META_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -26,66 +29,53 @@ export function AuthProvider({ children }) {
     return cleanUser;
   };
 
-  const sanitizeAuth = (data) => {
-    if (!data) return null;
-    const cleanUser = data.user ? sanitizeUserData(data.user) : null;
-    return {
-      ...data,
-      ...(cleanUser ? { user: cleanUser } : {}),
-    };
-  };
-
+  // Persist only non-sensitive metadata — token stays in the HTTP-only cookie
   const persist = (data) => {
-    const sanitized = sanitizeAuth(data);
-    if (sanitized) {
-      localStorage.setItem("auth", JSON.stringify(sanitized));
-    } else {
-      localStorage.removeItem("auth");
+    if (!data) {
+      localStorage.removeItem(META_KEY);
+      setAuth(null);
+      return;
     }
+    const { access_token, ...meta } = data;
+    const cleanUser = meta.user ? sanitizeUserData(meta.user) : null;
+    const sanitized = { ...meta, ...(cleanUser ? { user: cleanUser } : {}) };
+    localStorage.setItem(META_KEY, JSON.stringify(sanitized));
     setAuth(sanitized);
   };
 
-  const fetchWithFallback = async (endpoint, options) => {
+  const fetchWithFallback = async (endpoint, options = {}) => {
+    const opts = { ...options, credentials: "include" };
     const primaryUrl = `${API}${endpoint}`;
     try {
-      return await fetch(primaryUrl, options);
+      return await fetch(primaryUrl, opts);
     } catch (err) {
-      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
       if (isLocal && API !== FALLBACK_API) {
-        const fallbackUrl = `${FALLBACK_API}${endpoint}`;
-        return await fetch(fallbackUrl, options);
+        return await fetch(`${FALLBACK_API}${endpoint}`, opts);
       }
       throw err;
     }
   };
 
-  // Sync latest user profile (/users/me) on mount so email & is_admin are populated
+  // Sync latest user profile on mount to keep metadata fresh
   useEffect(() => {
-    if (auth?.access_token) {
-      fetchWithFallback("/users/me", {
-        headers: { Authorization: `Bearer ${auth.access_token}` },
-      })
+    if (auth?.user_id) {
+      fetchWithFallback("/users/me")
         .then((res) => (res.ok ? res.json() : null))
         .then((userData) => {
           if (userData) {
+            const cleanUser = sanitizeUserData(userData);
             setAuth((prev) => {
               if (!prev) return prev;
-              const cleanUser = sanitizeUserData(userData);
-              const updated = {
-                ...prev,
-                email: cleanUser.email,
-                is_admin: cleanUser.is_admin,
-                user: cleanUser,
-              };
-              localStorage.setItem("auth", JSON.stringify(updated));
+              const updated = { ...prev, email: cleanUser.email, is_admin: cleanUser.is_admin, user: cleanUser };
+              localStorage.setItem(META_KEY, JSON.stringify(updated));
               return updated;
             });
           }
         })
         .catch(() => {});
     }
-  }, [auth?.access_token]);
-
+  }, [auth?.user_id]);
 
   const register = useCallback(async (email, username, password) => {
     const res = await fetchWithFallback("/auth/register", {
@@ -157,7 +147,8 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await fetchWithFallback("/auth/logout", { method: "POST" }).catch(() => {});
     persist(null);
   }, []);
 
@@ -165,14 +156,8 @@ export function AuthProvider({ children }) {
     setAuth((prev) => {
       if (!prev) return prev;
       const cleanUpdated = sanitizeUserData(updatedUserData) || {};
-      const updated = {
-        ...prev,
-        user: {
-          ...(prev.user || {}),
-          ...cleanUpdated,
-        },
-      };
-      localStorage.setItem("auth", JSON.stringify(updated));
+      const updated = { ...prev, user: { ...(prev.user || {}), ...cleanUpdated } };
+      localStorage.setItem(META_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
