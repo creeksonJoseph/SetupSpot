@@ -7,7 +7,7 @@ Responsibilities:
 - Guarantee 100% graceful fallback to DB if Redis is offline/unconfigured.
 """
 import json
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 from upstash_redis import Redis
 from core.config import settings
 
@@ -121,28 +121,38 @@ def invalidate_setup_detail(setup_id: int) -> bool:
 
 
 # 4. Rate Limiting Helper (OTP / Auth actions)
-def check_rate_limit(key: str, max_limit: int = 4, window_seconds: int = 900) -> bool:
+def check_rate_limit_info(key: str, max_limit: int = 4, window_seconds: int = 900) -> Tuple[bool, int]:
     """
     Check if a rate-limit key has exceeded max_limit within window_seconds.
-    Returns True if ALLOWED, False if RATE LIMITED (exceeded limit).
+    Returns (is_allowed: bool, remaining_ttl_seconds: int).
     """
     client = get_redis_client()
     if client is None:
-        return True  # Graceful fallback to in-memory check
+        return True, 0
 
     try:
         current = client.get(key)
+        raw_ttl = client.ttl(key)
+        ttl = int(raw_ttl) if raw_ttl is not None and int(raw_ttl) > 0 else window_seconds
+
         if current is not None:
             count = int(current)
             if count >= max_limit:
-                return False
-            client.set(key, count + 1, ex=window_seconds)
+                return False, ttl
+            client.set(key, count + 1, ex=ttl)
         else:
             client.set(key, 1, ex=window_seconds)
-        return True
+            ttl = window_seconds
+
+        return True, ttl
     except Exception as exc:
         print(f"Redis rate limit error for '{key}': {exc}")
-        return True
+        return True, 0
+
+
+def check_rate_limit(key: str, max_limit: int = 4, window_seconds: int = 900) -> bool:
+    allowed, _ = check_rate_limit_info(key, max_limit=max_limit, window_seconds=window_seconds)
+    return allowed
 
 
 # 5. Persistent OTP Storage Helpers (TTL default: 15 minutes = 900s)

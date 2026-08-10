@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str | None = None
     GOOGLE_CLIENT_SECRET: str | None = None
     GOOGLE_OAUTH_REDIRECT_URI: str | None = None
+    ADMIN_EMAIL: str | None = None
     ALGOLIA_APP_ID: str = "82D9UQ8ZF3"
     ALGOLIA_WRITE_API_KEY: str = ""
     ALGOLIA_INDEX_NAME: str = "setups"

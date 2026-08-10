@@ -77,16 +77,17 @@ sequenceDiagram
 
 - **Environment Variables**: Managed via `pydantic-settings` ([`config.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/config.py#L5-L23)). `.env` files are ignored in `.gitignore`.
 - **Rate Limiting**: Sliding window rate limits stored in Upstash Redis ([`redis_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/redis_client.py#L124)):
-  - OTP Requests: 4 attempts per 15 minutes per email/IP ([`auth_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/auth_service.py#L29)).
-  - Login Attempts: 10 attempts per 15 minutes per email ([`auth_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/auth_service.py#L191)).
+  - OTP Requests: Max 4 attempts per 15 minutes per email.
+  - Login Attempts: Max 10 attempts per 15 minutes per email.
+  - **Dynamic TTL Calculation**: When a limit is hit, the backend queries Redis TTL and calculates remaining wait minutes (`detail: "Too many attempts. Please wait 14 minutes."`). This ensures users receive identical remaining wait times across tabs and browser restarts.
 - **CORS Protection**: Origin validation restricted to explicit origins in `cors_origins` ([`main.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/main.py#L35-L45)).
 - **Input Validation & Image Sanitization**: Pydantic schemas enforce type validation. Image early uploads enforce content checks.
 
 ---
 
-## 🔍 Verified Security Areas to Review
+## 🔍 Verified Security Checklist
 
-> [!WARNING]
-> The following items were identified during direct code auditing:
-> 1. **Default Secret Key Fallback**: `SECRET_KEY` in `config.py` defaults to `"default_secret_key_change_in_prod"`. In production environments, deployment pipelines MUST ensure a strong random key is set via environment variable.
-> 2. **Rate Limiting Scope**: Rate limiting is currently enforced on auth endpoints (`/auth/login`, `/auth/signup/send-otp`, `/auth/reset-password/send-otp`). General write API routes (`POST /setups`, `POST /comments`) rely on user authentication but do not currently enforce IP-level rate limits.
+> [!NOTE]
+> 1. **Google OAuth Audience (`aud`) Validation**: Enforced in [`auth_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/auth_service.py#L229) to ensure Google ID tokens match `GOOGLE_CLIENT_ID`.
+> 2. **Configurable Admin Email**: Configure `ADMIN_EMAIL=your_email@domain.com` in `backend/.env` (or set `is_admin = True` in DB) without hardcoding email strings in code.
+> 3. **Default Secret Key Fallback**: Ensure `SECRET_KEY` in `backend/.env` is set to a secure random string in production environments.

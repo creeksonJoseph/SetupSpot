@@ -45,7 +45,16 @@ def verify_password(plain: str, hashed: str) -> bool:
 def is_admin_user(user: User) -> bool:
     if not user:
         return False
-    return bool(user.is_admin or (user.email and user.email.lower() == "charanajoseph@gmail.com"))
+    if user.is_admin:
+        return True
+    if settings.ADMIN_EMAIL and user.email and user.email.lower() == settings.ADMIN_EMAIL.strip().lower():
+        return True
+    return False
+
+
+def _get_remaining_minutes_msg(ttl_seconds: int) -> str:
+    mins = max(1, (ttl_seconds + 59) // 60)
+    return f"Too many attempts. Please wait {mins} minute{'s' if mins > 1 else ''}."
 
 
 def _auth_response(token: str, user: User) -> dict:
@@ -75,9 +84,6 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     return _auth_response(token, user)
 
 
-
-
-
 def signup_send_otp(db: Session, email: str) -> None:
     """Step 1 / resend — send a signup OTP. Rejects if email is already registered."""
     normalized = email.strip().lower()
@@ -86,10 +92,11 @@ def signup_send_otp(db: Session, email: str) -> None:
 
     # Persistent Upstash Redis rate limit check
     from core import redis_client
-    if not redis_client.check_rate_limit(f"rate_limit:SIGNUP:{normalized}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60):
+    allowed, ttl = redis_client.check_rate_limit_info(f"rate_limit:SIGNUP:{normalized}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60)
+    if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many attempts. Please wait 15 minutes.",
+            detail=_get_remaining_minutes_msg(ttl),
         )
 
     now = datetime.now(timezone.utc)
@@ -187,10 +194,14 @@ def login(db: Session, email: str, password: str) -> dict:
     """Verify credentials and return an access token."""
     normalized_email = email.strip().lower()
     from core import redis_client
-    if not redis_client.check_rate_limit(
+    allowed, ttl = redis_client.check_rate_limit_info(
         f"rate_limit:LOGIN:{normalized_email}", max_limit=10, window_seconds=900
-    ):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=_get_remaining_minutes_msg(ttl),
+        )
     user = user_repo.get_by_email(db, normalized_email)
     if not user or not verify_password(password, user._password_hash):
         raise HTTPException(
@@ -219,6 +230,14 @@ def google_login(db: Session, credential: str) -> dict:
             payload = json.load(resp)
     except Exception as exc:  # pragma: no cover - network failure path
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Google sign-in failed") from exc
+
+    # Validate Audience (aud) matches our Google Client ID
+    aud = payload.get("aud")
+    if settings.GOOGLE_CLIENT_ID and aud != settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google ID token audience mismatch",
+        )
 
     email = (payload.get("email") or "").strip().lower()
     if not email:
@@ -255,8 +274,14 @@ def get_current_user(db: Session, user_id: int) -> User:
 def _check_rate_limit(store: dict, key, label: str) -> None:
     """Shared rate-limit check. Raises 429 if over OTP_RATE_LIMIT within OTP_RATE_WINDOW_MINUTES."""
     from core import redis_client
-    if not redis_client.check_rate_limit(f"rate_limit:{label}:{key}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
+    allowed, ttl = redis_client.check_rate_limit_info(
+        f"rate_limit:{label}:{key}", max_limit=OTP_RATE_LIMIT, window_seconds=OTP_RATE_WINDOW_MINUTES * 60
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=_get_remaining_minutes_msg(ttl),
+        )
 
     now = datetime.now(timezone.utc)
     rec = store.get(key, {})
@@ -267,7 +292,11 @@ def _check_rate_limit(store: dict, key, label: str) -> None:
     if now - window_start > timedelta(minutes=OTP_RATE_WINDOW_MINUTES):
         window_start, count = now, 0
     if count >= OTP_RATE_LIMIT:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts. Please wait 15 minutes.")
+        rem_seconds = int((OTP_RATE_WINDOW_MINUTES * 60) - (now - window_start).total_seconds())
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=_get_remaining_minutes_msg(max(rem_seconds, 1)),
+        )
     store[key] = {"resend_count": count + 1, "window_start": window_start}
     logger.info(f"[{label}] rate-limit count={count + 1} key={key}")
 
