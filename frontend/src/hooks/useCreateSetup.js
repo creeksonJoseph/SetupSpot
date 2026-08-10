@@ -29,12 +29,16 @@
  * the draft state without any re-upload.
  */
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
 import { useSetupDraft } from './useSetupDraft';
 
 export function useCreateSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditMode = Boolean(editId);
+
   const authFetch = useAuthFetch();
   const { saveDraft, loadDraft, clearDraft } = useSetupDraft();
 
@@ -75,32 +79,69 @@ export function useCreateSetup() {
     [annotations, selectedAnnotationId]
   );
 
-  // ─── Draft Hydration on Mount ──────────────────────────────────────────────
-  // Runs once when the component mounts. If a draft exists in localStorage,
-  // restores all state so the user can continue exactly where they left off.
+  // ─── Hydration (Create Draft or Edit Mode) ──────────────────────────────────
   useEffect(() => {
-    const draft = loadDraft();
-    if (!draft?.draft_image_url) return;
+    if (!editId) {
+      // Create mode: load draft if present
+      const draft = loadDraft();
+      if (!draft?.draft_image_url) return;
 
-    setUploadedImageUrl(draft.draft_image_url);
-    setUploadedImageSrc(draft.draft_image_url);
-    setSetupName(draft.setup_name ?? '');
-    setAnnotations(draft.annotations ?? []);
-    setIsAnnotating(true);
+      setUploadedImageUrl(draft.draft_image_url);
+      setUploadedImageSrc(draft.draft_image_url);
+      setSetupName(draft.setup_name ?? '');
+      setAnnotations(draft.annotations ?? []);
+      setIsAnnotating(true);
+      return;
+    }
+
+    // Edit mode: fetch existing setup details from backend
+    let isMounted = true;
+    setLoading(true);
+    authFetch(`/setups/${editId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load setup for editing');
+        return res.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+        setUploadedImageUrl(data.image_url);
+        setUploadedImageSrc(data.image_url);
+        setSetupName(data.name || '');
+        const items = (data.items || []).map((item) => ({
+          id: item.id || crypto.randomUUID(),
+          name: item.name || '',
+          price: item.price != null ? String(item.price) : '',
+          link: item.link || '',
+          description: item.description || '',
+          x: item.x ?? 50,
+          y: item.y ?? 50,
+        }));
+        setAnnotations(items);
+        setIsAnnotating(true);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setApiMessage({ text: err.message, type: 'error' });
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally runs once on mount only
+  }, [editId]);
 
-  // ─── Auto-Save Draft ───────────────────────────────────────────────────────
-  // Whenever the user is in annotation mode and changes their setup name or
-  // annotations, we save the whole draft to localStorage.
+  // ─── Auto-Save Draft (Create mode only) ────────────────────────────────────
   useEffect(() => {
-    if (!isAnnotating || !uploadedImageUrl) return;
+    if (isEditMode || !isAnnotating || !uploadedImageUrl) return;
     saveDraft({
       draft_image_url: uploadedImageUrl,
       setup_name: setupName,
       annotations,
     });
-  }, [isAnnotating, uploadedImageUrl, setupName, annotations, saveDraft]);
+  }, [isEditMode, isAnnotating, uploadedImageUrl, setupName, annotations, saveDraft]);
 
   // ─── Reset ────────────────────────────────────────────────────────────────
   const resetState = useCallback(() => {
@@ -232,15 +273,10 @@ export function useCreateSetup() {
   );
 
   // ─── Final Submission ──────────────────────────────────────────────────────
-  /**
-   * Sends the pre-uploaded image URL + annotation data to POST /setups.
-   * No file upload happens here — the image is already on Cloudinary.
-   * On success, clears the localStorage draft.
-   */
   const handleSaveData = useCallback(async () => {
     if (!uploadedImageUrl || !setupName || annotations.length === 0) {
       setApiMessage({
-        text: 'Please provide a Setup Name, upload an image, and add at least one item.',
+        text: 'Please provide a Setup Name and add at least one item.',
         type: 'error',
       });
       return;
@@ -263,27 +299,33 @@ export function useCreateSetup() {
       items: itemsPayload,
     };
 
-    // Send the pre-uploaded image URL — no file re-upload
-    const formData = new FormData();
-    formData.append('image_url', uploadedImageUrl);
-    formData.append('data', JSON.stringify(jsonPayload));
-
     try {
-      const response = await authFetch('/setups', {
-        method: 'POST',
-        body: formData,
-      });
+      let response;
+      if (isEditMode) {
+        response = await authFetch(`/setups/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(jsonPayload),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('image_url', uploadedImageUrl);
+        formData.append('data', JSON.stringify(jsonPayload));
+        response = await authFetch('/setups', {
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       const result = await response.json();
 
       if (response.ok) {
-        // Clear the draft now that the post is submitted successfully
-        clearDraft();
+        if (!isEditMode) clearDraft();
         setApiMessage({
-          text: `Setup saved successfully! ID: ${result.id}`,
+          text: isEditMode ? 'Setup updated successfully!' : `Setup saved successfully! ID: ${result.id}`,
           type: 'success',
         });
-        navigate('/explore');
+        navigate(isEditMode ? `/setup/${editId}` : `/setup/${result.id}`);
       } else {
         setApiMessage({
           text: `Error saving setup: ${result.error || result.detail || result.message || 'Unknown error'}`,
@@ -300,7 +342,7 @@ export function useCreateSetup() {
     } finally {
       setLoading(false);
     }
-  }, [uploadedImageUrl, setupName, annotations, authFetch, navigate, clearDraft]);
+  }, [uploadedImageUrl, setupName, annotations, authFetch, navigate, clearDraft, isEditMode, editId]);
 
   // ─── Derived values ───────────────────────────────────────────────────────
   const totalCost = useMemo(() => {
@@ -341,5 +383,7 @@ export function useCreateSetup() {
     handleRemoveAnnotation,
     handleSaveData,
     resetState,
+    isEditMode,
+    editId,
   };
 }

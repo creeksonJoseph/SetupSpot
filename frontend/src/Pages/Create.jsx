@@ -1,10 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useCreateSetup } from "../hooks/useCreateSetup";
 import { UploadView } from "../components/create/UploadView";
 import { AnnotationView } from "../components/create/AnnotationView";
 import { ArrowLeft } from "lucide-react";
 
 const Create = () => {
+  const navigate = useNavigate();
   const {
     isAnnotating,
     loading,
@@ -31,6 +33,8 @@ const Create = () => {
     handleRemoveAnnotation,
     handleSaveData,
     resetState,
+    isEditMode,
+    editId,
   } = useCreateSetup();
 
   return (
@@ -38,17 +42,32 @@ const Create = () => {
       {/* Header bar */}
       <div className="flex justify-between items-center pb-4 shrink-0">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Create Setup</h1>
-          <p className="text-xs sm:text-sm text-slate-500">Share your desk setup and tag your gear.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+            {isEditMode ? "Edit Setup" : "Create Setup"}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500">
+            {isEditMode
+              ? "Update your setup title and gear tags (photo is locked)."
+              : "Share your desk setup and tag your gear."}
+          </p>
         </div>
 
-        {isAnnotating && (
+        {isEditMode ? (
           <button
-            onClick={resetState}
+            onClick={() => navigate(`/setup/${editId}`)}
             className="px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer"
           >
-            <ArrowLeft size={15} /> Restart Upload
+            <ArrowLeft size={15} /> Back to Setup
           </button>
+        ) : (
+          isAnnotating && (
+            <button
+              onClick={resetState}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft size={15} /> Restart Upload
+            </button>
+          )
         )}
       </div>
 
@@ -73,6 +92,7 @@ const Create = () => {
             apiMessage={apiMessage}
             handleSaveData={handleSaveData}
             loading={loading}
+            isEditMode={isEditMode}
           />
         ) : (
           <UploadView

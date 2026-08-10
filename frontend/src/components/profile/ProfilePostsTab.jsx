@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ImageOff } from "lucide-react";
 import { SetupGridSkeleton } from "../CardSkeleton";
+import { SetupOptionsMenu } from "../common/SetupOptionsMenu";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 export const ProfilePostsTab = ({ setups = [], loading = false }) => {
   const [expandedTitleId, setExpandedTitleId] = useState(null);
+  const { user } = useCurrentUser();
 
   if (loading || !setups) {
     return <SetupGridSkeleton count={10} />;
@@ -23,39 +26,47 @@ export const ProfilePostsTab = ({ setups = [], loading = false }) => {
 
   return (
     <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-      {setups.map((setup) => (
-        <Link
-          key={setup.id}
-          to={`/setup/${setup.id}`}
-          className="group block mb-4 rounded-2xl overflow-hidden border bg-white shadow-2xs hover:shadow-xl transition-all duration-300 break-inside-avoid"
-          style={{ borderColor: "#E2E8F0" }}
-        >
-          {setup.image ? (
-            <img
-              src={setup.image}
-              alt={setup.title}
-              className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full aspect-[4/3] flex items-center justify-center bg-slate-100">
-              <ImageOff size={28} style={{ color: "#CBD5E1" }} />
-            </div>
-          )}
+      {setups.map((setup) => {
+        const isOwner = Boolean(user?.username && setup?.author && user.username === setup.author);
+        return (
           <div
-            className="px-3 py-2 border-t cursor-pointer"
-            style={{ borderColor: "#F1F5F9" }}
-            onClick={() => setExpandedTitleId((prev) => prev === setup.id ? null : setup.id)}
+            key={setup.id}
+            className="group relative mb-4 rounded-2xl overflow-hidden border bg-white shadow-2xs hover:shadow-xl transition-all duration-300 break-inside-avoid"
+            style={{ borderColor: "#E2E8F0" }}
           >
-            <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${expandedTitleId === setup.id ? "" : "truncate"}`}>
-              {setup.title}
-            </p>
-            {expandedTitleId === setup.id && setup.author && (
-              <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
-            )}
+            <Link to={`/setup/${setup.id}`} className="block relative">
+              {setup.image ? (
+                <img
+                  src={setup.image}
+                  alt={setup.title}
+                  className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full aspect-[4/3] flex items-center justify-center bg-slate-100">
+                  <ImageOff size={28} style={{ color: "#CBD5E1" }} />
+                </div>
+              )}
+            </Link>
+
+            <div
+              className="px-3 py-2 border-t flex items-center justify-between gap-1.5 cursor-pointer"
+              style={{ borderColor: "#F1F5F9" }}
+              onClick={() => setExpandedTitleId((prev) => (prev === setup.id ? null : setup.id))}
+            >
+              <div className="flex-1 min-w-0">
+                <p className={`text-[11px] font-semibold leading-snug text-[#0F172A] ${expandedTitleId === setup.id ? "" : "truncate"}`}>
+                  {setup.title}
+                </p>
+                {expandedTitleId === setup.id && setup.author && (
+                  <p className="text-[10px] text-[#727687] mt-0.5">by {setup.author}</p>
+                )}
+              </div>
+              <SetupOptionsMenu setup={setup} isOwner={isOwner} size="sm" positionClass="right-0 bottom-7" />
+            </div>
           </div>
-        </Link>
-      ))}
+        );
+      })}
     </div>
   );
 };

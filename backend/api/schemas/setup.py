@@ -34,3 +34,18 @@ class SetupDetailOut(BaseModel):
     is_liked: bool
     comment_count: int
     items: list[AnnotatedItemOut]
+
+
+class ItemCreateIn(BaseModel):
+    name: str
+    price: float | str | None = None
+    link: str | None = None
+    description: str | None = None
+    x: float | None = None
+    y: float | None = None
+
+
+class SetupUpdateIn(BaseModel):
+    setup_name: str
+    items: list[ItemCreateIn] = []
+

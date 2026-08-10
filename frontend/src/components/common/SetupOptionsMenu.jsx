@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MoreVertical, Share2, Trash2 } from "lucide-react";
+import { MoreVertical, Share2, Trash2, Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useToast } from "../../context/ToastContext";
 import { ShareMenu } from "../ShareMenu";
@@ -10,16 +11,19 @@ export const SetupOptionsMenu = ({
   onToggleFavorite,
   onRemove,
   onShare,
+  onEdit,
+  isOwner,
   size = "md",
   positionClass = "right-0 bottom-7",
   buttonClassName,
 }) => {
+  const navigate = useNavigate();
   const isCompact = size === "sm";
   const resolvedButtonClass = buttonClassName ??
     (isCompact
       ? "p-1 rounded-full hover:bg-slate-100 transition-colors text-slate-400 cursor-pointer"
       : "p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-500 cursor-pointer");
-  const { isLoggedIn } = useCurrentUser();
+  const { isLoggedIn, user: currentUser } = useCurrentUser();
   const { showToast } = useToast();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -126,6 +130,21 @@ export const SetupOptionsMenu = ({
     }
   };
 
+  const isSetupOwner = isOwner || Boolean(
+    currentUser?.username && setup?.author && currentUser.username === setup.author
+  );
+
+  const handleEditClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen(false);
+    if (onEdit) {
+      onEdit(e, setup);
+    } else {
+      navigate(`/create?edit=${setup.id}`);
+    }
+  };
+
   return (
     <>
       <div className="relative inline-block" ref={menuRef}>
@@ -147,6 +166,17 @@ export const SetupOptionsMenu = ({
             style={{ borderColor: "#E2E8F0" }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Edit Option for Setup Owners */}
+            {isSetupOwner && (
+              <button
+                onClick={handleEditClick}
+                className={`flex items-center w-full text-left rounded-xl hover:bg-slate-50 transition-colors text-[#0F172A] cursor-pointer font-semibold ${isCompact ? "gap-1.5 px-2 py-1.5 text-[10px]" : "gap-2.5 px-3 py-2 text-xs"}`}
+              >
+                <Pencil size={isCompact ? 11 : 14} className="text-slate-500" />
+                <span>Edit</span>
+              </button>
+            )}
+
             {/* If onRemove is provided (e.g. Favourites page) */}
             {onRemove ? (
               <button

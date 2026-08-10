@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Query, Resp
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user, get_optional_current_user
-from api.schemas.setup import SetupDetailOut, SetupListItemOut
+from api.schemas.setup import SetupDetailOut, SetupListItemOut, SetupUpdateIn
 from core.config import settings
 from core.database import get_db
 from models.user import User
@@ -124,6 +124,34 @@ def create_setup(
     )
 
     # Dispatch background tasks — these run after the 201 response is sent.
+    background_tasks.add_task(
+        setup_service.background_index_setup,
+        setup_id=setup.id,
+        db_url=settings.DATABASE_URL,
+    )
+
+    return setup_service.serialize_setup_detail(setup, requesting_user_id=current_user.id, db=db)
+
+
+@router.put("/{setup_id}", response_model=SetupDetailOut)
+def update_setup(
+    setup_id: int,
+    payload: SetupUpdateIn,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a setup's title and annotated items owned by the current user."""
+    items_dicts = [item.model_dump() for item in payload.items]
+    setup = setup_service.update_setup(
+        db,
+        setup_id=setup_id,
+        user_id=current_user.id,
+        setup_name=payload.setup_name,
+        items_data=items_dicts,
+    )
+
+    # Re-index in Algolia and update pgvector embedding asynchronously
     background_tasks.add_task(
         setup_service.background_index_setup,
         setup_id=setup.id,

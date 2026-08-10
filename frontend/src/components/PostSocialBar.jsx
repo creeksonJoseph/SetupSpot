@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Trash2, AlertTriangle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Trash2, AlertTriangle, Pencil } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import ShareMenu from "./ShareMenu";
 
 const PostSocialBar = ({
+  setupId,
+  title,
   author,
   authorAvatar,
   isLiked,
@@ -16,8 +18,9 @@ const PostSocialBar = ({
   onToggleFavorite,
   isOwner = false,
   onDeleteSetup,
+  onEditSetup,
 }) => {
-
+  const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -53,30 +56,37 @@ const PostSocialBar = ({
         className="flex items-center justify-between px-4 py-3 border-t"
         style={{ borderColor: "#E2E8F0", backgroundColor: "#ffffff" }}
       >
-        {/* Author */}
-        <Link
-          to={`/user/${author}`}
-          className="flex items-center gap-2.5 group"
-        >
-          {authorAvatar ? (
-            <img
-              src={authorAvatar}
-              alt={author}
-              className="w-9 h-9 rounded-full object-cover border transition-opacity group-hover:opacity-80"
-              style={{ borderColor: "#E2E8F0" }}
-            />
-          ) : (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 transition-opacity group-hover:opacity-80"
-              style={{ backgroundColor: "#0066ff" }}
-            >
-              {avatarInitial}
-            </div>
+        {/* Title + Author */}
+        <div className="flex flex-col gap-0.5 min-w-0 pr-3">
+          {title && (
+            <h1 className="text-base sm:text-lg font-black tracking-tight leading-snug truncate" style={{ color: "#0F172A" }}>
+              {title}
+            </h1>
           )}
-          <span className="text-sm font-semibold group-hover:underline" style={{ color: "#0F172A" }}>
-            @{author}
-          </span>
-        </Link>
+          <Link
+            to={`/user/${author}`}
+            className="flex items-center gap-1.5 group shrink-0"
+          >
+            {authorAvatar ? (
+              <img
+                src={authorAvatar}
+                alt={author}
+                className="w-5 h-5 rounded-full object-cover border transition-opacity group-hover:opacity-80"
+                style={{ borderColor: "#E2E8F0" }}
+              />
+            ) : (
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 transition-opacity group-hover:opacity-80"
+                style={{ backgroundColor: "#0066ff" }}
+              >
+                {avatarInitial}
+              </div>
+            )}
+            <span className="text-xs font-semibold text-slate-500 group-hover:underline group-hover:text-slate-800 transition-colors">
+              @{author}
+            </span>
+          </Link>
+        </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
@@ -186,10 +196,27 @@ const PostSocialBar = ({
                   </span>
                 </button>
 
-                {/* Delete Setup — owners only */}
+                {/* Edit & Delete Setup — owners only */}
                 {isOwner && (
                   <>
                     <div className="h-px w-full" style={{ backgroundColor: "#E2E8F0" }} />
+                    <button
+                      onClick={() => {
+                        setMoreOpen(false);
+                        if (onEditSetup) {
+                          onEditSetup();
+                        } else if (setupId) {
+                          navigate(`/create?edit=${setupId}`);
+                        }
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors cursor-pointer"
+                      style={{ color: "#0F172A", backgroundColor: "transparent" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fb")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                    >
+                      <Pencil size={16} style={{ color: "#727687" }} />
+                      <span className="font-semibold">Edit Setup</span>
+                    </button>
                     {deleteConfirm ? (
                       <div
                         className="flex flex-col gap-2 px-4 py-3"

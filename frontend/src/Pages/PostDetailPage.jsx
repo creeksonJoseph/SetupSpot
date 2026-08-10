@@ -6,7 +6,7 @@ import { useCurrentUser } from "../hooks/useCurrentUser";
 import {
   Eye, EyeOff, Heart, MessageCircle, MoreHorizontal,
   ArrowLeft, Expand, Plus, ChevronDown, ChevronUp,
-  ShoppingBag, ExternalLink, Info, Trash2, Share2,
+  ShoppingBag, ExternalLink, Info, Trash2, Share2, Pencil,
 } from "lucide-react";
 import { PostDetailSkeleton, SimilarSetupsSkeleton, SetupHeroSkeleton, ItemsListSkeleton } from "../components/CardSkeleton";
 
@@ -277,31 +277,36 @@ const PostDetailPage = () => {
                 )}
               </div>
 
-              {/* Author + action icons row (Attached to Image Bottom) */}
+              {/* Title + Author + action icons row (Attached to Image Bottom) */}
               <div
                 className="flex items-center justify-between px-4 py-3 bg-white border-t"
                 style={{ borderColor: "#E2E8F0" }}
               >
-              <Link to={`/profile/${setup.author}`} className="flex items-center gap-2.5">
-                {setup.author_avatar ? (
-                  <img
-                    src={setup.author_avatar}
-                    alt={setup.author}
-                    className="w-9 h-9 rounded-full object-cover border-2"
-                    style={{ borderColor: "#0066ff" }}
-                  />
-                ) : (
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
-                    style={{ backgroundColor: "#0066ff" }}
-                  >
-                    {setup.author?.[0]?.toUpperCase() || "?"}
-                  </div>
-                )}
-                <span className="text-sm font-semibold" style={{ color: "#0F172A" }}>
-                  @{setup.author}
-                </span>
-              </Link>
+              <div className="flex flex-col gap-0.5 min-w-0 pr-3">
+                <h1 className="text-base font-black tracking-tight leading-snug text-[#0F172A] truncate">
+                  {setup.name || setup.title}
+                </h1>
+                <Link to={`/profile/${setup.author}`} className="flex items-center gap-1.5 group shrink-0">
+                  {setup.author_avatar ? (
+                    <img
+                      src={setup.author_avatar}
+                      alt={setup.author}
+                      className="w-4.5 h-4.5 rounded-full object-cover border"
+                      style={{ borderColor: "#E2E8F0" }}
+                    />
+                  ) : (
+                    <div
+                      className="w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold text-[9px] text-white shrink-0"
+                      style={{ backgroundColor: "#0066ff" }}
+                    >
+                      {setup.author?.[0]?.toUpperCase() || "?"}
+                    </div>
+                  )}
+                  <span className="text-xs font-medium text-slate-500 group-hover:underline">
+                    @{setup.author}
+                  </span>
+                </Link>
+              </div>
 
               <div className="flex items-center gap-0.5">
                 {/* Like */}
@@ -380,6 +385,19 @@ const PostDetailPage = () => {
                         <Share2 size={16} style={{ color: "#64748B" }} />
                         Share Setup
                       </button>
+                      {isOwner && (
+                        <button
+                          onClick={() => {
+                            setMobileMoreOpen(false);
+                            navigate(`/create?edit=${setup.id}`);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-left cursor-pointer"
+                          style={{ color: "#0F172A", borderBottom: "1px solid #E2E8F0" }}
+                        >
+                          <Pencil size={16} style={{ color: "#64748B" }} />
+                          Edit Setup
+                        </button>
+                      )}
                       {isOwner && !mobileDeleteConfirm && (
                         <button
                           onClick={() => setMobileDeleteConfirm(true)}
@@ -632,6 +650,8 @@ const PostDetailPage = () => {
                 />
 
                 <PostSocialBar
+                  setupId={setup.id}
+                  title={setup.name || setup.title}
                   author={setup.author}
                   authorAvatar={setup.author_avatar}
                   isLiked={setup.is_liked}

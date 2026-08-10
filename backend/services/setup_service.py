@@ -100,6 +100,54 @@ def create_setup(
     return setup
 
 
+def update_setup(
+    db: Session,
+    setup_id: int,
+    user_id: int,
+    setup_name: str,
+    items_data: list[dict],
+) -> Setup:
+    """
+    Update an existing setup's title and annotated items.
+    Note: Setup image cannot be changed once posted.
+    """
+    setup = setup_repo.get_by_id(db, setup_id)
+    if not setup:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Setup not found")
+    if setup.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to edit this setup")
+
+    setup.name = setup_name
+
+    # Remove existing items and replace with new item list
+    item_repo.delete_by_setup_id(db, setup_id)
+
+    annotation_metadata = []
+    for item_data in items_data:
+        item = item_repo.create(
+            db,
+            name=item_data.get("name", "Unnamed Item"),
+            price=_parse_price(item_data.get("price")),
+            link=item_data.get("link"),
+            description=item_data.get("description", ""),
+            setup_id=setup.id,
+            user_id=user_id,
+        )
+        annotation_metadata.append(
+            {"item_id": item.id, "x": item_data.get("x"), "y": item_data.get("y")}
+        )
+
+    db.commit()
+    setup = setup_repo.update_annotations(db, setup, annotation_metadata)
+
+    # Invalidate Redis caches
+    from core import redis_client
+    redis_client.invalidate_explore_setups()
+    redis_client.invalidate_setup_detail(setup_id)
+
+    return setup
+
+
 def background_index_setup(setup_id: int, db_url: str) -> None:
     """Background task: index a newly created setup into Algolia and generate its
     pgvector embedding. Runs *after* the HTTP response has been sent.

@@ -25,3 +25,8 @@ def create(
     db.add(item)
     db.flush()   # get item.id without committing
     return item
+
+
+def delete_by_setup_id(db: Session, setup_id: int) -> None:
+    """Delete all items belonging to a setup."""
+    db.query(Item).filter(Item.setup_id == setup_id).delete(synchronize_session=False)
