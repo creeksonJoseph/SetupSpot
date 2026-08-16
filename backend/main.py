@@ -17,7 +17,7 @@ from core.config import settings
 from core.cloudinary_client import init_cloudinary
 from core.database import ensure_db_schema
 from api.routers import auth, setups, collections, favorites, users
-from api.routers import likes, comments, mobile_upload, early_upload, admin, feedback
+from api.routers import likes, comments, mobile_upload, early_upload, admin, feedback, sitemap
 
 # ── Init external services & DB schema checks ────────────────────────────────
 init_cloudinary()
@@ -67,6 +67,7 @@ app.include_router(mobile_upload.router)
 app.include_router(early_upload.router)
 app.include_router(admin.router)
 app.include_router(feedback.router)
+app.include_router(sitemap.router)
 
 
 

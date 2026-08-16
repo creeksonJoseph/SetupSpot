@@ -3,6 +3,7 @@ import SearchBar from '../components/SearchBar';
 import { SetupCard } from '../components/explore/SetupCard';
 import { SetupGridSkeleton } from '../components/CardSkeleton';
 import { useSetups } from '../hooks/useSetups';
+import { useSEO } from '../hooks/useSEO';
 
 const hitToSetup = (hit) => ({
   id: parseInt(hit.objectID, 10),
@@ -18,6 +19,13 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleLimit, setVisibleLimit] = useState(24);
   const sentinelRef = useRef(null);
+
+  useSEO({
+    title: 'Search Desk Setups | SetupSpot',
+    description:
+      'Search for desk setups by gear, mechanical keyboards, monitors, or creator names. Find the perfect setup inspiration on SetupSpot.',
+    url: 'https://setupspot.com/search',
+  });
 
   // Extract dynamic popular search terms from actual database/Redis setups
   const popularTags = useMemo(() => {

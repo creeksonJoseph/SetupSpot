@@ -4,6 +4,7 @@ import TypewriterText from '../components/TypewriterText';
 import SearchBar from '../components/SearchBar';
 import { SetupCard } from '../components/explore/SetupCard';
 import { SetupGridSkeleton } from '../components/CardSkeleton';
+import { useSEO } from '../hooks/useSEO';
 
 import { useLocation } from 'react-router-dom';
 
@@ -19,6 +20,13 @@ const hitToSetup = (hit) => ({
 const ExplorePage = () => {
   const location = useLocation();
   const { setups, loading, loadingMore, hasMore, loadMore, toggleFavorite } = useSetups();
+
+  useSEO({
+    title: 'Explore Desk Setups | SetupSpot',
+    description:
+      'Discover amazing computer and desk setups from creators around the world. Find your next setup inspiration — browse gear, keyboards, monitors, and more.',
+    url: 'https://setupspot.com/explore',
+  });
 
   // null = no active search; array = Algolia hits (may be empty)
   const [searchHits, setSearchHits] = useState(null);

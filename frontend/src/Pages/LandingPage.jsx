@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useSEO } from '../hooks/useSEO';
 
 // Modular Landing Page Components
 import LandingHeader from '../components/landing/LandingHeader';
@@ -33,6 +34,14 @@ import stepSave from '../assets/landing/step-save.jpg';
 export default function LandingPage() {
   const { isLoggedIn } = useCurrentUser();
   const [isScrolled, setIsScrolled] = useState(false);
+
+  useSEO({
+    title: 'SetupSpot — Discover & Share Your Dream Desk Setup',
+    description:
+      'Browse thousands of desk setups from gamers, creators & productivity enthusiasts. Tag your gear, save favorites, and get inspired on SetupSpot.',
+    url: 'https://setupspot.com',
+    type: 'website',
+  });
 
   const col1Images = [heroWall1, heroWall2, heroWall3, heroWall7];
   const col2Images = [heroWall4, heroWall5, heroWall6, heroWall10];

@@ -1,0 +1,22 @@
+# SetupSpot — robots.txt
+# https://setupspot.com
+
+User-agent: *
+Allow: /
+Allow: /explore
+Allow: /search
+Allow: /setup/
+Allow: /user/
+Allow: /collection/
+
+# Keep private/auth-only pages out of indexes
+Disallow: /account
+Disallow: /settings
+Disallow: /admin
+Disallow: /favorites
+Disallow: /collections
+Disallow: /create
+Disallow: /mobile-upload
+
+Sitemap: https://setupspot.com/sitemap.xml
+Sitemap: https://setupspot.com/api/sitemap.xml

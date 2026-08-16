@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePublicProfile } from "../hooks/usePublicProfile";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
@@ -6,6 +6,7 @@ import { ProfileCollectionsTab } from "../components/profile/ProfileCollectionsT
 import { ArrowLeft, Grid3X3, Layers, Share2 } from "lucide-react";
 import { UserProfileSkeleton, ProfileHeaderSkeleton, SetupGridSkeleton } from "../components/CardSkeleton";
 import { ShareMenu } from "../components/ShareMenu";
+import { useSEO } from "../hooks/useSEO";
 
 const TABS = ["Setups", "Collections"];
 
@@ -17,6 +18,39 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState("Setups");
   const [shareOpen, setShareOpen] = useState(false);
   const shareRef = useRef(null);
+
+  // ── Dynamic SEO ─────────────────────────────────────────────────────
+  const personJsonLd = useMemo(() => {
+    if (!profile) return undefined;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: profile.username,
+      url: `https://setupspot.com/user/${profile.username}`,
+      ...(profile.bio ? { description: profile.bio } : {}),
+      ...(profile.avatar_url ? { image: profile.avatar_url } : {}),
+    };
+  }, [profile]);
+
+  const seoDesc = useMemo(() => {
+    if (!profile) return undefined;
+    const count = profile.post_count ?? profile.setups?.length ?? 0;
+    const likes = profile.total_likes ?? 0;
+    return `${profile.username} has shared ${count} desk setup${count !== 1 ? "s" : ""} on SetupSpot with ${likes} like${likes !== 1 ? "s" : ""} received.${
+      profile.bio ? " " + profile.bio.slice(0, 120) : ""
+    }`;
+  }, [profile]);
+
+  useSEO({
+    title: profile ? `@${profile.username}'s Desk Setups | SetupSpot` : `${username}'s Profile | SetupSpot`,
+    description: seoDesc,
+    image: profile?.avatar_url || undefined,
+    url: `https://setupspot.com/user/${username}`,
+    type: "profile",
+    jsonLd: personJsonLd,
+    jsonLdId: "user-profile-jsonld",
+  });
+  // ───────────────────────────────────────────────────────
 
   // Close share popover when clicking outside
   useEffect(() => {

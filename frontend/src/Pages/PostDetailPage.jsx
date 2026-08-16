@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, Suspense } from "react";
+import React, { useCallback, useMemo, useRef, useState, Suspense } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useAuth } from "../context/AuthContext";
@@ -20,6 +20,7 @@ import AuthPromptModal from "../components/auth/AuthPromptModal";
 import { ImageLightbox } from "../components/ImageLightbox";
 import { ShareMenu } from "../components/ShareMenu";
 import { getBlurPlaceholderUrl } from "../utils/imageOptimizer";
+import { useSEO } from "../hooks/useSEO";
 
 const PostDetailPage = () => {
   const { id } = useParams();
@@ -62,6 +63,59 @@ const PostDetailPage = () => {
     authModalState,
     closeAuthModal,
   } = usePostDetail(id);
+
+  // ── Dynamic SEO ────────────────────────────────────────────────────────────
+  const seoJsonLd = useMemo(() => {
+    if (!setup) return undefined;
+    const items = setup.items || [];
+    const priceTotal = items.reduce((sum, it) => {
+      const p = typeof it.price === "number" ? it.price : parseFloat(it.price);
+      return sum + (isNaN(p) ? 0 : p);
+    }, 0);
+    const itemDescParts = items.slice(0, 5).map((it) => it.name).filter(Boolean);
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: setup.name,
+      description: `Desk setup by ${setup.username || setup.author || "a creator"} on SetupSpot${
+        itemDescParts.length ? ` featuring ${itemDescParts.join(", ")}` : ""
+      }.`,
+      url: `https://setupspot.com/setup/${setup.id}`,
+      numberOfItems: items.length,
+      itemListElement: items.map((it, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        item: {
+          "@type": "Product",
+          name: it.name,
+          ...(it.price ? { offers: { "@type": "Offer", price: it.price, priceCurrency: "USD" } } : {}),
+          ...(it.link ? { url: it.link } : {}),
+        },
+      })),
+      ...(priceTotal > 0 ? { totalPrice: `$${priceTotal.toFixed(2)} USD` } : {}),
+    };
+  }, [setup]);
+
+  const seoDescription = useMemo(() => {
+    if (!setup) return undefined;
+    const items = setup.items || [];
+    const author = setup.username || setup.author || "a creator";
+    const featured = items.slice(0, 3).map((it) => it.name).filter(Boolean);
+    return `See ${author}'s desk setup on SetupSpot${
+      featured.length ? ` featuring ${featured.join(", ")}` : ""
+    }. Discover the gear and get inspired.`;
+  }, [setup]);
+
+  useSEO({
+    title: setup ? `${setup.name} by @${setup.username || setup.author || "creator"} | SetupSpot` : "Setup | SetupSpot",
+    description: seoDescription,
+    image: setup?.image_url || undefined,
+    url: `https://setupspot.com/setup/${id}`,
+    type: "article",
+    jsonLd: seoJsonLd,
+    jsonLdId: "setup-detail-jsonld",
+  });
+  // ──────────────────────────────────────────────────────────────────────────
 
   const [liveCommentCount, setLiveCommentCount] = useState(null);
   const handleCommentCountChange = useCallback((count) => {

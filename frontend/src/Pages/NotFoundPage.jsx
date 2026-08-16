@@ -1,9 +1,16 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Compass, ArrowLeft, Search } from "lucide-react";
+import { useSEO } from "../hooks/useSEO";
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
+
+  useSEO({
+    title: 'Page Not Found | SetupSpot',
+    description: 'This page does not exist. Head back to SetupSpot to discover amazing desk setups.',
+    noindex: true,
+  });
 
   return (
     <div

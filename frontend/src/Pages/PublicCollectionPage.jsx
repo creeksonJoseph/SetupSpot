@@ -4,11 +4,22 @@ import { ArrowLeft, Layers, ExternalLink } from "lucide-react";
 import { usePublicCollection } from "../hooks/usePublicCollection";
 import { CollectionItemCard } from "../components/collections/CollectionItemCard";
 import { CollectionGridSkeleton } from "../components/CardSkeleton";
+import { useSEO } from "../hooks/useSEO";
 
 export const PublicCollectionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { collection, loading, error } = usePublicCollection(id);
+
+  const items = collection?.items || [];
+
+  useSEO({
+    title: collection ? `${collection.name} — Setup Collection | SetupSpot` : "Setup Collection | SetupSpot",
+    description: collection
+      ? `A curated collection of ${items.length} desk setup${items.length !== 1 ? "s" : ""} on SetupSpot: "${collection.name}". Explore the setups and gear inside.`
+      : "Explore this curated desk setup collection on SetupSpot.",
+    url: `https://setupspot.com/collection/${id}`,
+  });
 
   if (loading) {
     return (
@@ -33,8 +44,6 @@ export const PublicCollectionPage = () => {
       </div>
     );
   }
-
-  const items = collection.items || [];
 
   return (
     <main className="px-4 py-8 sm:px-6 md:px-8 max-w-7xl mx-auto">

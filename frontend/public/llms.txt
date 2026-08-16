@@ -1,0 +1,43 @@
+# SetupSpot
+
+> SetupSpot (https://setupspot.com) is a community platform where creators, gamers, and productivity enthusiasts share, discover, and tag the gear in their desk setups.
+
+## What is SetupSpot?
+
+SetupSpot is a social platform for desk setup inspiration. Users can:
+
+- **Share** photos of their desk setups and tag every piece of gear in the image with a clickable pin
+- **Discover** setups from other creators through a browsable explore feed and Algolia-powered search
+- **Tag gear** — each pin on a setup image links to a product name, price, and purchase URL
+- **Save favorites** and organize setups into named collections
+- **Follow creators** by browsing their public profile pages
+
+## Who uses SetupSpot?
+
+- PC gamers looking for battlestation inspiration
+- Remote workers and home office enthusiasts
+- Content creators and YouTubers sharing their studio setups
+- Productivity and tech minimalist communities
+- People researching which gear to buy next
+
+## Key Pages
+
+- `/` — Landing page and introduction
+- `/explore` — Full feed of public desk setups (infinite scroll, newest first)
+- `/search` — Search setups by gear name, keyboard, monitor, creator
+- `/setup/:id` — Individual setup page with tagged gear items, prices, links, and comments
+- `/user/:username` — Public creator profile with their setups and collections
+- `/collection/:id` — A public curated collection of saved setups
+
+## Technology
+
+- Frontend: React (Vite), Tailwind CSS
+- Backend: FastAPI (Python), PostgreSQL, Redis
+- Search: Algolia (full-text setup search)
+- Similarity: pgvector (semantic setup recommendations)
+- Images: Cloudinary
+
+## Contact & Links
+
+- Website: https://setupspot.com
+- Explore setups: https://setupspot.com/explore
