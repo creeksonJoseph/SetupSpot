@@ -161,6 +161,7 @@ def delete_user(db: Session, target_user_id: int) -> bool:
     from models.like import Like
     from models.item import Item
     from models.feedback import Feedback
+    from models.collection import CollectionsItems
 
     # 1. Delete feedback submissions
     db.query(Feedback).filter(Feedback.user_id == target_user_id).delete(synchronize_session=False)
@@ -182,10 +183,26 @@ def delete_user(db: Session, target_user_id: int) -> bool:
     for c in user_collections:
         db.delete(c)
 
-    # 6. Delete standalone user items
+    # Flush so setup/collection cascades have already removed their collections_items rows
+    db.flush()
+
+    # 6. Remove any remaining collections_items references to this user's items
+    #    (items added to OTHER users' collections won't be caught by the cascade above)
+    user_item_ids = [
+        row[0]
+        for row in db.query(Item.id).filter(Item.user_id == target_user_id).all()
+    ]
+    if user_item_ids:
+        db.execute(
+            CollectionsItems.delete().where(
+                CollectionsItems.c.item_id.in_(user_item_ids)
+            )
+        )
+
+    # 7. Delete standalone user items
     db.query(Item).filter(Item.user_id == target_user_id).delete(synchronize_session=False)
 
-    # 7. Delete user account record
+    # 8. Delete user account record
     db.delete(user)
     db.commit()
     return True
