@@ -283,19 +283,30 @@ const PostDetailPage = () => {
                   <ArrowLeft size={14} className="mr-1" /> Back
                 </button>
 
-                {/* Hotspot Pins — styled to match the create page (focal dot + dotted leader + number badge) */}
+                {/* Hotspot Pins — adaptive direction: flips downward when pin is near the top of the image */}
                 {displayedItems.map((item, index) => {
                   const isHovered = item.id === hoveredItemId;
+                  const togglePin = () => setHoveredItemId(isHovered ? null : item.id);
+                  // Flip leader+badge to point DOWN when the pin is in the top zone,
+                  // so the badge never gets clipped by the overflow-hidden container.
+                  const flipped = item.y < 28;
+                  const stroke = isHovered ? "#0066ff" : "rgba(255,255,255,0.85)";
                   return (
                     <div
                       key={item.id}
-                      className="absolute z-10 cursor-pointer select-none"
+                      className="absolute z-10 select-none"
                       style={{
                         top: `${item.y}%`,
                         left: `${item.x}%`,
                         transform: "translate(-50%, -50%)",
+                        minWidth: "44px",
+                        minHeight: "44px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
                       }}
-                      onClick={() => setHoveredItemId(isHovered ? null : item.id)}
+                      onClick={togglePin}
                     >
                       {/* 1. Focal dot with pulse ring */}
                       <div className="relative flex items-center justify-center">
@@ -308,12 +319,12 @@ const PostDetailPage = () => {
                           className={`relative w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-all ${
                             isHovered
                               ? "bg-[#0066ff] scale-125 ring-2 ring-[#0066ff]/40"
-                              : "bg-slate-900 hover:scale-110 hover:bg-[#0066ff]"
+                              : "bg-slate-900"
                           }`}
                         />
                       </div>
 
-                      {/* 2. Dotted leader line rising from the focal dot */}
+                      {/* 2. Dotted leader line — goes UP normally, DOWN when near top edge */}
                       <svg
                         className="absolute pointer-events-none overflow-visible"
                         style={{
@@ -321,33 +332,37 @@ const PostDetailPage = () => {
                           top: "50%",
                           width: "24px",
                           height: "44px",
-                          transform: "translate(-12px, -44px)",
+                          transform: flipped
+                            ? "translate(-12px, 2px)"       // starts just below dot, goes down
+                            : "translate(-12px, -44px)",    // starts above dot, goes up
                         }}
                         viewBox="0 0 24 44"
                       >
                         <line
-                          x1="12" y1="44"
-                          x2="12" y2="0"
-                          stroke={isHovered ? "#0066ff" : "rgba(255,255,255,0.85)"}
+                          x1="12" y1={flipped ? 0 : 44}
+                          x2="12" y2={flipped ? 44 : 0}
+                          stroke={stroke}
                           strokeWidth="2"
                           strokeDasharray="2.5 2.5"
                         />
                       </svg>
 
-                      {/* 3. Number badge at the top of the leader line */}
+                      {/* 3. Number badge — below dot when flipped, above when normal */}
                       <div
                         className="absolute pointer-events-none flex items-center justify-center"
                         style={{
                           left: "50%",
                           top: "50%",
-                          transform: "translate(-50%, -56px)",
+                          transform: flipped
+                            ? "translate(-50%, 48px)"   // 48px below center (below the 44px line)
+                            : "translate(-50%, -56px)", // 56px above center
                         }}
                       >
                         <div
-                          className={`px-2 py-0.5 rounded-full text-[11px] font-black shadow-lg border transition-all duration-200 pointer-events-auto flex items-center justify-center min-w-[22px] h-[22px] ${
+                          className={`px-2 py-0.5 rounded-full text-[11px] font-black shadow-lg border transition-all duration-200 flex items-center justify-center min-w-[22px] h-[22px] ${
                             isHovered
                               ? "bg-[#0066ff] text-white border-white ring-2 ring-[#0066ff]/30 scale-110"
-                              : "bg-[#0F172A] text-white border-white/30 hover:bg-[#0066ff]"
+                              : "bg-[#0F172A] text-white border-white/30"
                           }`}
                         >
                           {index + 1}

@@ -73,9 +73,13 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
             Expand
           </div>
 
-          {/* Item pins — 3-part design: focal dot + dotted leader line + number badge */}
+          {/* Item pins — adaptive direction: flips downward when pin is in the top 28% of the image */}
           {items.map((item, index) => {
             const isHovered = item.id === hoveredItemId;
+            // Flip leader+badge to point DOWN when the pin is near the top edge,
+            // so the badge never gets clipped by the overflow-hidden container.
+            const flipped = item.y < 28;
+            const stroke = isHovered ? "#0066ff" : "rgba(255,255,255,0.85)";
             return (
               <div
                 key={item.id}
@@ -105,7 +109,7 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
                   />
                 </div>
 
-                {/* 2. Dotted leader line rising from the focal dot */}
+                {/* 2. Dotted leader line — goes UP normally, DOWN when near top edge */}
                 <svg
                   className="absolute pointer-events-none overflow-visible"
                   style={{
@@ -113,26 +117,30 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
                     top: "50%",
                     width: "24px",
                     height: "44px",
-                    transform: "translate(-12px, -44px)",
+                    transform: flipped
+                      ? "translate(-12px, 2px)"       // starts just below dot, goes down
+                      : "translate(-12px, -44px)",    // starts above dot, goes up
                   }}
                   viewBox="0 0 24 44"
                 >
                   <line
-                    x1="12" y1="44"
-                    x2="12" y2="0"
-                    stroke={isHovered ? "#0066ff" : "rgba(255,255,255,0.85)"}
+                    x1="12" y1={flipped ? 0 : 44}
+                    x2="12" y2={flipped ? 44 : 0}
+                    stroke={stroke}
                     strokeWidth="2"
                     strokeDasharray="2.5 2.5"
                   />
                 </svg>
 
-                {/* 3. Number badge at the top of the leader line */}
+                {/* 3. Number badge — below dot when flipped, above when normal */}
                 <div
                   className="absolute pointer-events-none flex items-center justify-center"
                   style={{
                     left: "50%",
                     top: "50%",
-                    transform: "translate(-50%, -56px)",
+                    transform: flipped
+                      ? "translate(-50%, 48px)"   // 48px below center (below the 44px line)
+                      : "translate(-50%, -56px)", // 56px above center
                   }}
                 >
                   <div
