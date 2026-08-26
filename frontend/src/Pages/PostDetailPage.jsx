@@ -372,21 +372,6 @@ const PostDetailPage = () => {
                   );
                 })}
 
-                {/* "Tap a pin to shop" badge */}
-                {allItems.length > 0 && (
-                  <div
-                    className="absolute bottom-3 right-3 z-10 text-[11.5px] font-bold px-2.5 py-1.5 rounded-full shadow-sm"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.88)",
-                      color: "#0F172A",
-                      backdropFilter: "blur(10px)",
-                      border: "1px solid rgba(255,255,255,0.6)",
-                      boxShadow: "0 2px 8px rgba(15,23,42,0.12)",
-                    }}
-                  >
-                    Tap a pin to shop
-                  </div>
-                )}
               </div>
 
               {/* Title + Author + action icons row (Attached to Image Bottom) */}
@@ -703,11 +688,6 @@ const PostDetailPage = () => {
                   })}
                 </div>
 
-                {/* Hint row */}
-                <div className="flex items-center gap-1.5 mt-2.5 text-xs" style={{ color: "#64748B" }}>
-                  <Info size={13} />
-                  Tap a numbered pin on the photo to jump here
-                </div>
               </div>
             )}
           </>
