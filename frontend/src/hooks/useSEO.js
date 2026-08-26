@@ -97,6 +97,8 @@ export function useSEO({
     // ── Basic ─────────────────────────────────────────────────────────────────
     document.title = resolvedTitle;
     setMeta('description', resolvedDesc);
+    // Keep both brand spellings indexed so users can find the site with or without the space
+    setMeta('keywords', 'Setup Spot, SetupSpot, desk setup, battlestation, workspace, gaming setup, productivity setup, desk tour, gear tag, setup sharing');
 
     // ── Robots ────────────────────────────────────────────────────────────────
     setMeta('robots', noindex ? 'noindex, nofollow' : 'index, follow');

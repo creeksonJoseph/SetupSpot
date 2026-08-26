@@ -73,13 +73,13 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
             Expand
           </div>
 
-          {/* Item pins — 44px touch target wrapper around refined visual dot */}
+          {/* Item pins — 3-part design: focal dot + dotted leader line + number badge */}
           {items.map((item, index) => {
             const isHovered = item.id === hoveredItemId;
             return (
               <div
                 key={item.id}
-                className="absolute z-10 w-11 h-11 flex items-center justify-center cursor-pointer select-none"
+                className="absolute z-10 cursor-pointer select-none"
                 style={{
                   top: `${item.y}%`,
                   left: `${item.x}%`,
@@ -89,17 +89,61 @@ const SetupImageCanvas = ({ imageUrl, items = [], hoveredItemId, setHoveredItemI
                 onMouseEnter={() => setHoveredItemId(item.id)}
                 onMouseLeave={() => setHoveredItemId(null)}
               >
-                <div
-                  className={`rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
-                    isHovered ? "w-8 h-8 scale-110 shadow-lg" : "w-6.5 h-6.5 shadow-md"
-                  }`}
+                {/* 1. Focal dot with pulse ring */}
+                <div className="relative flex items-center justify-center">
+                  <span
+                    className={`absolute w-5 h-5 rounded-full animate-ping ${
+                      isHovered ? "bg-[#0066ff] opacity-75" : "bg-white opacity-40"
+                    }`}
+                  />
+                  <span
+                    className={`relative w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-all ${
+                      isHovered
+                        ? "bg-[#0066ff] scale-125 ring-2 ring-[#0066ff]/40"
+                        : "bg-slate-900 hover:scale-110 hover:bg-[#0066ff]"
+                    }`}
+                  />
+                </div>
+
+                {/* 2. Dotted leader line rising from the focal dot */}
+                <svg
+                  className="absolute pointer-events-none overflow-visible"
                   style={{
-                    backgroundColor: "#0066ff",
-                    border: "2px solid rgba(255,255,255,0.9)",
-                    boxShadow: isHovered ? "0 0 0 4px rgba(0,102,255,0.3)" : "0 2px 6px rgba(0,0,0,0.3)",
+                    left: "50%",
+                    top: "50%",
+                    width: "24px",
+                    height: "44px",
+                    transform: "translate(-12px, -44px)",
+                  }}
+                  viewBox="0 0 24 44"
+                >
+                  <line
+                    x1="12" y1="44"
+                    x2="12" y2="0"
+                    stroke={isHovered ? "#0066ff" : "rgba(255,255,255,0.85)"}
+                    strokeWidth="2"
+                    strokeDasharray="2.5 2.5"
+                  />
+                </svg>
+
+                {/* 3. Number badge at the top of the leader line */}
+                <div
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={{
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -56px)",
                   }}
                 >
-                  {index + 1}
+                  <div
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-black shadow-lg border transition-all duration-200 pointer-events-auto flex items-center justify-center min-w-[22px] h-[22px] ${
+                      isHovered
+                        ? "bg-[#0066ff] text-white border-white ring-2 ring-[#0066ff]/30 scale-110"
+                        : "bg-[#0F172A] text-white border-white/30 hover:bg-[#0066ff]"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
                 </div>
               </div>
             );

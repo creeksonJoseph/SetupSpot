@@ -32,6 +32,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthFetch } from './useAuthFetch';
 import { useSetupDraft } from './useSetupDraft';
+import { API } from './api';
 
 export function useCreateSetup() {
   const navigate = useNavigate();
@@ -162,8 +163,9 @@ export function useCreateSetup() {
   // ─── Early Upload (PC file picker) ────────────────────────────────────────
   /**
    * Called the instant the user selects a file.
-   * Uploads immediately to /api/early-upload → stores the returned Cloudinary
-   * URL (not the File object) so the draft survives a page refresh.
+   * Uses XMLHttpRequest instead of fetch() so we can track real upload progress
+   * via xhr.upload.onprogress — fetch() has no upload progress API.
+   * withCredentials mirrors fetch's credentials:'include' for the HTTP-only auth cookie.
    */
   const handleFileUpload = useCallback(
     async (event) => {
@@ -171,45 +173,75 @@ export function useCreateSetup() {
       if (!file) return;
 
       setIsUploading(true);
-      setUploadProgress(20);
+      setUploadProgress(0);
       setApiMessage({ text: '', type: '' });
 
       const formData = new FormData();
       formData.append('file', file, file.name);
 
-      try {
-        setUploadProgress(50);
-        const response = await authFetch('/api/early-upload', {
-          method: 'POST',
-          body: formData,
+      const uploadUrl = `${API}/api/early-upload`;
+
+      await new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.withCredentials = true; // send HTTP-only auth cookie
+
+        // ── Real upload progress ─────────────────────────────
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            // Reserve the last 5% for server processing / response parsing
+            const pct = Math.round((e.loaded / e.total) * 95);
+            setUploadProgress(pct);
+          }
         });
 
-        setUploadProgress(85);
-        const result = await response.json();
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              const imageUrl = result.image_url;
+              setUploadedImageUrl(imageUrl);
+              setUploadedImageSrc(imageUrl);
+              setUploadProgress(100);
+              setTimeout(() => {
+                setIsUploading(false);
+                setIsAnnotating(true);
+              }, 300);
+            } catch {
+              setIsUploading(false);
+              setUploadProgress(0);
+              setApiMessage({ text: 'Failed to parse server response.', type: 'error' });
+            }
+          } else {
+            let detail = 'Early upload failed.';
+            try {
+              detail = JSON.parse(xhr.responseText)?.detail || detail;
+            } catch { /* ignore */ }
+            setIsUploading(false);
+            setUploadProgress(0);
+            setApiMessage({ text: `Failed to upload image: ${detail}`, type: 'error' });
+          }
+          resolve();
+        });
 
-        if (!response.ok) {
-          throw new Error(result.detail || 'Early upload failed.');
-        }
-
-        const imageUrl = result.image_url;
-        setUploadedImageUrl(imageUrl);
-        setUploadedImageSrc(imageUrl);
-        setUploadProgress(100);
-
-        setTimeout(() => {
+        xhr.addEventListener('error', () => {
           setIsUploading(false);
-          setIsAnnotating(true);
-        }, 300);
-      } catch (err) {
-        setIsUploading(false);
-        setUploadProgress(0);
-        setApiMessage({
-          text: `Failed to upload image: ${err.message}`,
-          type: 'error',
+          setUploadProgress(0);
+          setApiMessage({ text: 'Network error — could not upload image.', type: 'error' });
+          resolve();
         });
-      }
+
+        xhr.addEventListener('abort', () => {
+          setIsUploading(false);
+          setUploadProgress(0);
+          resolve();
+        });
+
+        xhr.send(formData);
+      });
     },
-    [authFetch]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   // ─── Remote Image URL (Phone QR path) ─────────────────────────────────────

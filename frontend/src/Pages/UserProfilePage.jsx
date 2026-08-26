@@ -180,7 +180,7 @@ const UserProfilePage = () => {
               </p>
             )}
 
-            <div className="flex items-center gap-6 mt-4 pt-4 border-t" style={{ borderColor: "#F1F5F9" }}>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-4 pt-4 border-t" style={{ borderColor: "#F1F5F9" }}>
               <div>
                 <span className="text-lg font-black" style={{ color: "#0F172A" }}>
                   {setupCount !== undefined ? (
