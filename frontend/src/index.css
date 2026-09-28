@@ -138,6 +138,24 @@ html, body, #root {
   animation: blink 0.8s infinite;
 }
 
+/* Landing page image skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.landing-img-shimmer {
+  background: linear-gradient(
+    90deg,
+    #e8eaf0 25%,
+    #f0f2f7 50%,
+    #e8eaf0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+
 @keyframes slide-in-right {
   from {
     transform: translateX(120%);

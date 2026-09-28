@@ -1,4 +1,5 @@
 import React from 'react';
+import LandingImage from './LandingImage';
 
 export default function HowItWorksSection({ stepDiscover, stepTag, stepSave }) {
   return (
@@ -25,10 +26,11 @@ export default function HowItWorksSection({ stepDiscover, stepTag, stepSave }) {
           </div>
         </div>
         <div className="w-full md:w-1/2 order-1 md:order-1 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#ffffff] shadow-md transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:border-[#0066ff]/40 cursor-pointer">
-          <img
-            className="w-full h-64 md:h-80 object-cover transition-transform duration-500 ease-out hover:scale-102"
+          <LandingImage
+            className="h-64 md:h-80 transition-transform duration-500 ease-out hover:scale-102"
             alt="An expansive view of workspace setups"
             src={stepDiscover}
+            loading="lazy"
           />
         </div>
         <div className="w-full md:w-1/2 order-2 md:order-2 space-y-3 lg:pl-8">
@@ -55,10 +57,11 @@ export default function HowItWorksSection({ stepDiscover, stepTag, stepSave }) {
           </p>
         </div>
         <div className="w-full md:w-1/2 order-1 md:order-2 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#ffffff] shadow-md transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:border-[#0066ff]/40 cursor-pointer">
-          <img
-            className="w-full h-64 md:h-80 object-cover transition-transform duration-500 ease-out hover:scale-102"
+          <LandingImage
+            className="h-64 md:h-80 transition-transform duration-500 ease-out hover:scale-102"
             alt="Interactive tagging system overlay on desk setup"
             src={stepTag}
+            loading="lazy"
           />
         </div>
       </div>
@@ -69,10 +72,11 @@ export default function HowItWorksSection({ stepDiscover, stepTag, stepSave }) {
           <div className="w-5 h-5 rounded-full bg-[#0066ff] shadow-md border-4 border-[#f7f9fb]"></div>
         </div>
         <div className="w-full md:w-1/2 order-1 md:order-1 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#ffffff] shadow-md transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:border-[#0066ff]/40 cursor-pointer">
-          <img
-            className="w-full h-64 md:h-80 object-cover transition-transform duration-500 ease-out hover:scale-102"
+          <LandingImage
+            className="h-64 md:h-80 transition-transform duration-500 ease-out hover:scale-102"
             alt="Digital mood boards and curated collections"
             src={stepSave}
+            loading="lazy"
           />
         </div>
         <div className="w-full md:w-1/2 order-2 md:order-2 space-y-3 lg:pl-8">

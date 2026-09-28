@@ -1,4 +1,5 @@
 import React from 'react';
+import LandingImage from './LandingImage';
 
 export default function FeaturedShowcaseSection({ heroBackLeft, heroBackRight, heroCenter }) {
   return (
@@ -6,28 +7,28 @@ export default function FeaturedShowcaseSection({ heroBackLeft, heroBackRight, h
       <div className="relative w-full max-w-5xl mx-auto pt-8 pb-4">
         {/* Back Left Supporting Photo (Tucked behind back corner at -rotate-6) */}
         <div className="absolute -left-6 sm:-left-12 -top-4 sm:-top-8 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 -rotate-6 z-0 rounded-2xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-xl hidden sm:block transition-all duration-300 ease-out hover:-translate-y-2 hover:rotate-0 hover:shadow-2xl hover:z-20 cursor-pointer">
-          <img
-            className="w-full h-full object-cover"
+          <LandingImage
             alt="Minimal mechanical keyboard setup"
             src={heroBackLeft}
+            loading="lazy"
           />
         </div>
 
         {/* Back Right Supporting Photo (Tucked behind back corner at rotate-6) */}
         <div className="absolute -right-6 sm:-right-12 -top-2 sm:-top-6 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 rotate-6 z-0 rounded-2xl overflow-hidden border-4 border-[#ffffff] bg-[#ffffff] shadow-xl hidden sm:block transition-all duration-300 ease-out hover:-translate-y-2 hover:rotate-0 hover:shadow-2xl hover:z-20 cursor-pointer">
-          <img
-            className="w-full h-full object-cover"
+          <LandingImage
             alt="Organized desk gear and cables"
             src={heroBackRight}
+            loading="lazy"
           />
         </div>
 
         {/* Main Focal Center Desk Photo — Static, no hover motion */}
         <div className="relative z-10 w-full aspect-video rounded-3xl overflow-hidden border-4 border-[#ffffff] shadow-2xl bg-[#ffffff]">
-          <img
-            className="w-full h-full object-cover"
+          <LandingImage
             alt="Beautifully organized desk setup"
             src={heroCenter}
+            loading="eager"
           />
 
           {/* Sequential Animated Equipment Tag Callouts */}

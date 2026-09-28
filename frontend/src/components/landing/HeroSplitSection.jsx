@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import LandingImage from './LandingImage';
 
 export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, col3Images }) {
   const mobileImages = [...col1Images, ...col2Images, ...col3Images];
@@ -35,10 +36,10 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
                 key={idx}
                 className="shrink-0 w-40 aspect-[4/5] rounded-2xl overflow-hidden border-2 border-white shadow-md bg-white snap-center"
               >
-                <img
+                <LandingImage
                   src={img}
                   alt={`Setup ${idx + 1}`}
-                  className="object-cover w-full h-full"
+                  loading={idx < 4 ? 'eager' : 'lazy'}
                 />
               </div>
             ))}
@@ -83,14 +84,14 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up">
                 {col1Images.map((img, idx) => (
                   <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} loading={idx === 0 ? 'eager' : 'lazy'} />
                   </div>
                 ))}
               </div>
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up" aria-hidden="true">
                 {col1Images.map((img, idx) => (
                   <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} />
                   </div>
                 ))}
               </div>
@@ -101,14 +102,14 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-down">
                 {col2Images.map((img, idx) => (
                   <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} loading={idx === 0 ? 'eager' : 'lazy'} />
                   </div>
                 ))}
               </div>
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-down" aria-hidden="true">
                 {col2Images.map((img, idx) => (
                   <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} />
                   </div>
                 ))}
               </div>
@@ -119,14 +120,14 @@ export default function HeroSplitSection({ isLoggedIn, col1Images, col2Images, c
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up-slow">
                 {col3Images.map((img, idx) => (
                   <div key={idx} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} loading={idx === 0 ? 'eager' : 'lazy'} />
                   </div>
                 ))}
               </div>
               <div className="flex flex-col gap-4 shrink-0 animate-marquee-up-slow" aria-hidden="true">
                 {col3Images.map((img, idx) => (
                   <div key={`dup-${idx}`} className="rounded-2xl overflow-hidden border-2 border-[#ffffff] shadow-md bg-white aspect-[4/5] shrink-0">
-                    <img src={img} alt={`Setup ${idx + 1}`} className="w-full h-full object-cover" />
+                    <LandingImage src={img} alt={`Setup ${idx + 1}`} />
                   </div>
                 ))}
               </div>
