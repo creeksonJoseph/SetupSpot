@@ -30,10 +30,13 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
 1. [**Getting Started**](getting-started.md) — Local prerequisites, environment variables configuration, external sandbox setup, and running backend/frontend dev servers.
 2. [**Architecture & Design Patterns**](architecture.md) — System architecture diagram, module map, layered request tracing, caching strategies, and background worker queues.
 3. [**Security Architecture**](security.md) — Authentication flows (Password, Email OTP, Google OAuth), token handling, HTTP-only cookie lifecycle, CORS, rate-limiting, and code audit findings.
-4. **Third-Party Service Integrations**:
+4. [**Error Handling & Sentry Monitoring**](error-handling.md) — Production error handling pipeline, 4xx vs 5xx separation, Sentry crash ingestion & APM profiling, and verification via `/api/sentry-debug`.
+5. **Third-Party Service Integrations**:
+   - [Sentry Error Monitoring](error-handling.md) — Error reporting, performance profiling, and alert suppression.
    - [Upstash Redis Integration](integrations/redis-upstash.md) — Feed caching, sliding-window rate limits, and token revocation blocklists.
    - [Google OAuth Integration](integrations/google-oauth.md) — Google One Tap (GSI) authentication & ID token validation.
    - [Cloudinary Image Service](integrations/cloudinary.md) — Image hosting, early photo uploads, and CDN delivery.
    - [Algolia Search Engine](integrations/algolia.md) — Instant client-side search & background indexing.
    - [Resend Email Gateway](integrations/resend.md) — OTP email delivery for signup & password reset.
    - [FastEmbed & pgvector Embeddings](integrations/fastembed-pgvector.md) — AI vector similarity search for desk setups.
+

@@ -8,16 +8,22 @@ Responsibilities:
 """
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 
 from core.config import settings
+from core.sentry import init_sentry
+from core.errors import register_exception_handlers
 from core.cloudinary_client import init_cloudinary
 from core.database import ensure_db_schema
 from api.routers import auth, setups, collections, favorites, users
 from api.routers import likes, comments, mobile_upload, early_upload, admin, feedback, sitemap
+
+# ── Early Sentry Initialization ───────────────────────────────────────────────
+# Must be executed before the FastAPI application instance is created.
+init_sentry()
 
 # ── Init external services & DB schema checks ────────────────────────────────
 init_cloudinary()
@@ -55,6 +61,9 @@ app.add_middleware(
 # Free win: browsers and HTTP clients all support gzip natively.
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+# ── Production Error & Exception Handling ─────────────────────────────────────
+register_exception_handlers(app, cors_origins)
+
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
 app.include_router(setups.router)
@@ -70,37 +79,13 @@ app.include_router(feedback.router)
 app.include_router(sitemap.router)
 
 
-
-ALLOWED_ORIGINS = set(cors_origins)
-
-
-@app.exception_handler(HTTPException)
-async def custom_http_exception_handler(request, exc: HTTPException):
-    origin = request.headers.get("origin", "")
-    allow_origin = origin if origin in ALLOWED_ORIGINS else cors_origins[0]
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": allow_origin,
-            "Access-Control-Allow-Credentials": "true",
-        },
-    )
-
-
-@app.exception_handler(Exception)
-async def custom_general_exception_handler(request, exc: Exception):
-    origin = request.headers.get("origin", "")
-    allow_origin = origin if origin in ALLOWED_ORIGINS else cors_origins[0]
-    print(f"Unhandled Server Exception: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal Server Error"},
-        headers={
-            "Access-Control-Allow-Origin": allow_origin,
-            "Access-Control-Allow-Credentials": "true",
-        },
-    )
+# ── Verification Route ────────────────────────────────────────────────────────
+@app.get("/api/sentry-debug", tags=["Debug"], summary="Trigger Sentry test error")
+@app.get("/sentry-debug", include_in_schema=False)
+async def trigger_sentry_debug():
+    """Trigger a simulated division-by-zero error to verify Sentry capture and 500 handling."""
+    division_by_zero = 1 / 0
+    return {"result": division_by_zero}
 
 
 DEFAULT_INDEX_HTML = """<!doctype html>

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     ALGOLIA_INDEX_NAME: str = "setups"
     UPSTASH_REDIS_REST_URL: str | None = None
     UPSTASH_REDIS_REST_TOKEN: str | None = None
+    SENTRY_DSN: str | None = None
+    ENVIRONMENT: str = "development"
 
     class Config:
         env_file = ".env"
