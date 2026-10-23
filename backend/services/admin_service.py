@@ -1,3 +1,4 @@
+from core.config import settings
 """Admin business logic service layer."""
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -5,7 +6,7 @@ from models.user import User
 from models.comment import Comment
 from transactions import admin_repo
 
-ADMIN_EMAIL = "charanajoseph@gmail.com"
+ADMIN_EMAIL = settings.ADMIN_EMAIL
 
 
 def is_admin_user(user: User) -> bool:

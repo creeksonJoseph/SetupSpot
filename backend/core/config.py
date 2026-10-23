@@ -24,6 +24,16 @@ class Settings(BaseSettings):
     SENTRY_DSN: str | None = None
     ENVIRONMENT: str = "development"
 
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.is_production:
+            if self.SECRET_KEY == "default_secret_key_change_in_prod" or len(self.SECRET_KEY) < 32:
+                raise ValueError("A strong SECRET_KEY (at least 32 chars) must be provided in production")
+
     class Config:
         env_file = ".env"
         extra = "ignore"

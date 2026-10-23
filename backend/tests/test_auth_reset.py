@@ -35,7 +35,8 @@ def test_reset_password_updates_hash_and_allows_login(monkeypatch, db):
     _clear_user(db, email)
 
     auth_service.register(db, email=email, username='resetuser', password='oldpass123')
-    auth_service.request_password_reset(db, email=email)
+    from fastapi import BackgroundTasks
+    auth_service.request_password_reset(db, email=email, background_tasks=BackgroundTasks())
 
     user = user_repo.get_by_email(db, email)
     assert user is not None

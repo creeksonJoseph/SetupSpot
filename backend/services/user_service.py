@@ -1,3 +1,4 @@
+from core.config import settings
 from sqlalchemy.orm import Session
 from models.user import User
 from api.schemas.user import UserOut, UserSetupOut, PublicUserOut, PublicCollectionOut
@@ -13,7 +14,7 @@ def get_user_profile(user: User) -> UserOut:
     total_likes = sum(len(getattr(s, "likes", [])) for s in (user.setups or []))
     is_admin = bool(
         getattr(user, "is_admin", False)
-        or (user.email and user.email.lower() == "charanajoseph@gmail.com")
+        or (user.email and user.email.lower() == settings.ADMIN_EMAIL)
     )
     return UserOut(
         id=user.id,

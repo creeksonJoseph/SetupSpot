@@ -1,6 +1,6 @@
 """Pydantic schemas for user responses."""
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserSetupOut(BaseModel):
@@ -13,8 +13,8 @@ class UserOut(BaseModel):
     id: int
     username: str
     email: str
-    bio: str | None = None
-    avatar_url: str | None = None
+    bio: str | None = Field(None, max_length=1000)
+    avatar_url: str | None = Field(None, max_length=1024)
     is_admin: bool = False
     post_count: int = 0
     total_likes: int = 0
@@ -23,9 +23,9 @@ class UserOut(BaseModel):
 
 
 class UpdateProfileRequest(BaseModel):
-    username: str | None = None
-    bio: str | None = None
-    avatar_url: str | None = None
+    username: str | None = Field(None, max_length=100)
+    bio: str | None = Field(None, max_length=1000)
+    avatar_url: str | None = Field(None, max_length=1024)
 
 
 # ── Public profile schemas (no email, no favorites) ───────────────────────────

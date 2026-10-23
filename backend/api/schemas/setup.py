@@ -1,10 +1,10 @@
 """Pydantic schemas for setup requests and responses."""
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AnnotatedItemOut(BaseModel):
     id: int
-    name: str
+    name: str = Field(..., max_length=100)
     price: float
     link: str | None
     description: str | None
@@ -25,7 +25,7 @@ class SetupListItemOut(BaseModel):
 class SetupDetailOut(BaseModel):
     """Shape returned by GET /setups/{id}."""
     id: int
-    name: str
+    name: str = Field(..., max_length=100)
     image_url: str | None
     user_id: int
     author_username: str
@@ -37,15 +37,15 @@ class SetupDetailOut(BaseModel):
 
 
 class ItemCreateIn(BaseModel):
-    name: str
+    name: str = Field(..., max_length=100)
     price: float | str | None = None
-    link: str | None = None
-    description: str | None = None
+    link: str | None = Field(None, max_length=255)
+    description: str | None = Field(None, max_length=2000)
     x: float | None = None
     y: float | None = None
 
 
 class SetupUpdateIn(BaseModel):
-    setup_name: str
+    setup_name: str = Field(..., max_length=100)
     items: list[ItemCreateIn] = []
 

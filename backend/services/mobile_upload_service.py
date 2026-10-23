@@ -20,12 +20,9 @@ async def process_mobile_upload(file: UploadFile, session_id: str) -> dict:
             detail="QR session closed. The session is no longer active — either the image was already sent, or the 10-minute limit was reached. Please generate a new QR code on your desktop screen.",
         )
 
-    # 2. File type validation
-    if not file or not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File uploaded must be an image",
-        )
+    from core.file_upload import validate_image_file
+    validate_image_file(file)
+
 
     # 3. Save to Cloudinary
     try:
