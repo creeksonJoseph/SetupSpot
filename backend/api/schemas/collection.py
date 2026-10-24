@@ -1,14 +1,14 @@
 """Pydantic schemas for collection requests and responses."""
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CollectionCreateRequest(BaseModel):
-    name: str
+    name: str = Field(..., max_length=100)
 
 
 class CollectionUpdateRequest(BaseModel):
-    name: str
+    name: str = Field(..., max_length=100)
 
 
 class AddItemToCollectionRequest(BaseModel):
@@ -17,7 +17,7 @@ class AddItemToCollectionRequest(BaseModel):
 
 class CollectionItemOut(BaseModel):
     id: int
-    name: str
+    name: str = Field(..., max_length=100)
     price: float
     link: Optional[str] = None
     description: Optional[str] = None
@@ -34,7 +34,7 @@ class CollectionItemOut(BaseModel):
 
 class CollectionOut(BaseModel):
     id: int
-    name: str
+    name: str = Field(..., max_length=100)
     user_id: int
     author_username: Optional[str] = None
     item_count: int = 0

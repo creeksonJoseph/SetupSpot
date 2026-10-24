@@ -84,7 +84,8 @@ def register(db: Session, email: str, username: str, password: str) -> dict:
     return _auth_response(token, user)
 
 
-def signup_send_otp(db: Session, email: str) -> None:
+from fastapi import BackgroundTasks
+def signup_send_otp(db: Session, email: str, background_tasks: BackgroundTasks) -> None:
     """Step 1 / resend — send a signup OTP. Rejects if email is already registered."""
     normalized = email.strip().lower()
     if user_repo.get_by_email(db, normalized):
@@ -128,7 +129,7 @@ def signup_send_otp(db: Session, email: str) -> None:
         "window_start": window_start,
     }
     logger.info(f"[SIGNUP] OTP generated | email={normalized} attempt={resend_count + 1}")
-    send_otp_email(normalized, otp, purpose="signup")
+    background_tasks.add_task(send_otp_email, normalized, otp, "signup")
 
 
 def signup_verify_otp(email: str, otp: str) -> str:
@@ -203,7 +204,10 @@ def login(db: Session, email: str, password: str) -> dict:
             detail=_get_remaining_minutes_msg(ttl),
         )
     user = user_repo.get_by_email(db, normalized_email)
-    if not user or not verify_password(password, user._password_hash):
+    if not user:
+        _pwd_context.dummy_verify()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if not verify_password(password, user._password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -301,7 +305,7 @@ def _check_rate_limit(store: dict, key, label: str) -> None:
     logger.info(f"[{label}] rate-limit count={count + 1} key={key}")
 
 
-def request_password_reset(db: Session, email: str) -> None:
+def request_password_reset(db: Session, email: str, background_tasks: BackgroundTasks) -> None:
     """Generate a 6-digit OTP and email it. Always returns 200 to avoid user enumeration."""
     normalized_email = email.strip().lower()
     logger.info(f"[RESET] Request received | email={normalized_email}")
@@ -320,7 +324,7 @@ def request_password_reset(db: Session, email: str) -> None:
     user.reset_token = otp
     user.reset_token_expires = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
     user_repo.save(db, user)
-    send_otp_email(user.email, otp, purpose="reset")
+    background_tasks.add_task(send_otp_email, user.email, otp, "reset")
 
 
 def _is_expired(expires_at: datetime | None) -> bool:

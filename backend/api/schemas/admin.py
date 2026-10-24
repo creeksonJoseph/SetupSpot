@@ -1,14 +1,15 @@
 """Admin and Feedback Pydantic schemas."""
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from core.config import settings
 
-ADMIN_EMAIL = "charanajoseph@gmail.com"
+ADMIN_EMAIL = settings.ADMIN_EMAIL
 
 
 class AdminDashboardStats(BaseModel):
     db_status: Optional[str] = "Connected & Healthy"
-    admin_email: Optional[str] = "charanajoseph@gmail.com"
+    admin_email: Optional[str] = settings.ADMIN_EMAIL
     latency_ms: Optional[str] = "< 15 ms"
     total_users: int
     total_setups: int
@@ -34,7 +35,7 @@ class AdminUserOut(BaseModel):
 
 
 class FeedbackCreate(BaseModel):
-    message: str
+    message: str = Field(..., max_length=5000)
     category: Optional[str] = "feature_suggestion"
 
 
@@ -43,7 +44,7 @@ class FeedbackOut(BaseModel):
     user_id: int
     username: str
     user_email: str
-    message: str
+    message: str = Field(..., max_length=5000)
     category: str
     status: str
     created_at: datetime

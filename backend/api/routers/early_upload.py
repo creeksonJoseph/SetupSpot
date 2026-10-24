@@ -31,12 +31,9 @@ async def handle_early_upload(
     as part of the draft state. The 'setupspot/' folder prefix ensures the
     weekly orphan-cleanup cron picks up any images whose posts were never submitted.
     """
-    # 1. Validate file type
-    if not file or not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded file must be an image.",
-        )
+    from core.file_upload import validate_image_file
+    validate_image_file(file)
+
 
     # 2. Upload to Cloudinary — same folder the orphan-cleanup cron scans
     try:

@@ -1,3 +1,4 @@
+from core.config import settings
 """Admin database operations and pre-computed stats queries."""
 import time
 from datetime import datetime, timedelta
@@ -24,7 +25,7 @@ def get_dashboard_stats(db: Session) -> dict:
 
     # Dynamic Admin Email
     admin_user = db.query(User).filter(User.is_admin == True).first()
-    admin_email = admin_user.email if admin_user else "charanajoseph@gmail.com"
+    admin_email = admin_user.email if admin_user else settings.ADMIN_EMAIL
 
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
 
@@ -97,7 +98,7 @@ def list_users_with_stats(db: Session) -> list:
             "id": u.id,
             "email": u.email,
             "username": u.username,
-            "is_admin": u.is_admin or (u.email.lower() == "charanajoseph@gmail.com"),
+            "is_admin": u.is_admin or (u.email.lower() == settings.ADMIN_EMAIL),
             "setup_count": setup_count,
             "created_at": u.created_at,
         })

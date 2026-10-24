@@ -60,6 +60,9 @@ def create_setup(
     - Legacy path: pass ``file_obj`` (a raw file-like object). The image
       is uploaded to Cloudinary on the fly. Kept for backwards compatibility.
     """
+    from core.file_upload import validate_image_file_obj
+    validate_image_file_obj(file_obj)
+
     if pre_uploaded_url:
         image_url = pre_uploaded_url
     elif file_obj is not None:

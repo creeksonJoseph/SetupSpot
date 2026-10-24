@@ -30,9 +30,11 @@ def register(body: RegisterRequest, response: Response, db: Session = Depends(ge
     return data
 
 
-@router.post("/signup/send-otp", status_code=200)
-def signup_send_otp(body: SignupSendOtpRequest, db: Session = Depends(get_db)):
-    auth_service.signup_send_otp(db, email=body.email)
+
+from fastapi import BackgroundTasks
+
+def signup_send_otp(body: SignupSendOtpRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    auth_service.signup_send_otp(db, email=body.email, background_tasks=background_tasks)
     return {"message": "Verification code sent. Check your spam folder."}
 
 
@@ -72,9 +74,10 @@ def logout(request: Request, response: Response):
     return {"message": "Logged out"}
 
 
-@router.post("/forgot-password", status_code=200)
-def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    auth_service.request_password_reset(db, email=body.email)
+
+
+def forgot_password(body: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    auth_service.request_password_reset(db, email=body.email, background_tasks=background_tasks)
     return {"message": "If that email exists, a 6-digit code has been sent. Check your spam folder."}
 
 

@@ -1,3 +1,4 @@
+from core.config import settings
 """Feedback service layer with email notification dispatch."""
 import logging
 from sqlalchemy.orm import Session
@@ -6,7 +7,7 @@ from models.feedback import Feedback
 from transactions import feedback_repo
 
 
-ADMIN_EMAIL = "charanajoseph@gmail.com"
+ADMIN_EMAIL = settings.ADMIN_EMAIL
 logger = logging.getLogger("setupspot.feedback")
 
 

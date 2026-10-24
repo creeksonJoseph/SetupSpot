@@ -1,17 +1,17 @@
 """Pydantic schemas for comment requests and responses."""
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CommentIn(BaseModel):
-    body: str
+    body: str = Field(..., max_length=2000)
     parent_id: int | None = None
 
 
 class CommentOut(BaseModel):
     id: int
-    body: str
+    body: str = Field(..., max_length=2000)
     author: str
     author_avatar: str | None
     parent_id: int | None = None
