@@ -11,17 +11,17 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
 
 | Component Layer | Technology | Primary Package / Version | Source File Reference |
 | :--- | :--- | :--- | :--- |
-| **Frontend Framework** | React 19 + Vite | `react` `^19.1.1`, `vite` `^7.1.7` | [`frontend/package.json`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/package.json#L19-L33) |
-| **Frontend Styling** | Vanilla CSS + Tailwind CSS v4 | `@tailwindcss/vite` `^4.1.17` | [`frontend/package.json`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/frontend/package.json#L14-L22) |
-| **Backend Framework** | FastAPI | `fastapi` `>=0.115.0`, `uvicorn` `>=0.32.0` | [`backend/pyproject.toml`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/pyproject.toml#L8-L9) |
-| **Python Environment** | Python 3.13 + `uv` | `requires-python = ">=3.13"` | [`backend/pyproject.toml`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/pyproject.toml#L6) |
-| **Database & ORM** | PostgreSQL + SQLAlchemy 2 | `psycopg2-binary`, `sqlalchemy` `>=2.0.36` | [`backend/core/database.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/database.py#L1-L25) |
-| **Vector Search** | `pgvector` + FastEmbed | `pgvector` `>=0.5.0`, `fastembed` `>=0.8.0` | [`backend/services/recommendation_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/recommendation_service.py#L8-L22) |
-| **Caching Layer** | Upstash Redis (REST API) | `upstash-redis` `>=1.7.0` | [`backend/core/redis_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/redis_client.py#L1-L30) |
-| **Image Management** | Cloudinary API | `cloudinary` `>=1.42.0` | [`backend/core/cloudinary_client.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/cloudinary_client.py#L1-L15) |
-| **Search Engine** | Algolia Search | `algoliasearch` `>=4.44.4` (Py) / `^5.56.0` (JS) | [`backend/services/algolia_service.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/services/algolia_service.py#L1-L20) |
-| **Transactional Email** | Resend API | `resend` `>=2.34.0` | [`backend/core/email.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/email.py#L1-L25) |
-| **Authentication** | JWT Cookies + Google OAuth | `python-jose`, `argon2-cffi`, `bcrypt` | [`backend/core/security.py`](file:///home/creeksonjoseph/softwarengineering/personal-projects/SetupSpot/backend/core/security.py#L1-L35) |
+| **Frontend Framework** | React 19 + Vite | `react` `^19.1.1`, `vite` `^7.1.7` | [`frontend/package.json`](../frontend/package.json#L19-L33) |
+| **Frontend Styling** | Vanilla CSS + Tailwind CSS v4 | `@tailwindcss/vite` `^4.1.17` | [`frontend/package.json`](../frontend/package.json#L14-L22) |
+| **Backend Framework** | FastAPI | `fastapi` `>=0.115.0`, `uvicorn` `>=0.32.0` | [`backend/pyproject.toml`](../backend/pyproject.toml#L8-L9) |
+| **Python Environment** | Python 3.13 + `uv` | `requires-python = ">=3.13"` | [`backend/pyproject.toml`](../backend/pyproject.toml#L6) |
+| **Database & ORM** | PostgreSQL + SQLAlchemy 2 | `psycopg2-binary`, `sqlalchemy` `>=2.0.36` | [`backend/core/database.py`](../backend/core/database.py#L1-L25) |
+| **Vector Search** | `pgvector` + FastEmbed | `pgvector` `>=0.5.0`, `fastembed` `>=0.8.0` | [`backend/services/recommendation_service.py`](../backend/services/recommendation_service.py#L8-L22) |
+| **Caching Layer** | Upstash Redis (REST API) | `upstash-redis` `>=1.7.0` | [`backend/core/redis_client.py`](../backend/core/redis_client.py#L1-L30) |
+| **Image Management** | Cloudinary API | `cloudinary` `>=1.42.0` | [`backend/core/cloudinary_client.py`](../backend/core/cloudinary_client.py#L1-L15) |
+| **Search Engine** | Algolia Search | `algoliasearch` `>=4.44.4` (Py) / `^5.56.0` (JS) | [`backend/services/algolia_service.py`](../backend/services/algolia_service.py#L1-L20) |
+| **Transactional Email** | Resend API | `resend` `>=2.34.0` | [`backend/core/email.py`](../backend/core/email.py#L1-L25) |
+| **Authentication** | JWT Cookies + Google OAuth | `python-jose`, `argon2-cffi`, `bcrypt` | [`backend/core/security.py`](../backend/core/security.py#L1-L35) |
 
 ---
 
@@ -39,4 +39,3 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
    - [Algolia Search Engine](integrations/algolia.md) — Instant client-side search & background indexing.
    - [Resend Email Gateway](integrations/resend.md) — OTP email delivery for signup & password reset.
    - [FastEmbed & pgvector Embeddings](integrations/fastembed-pgvector.md) — AI vector similarity search for desk setups.
-
