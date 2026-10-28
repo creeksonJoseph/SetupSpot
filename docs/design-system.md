@@ -1,4 +1,4 @@
-# DESIGN.md — SetupSpot
+# SetupSpot Design System
 
 > Extracted directly from the **SetupSpot** codebase ([setupspot.com](https://setupspot.com)). SetupSpot is a light-mode community platform for desk setup enthusiasts, tech creators, and productivity aficionados to share, discover, tag equipment, create collections, and save favorites. Built with React, Tailwind CSS, FastAPI, and a clean light design token system centered on **SetupSpot Brand Royal Blue `#0066ff`**, crisp white card surfaces (`#ffffff`), light background canvas (`#f7f9fb`), deep slate typography (`#0F172A`), and hairline borders (`#E2E8F0`).
 

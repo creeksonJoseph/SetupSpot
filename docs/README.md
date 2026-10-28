@@ -7,6 +7,14 @@ SetupSpot is a full-stack, Pinterest-style web platform for sharing workspace se
 
 ---
 
+## Documentation Map
+
+- [Getting Started](getting-started.md) — Set up the backend, frontend, and external services locally.
+- [System Architecture](architecture.md) — Runtime architecture, module map, and request tracing.
+- [Architecture Guidance](architecture-guidance.md) — Layer boundaries and implementation patterns.
+- [Design System](design-system.md) — Visual tokens, layouts, and reusable component guidance.
+- [Security Architecture](security.md) — Authentication, authorization, CORS, and rate limiting.
+
 ## Verified Technology Stack
 
 | Component Layer | Technology | Primary Package / Version | Source File Reference |
